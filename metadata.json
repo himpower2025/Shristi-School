@@ -1,0 +1,6 @@
+{
+  "name": "Shristi Academy",
+  "description": "Premium responsive redesign of Shristi Academy Secondary School website in Nepal, featuring modern typography, intuitive layouts, an GPA calculator, admissions workspace, and a rich CMS notice editor for school staff.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
