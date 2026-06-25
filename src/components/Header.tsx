@@ -36,7 +36,7 @@ export default function Header({
   const menuItems = [
     { id: "home", label: "Welcome Home", sub: "Main Entrance Screen", icon: Home },
     { id: "about", label: "About Our Legacy", sub: "Our History (Established 2016 AD)", icon: Layers },
-    { id: "academics", label: "Academic Programs", sub: "Montessori & SEE Curriculums", icon: BookOpen },
+    { id: "academics", label: "Academic Programs", sub: "Kindergarten & SEE Curriculums", icon: BookOpen },
     { id: "notices", label: "Notices & Announcements", sub: "Circulars, Routings & Events", icon: NotebookText, badge: unreadCount },
     { id: "suggestions", label: "Suggestion Board", sub: "Parents' inquiries & shared complaints", icon: HelpCircle },
     { id: "tools", label: "School Calendar", sub: "Official Schedule & Dynamic Events", icon: Calendar },

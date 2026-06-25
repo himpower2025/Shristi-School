@@ -9,11 +9,10 @@ interface FooterProps {
 export default function Footer({ onNavigate, onOpenAdmin }: FooterProps) {
   
   const academicMenus = [
-    { label: "Montessori Early Years", section: "academics" },
-    { label: "Primary School (Classes 1-5)", section: "academics" },
-    { label: "Secondary School (Classes 6-10)", section: "academics" },
-    { label: "SEE Board Preparation Track", section: "academics" },
-    { label: "Computer Lab & Robotics Club", section: "academics" },
+    { label: "Kindergarten Foundation", section: "academics" },
+    { label: "Primary Education (Class 1-5)", section: "academics" },
+    { label: "Lower Secondary (Class 6-8)", section: "academics" },
+    { label: "Secondary Board Prep (Class 9-10)", section: "academics" },
   ];
 
   const servicesMenus = [

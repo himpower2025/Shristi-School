@@ -16,8 +16,8 @@ interface HeroProps {
 const CAMPUS_MOMENTS = [
   {
     image: learningImg,
-    title: "Montessori Early Learning",
-    description: "Nurturing young minds through interactive play and sensory exploration.",
+    title: "Kindergarten Foundations",
+    description: "Building strong initial literacy and coordination in a warm, standalone prep class.",
     tag: "Primary Life"
   },
   {
@@ -93,7 +93,7 @@ export default function Hero({ onExplorePrograms, onApplyNow, onViewNotices, las
               </span>
             </h1>
             <p className="text-slate-500 text-lg md:text-xl font-medium leading-relaxed max-w-2xl">
-              Nurturing young minds in Mid-Baneshwor, Kathmandu. Shristi Academy merges Montessori early learning with rigorous secondary education to prepare scholars for SEE excellence.
+              Nurturing young minds in Mid-Baneshwor, Kathmandu. Shristi Academy merges foundational kindergarten preparation with rigorous secondary education to prepare scholars for SEE excellence.
             </p>
           </div>
 
@@ -123,7 +123,7 @@ export default function Hero({ onExplorePrograms, onApplyNow, onViewNotices, las
               Admissions Open for Batch 2083 BS
             </span>
             <span>•</span>
-            <span className="text-slate-500">Montessori Playgroup to Class 10 (SEE)</span>
+            <span className="text-slate-500">Kindergarten to Class 10 (SEE)</span>
           </div>
 
         </div>
@@ -234,8 +234,8 @@ export default function Hero({ onExplorePrograms, onApplyNow, onViewNotices, las
                     <GraduationCap className="w-5.5 h-5.5" />
                   </div>
                   <div className="text-left">
-                    <h3 className="font-extrabold text-xs text-slate-900">Montessori & SEE Level</h3>
-                    <p className="text-[10px] text-slate-500">Excelling from Playgroup to Class 10</p>
+                    <h3 className="font-extrabold text-xs text-slate-900">Kindergarten to SEE Level</h3>
+                    <p className="text-[10px] text-slate-500">Excelling from Kindergarten to Class 10</p>
                   </div>
                 </div>
 

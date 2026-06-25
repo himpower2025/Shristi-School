@@ -1,10 +1,50 @@
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Outfit:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
 @import "tailwindcss";
 
 @theme {
-  --font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
-  --font-display: "Outfit", "Plus Jakarta Sans", sans-serif;
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Plus Jakarta Sans", "Inter", sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+
+  /* --- Brand Proposal 1: Sophisticated High-Trust Forest Green & Crimson Red --- */
+  /* Redefined indigo to represent deep, high-trust Mountain Forest Greens */
+  --color-indigo-50: #edf9f6;
+  --color-indigo-100: #dcf6f0;
+  --color-indigo-200: #9de5d2;
+  --color-indigo-300: #5fd0b3;
+  --color-indigo-400: #2abb96;
+  --color-indigo-500: #169a79;
+  --color-indigo-600: #128266;
+  --color-indigo-700: #0f6b54;
+  --color-indigo-800: #0b5341;
+  --color-indigo-900: #083c2e;
+  --color-indigo-950: #052219;
+
+  /* Redefined purple to represent intermediate Deep Sage & Emerald gradients */
+  --color-purple-50: #f1faf6;
+  --color-purple-100: #dcf5ec;
+  --color-purple-200: #bbf0dd;
+  --color-purple-300: #86e4c3;
+  --color-purple-400: #4ad2a4;
+  --color-purple-500: #10b981;
+  --color-purple-600: #059669;
+  --color-purple-700: #047857;
+  --color-purple-800: #065f46;
+  --color-purple-900: #064e3b;
+  --color-purple-950: #022c22;
+
+  /* Redefined pink to represent vibrant, elegant Crimson Star/Circle Red accents */
+  --color-pink-50: #fff5f5;
+  --color-pink-100: #ffe8e8;
+  --color-pink-200: #ffd0d0;
+  --color-pink-300: #ffabab;
+  --color-pink-400: #ff7d7d;
+  --color-pink-500: #e03131;
+  --color-pink-600: #c92a2a;
+  --color-pink-700: #b01e1e;
+  --color-pink-800: #961616;
+  --color-pink-900: #7a1010;
+  --color-pink-950: #4a0606;
 }
 
 @layer base {

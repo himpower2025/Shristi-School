@@ -13,7 +13,7 @@ export interface Notice {
 
 export interface AcademicProgram {
   id: string;
-  level: "Pre-School" | "Primary School" | "Secondary School";
+  level: "Kindergarten" | "Primary School" | "Lower Secondary" | "Secondary School";
   title: string;
   description: string;
   subjects: string[];

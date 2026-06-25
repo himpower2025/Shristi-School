@@ -224,9 +224,10 @@ export default function AdmissionForm({ onSubmitQuery }: AdmissionFormProps) {
                           onChange={(e) => setGradeOfInterest(e.target.value)}
                           className="w-full bg-white border border-indigo-100 p-3.5 rounded-xl text-xs text-slate-800 font-bold focus:outline-none focus:ring-2 focus:ring-indigo-600/20 focus:border-indigo-600"
                         >
-                          <option value="Montessori Pre-School (Nursery/LKG/UKG)">Montessori Pre-School (Nursery/LKG/UKG)</option>
-                          <option value="Primary School (Grade 1 - 5)">Primary School (Class 1 - 5)</option>
-                          <option value="Secondary School (Grade 6 - 10)">Secondary School (Class 6 - 10)</option>
+                          <option value="Kindergarten Foundation Class">Kindergarten Foundation Class</option>
+                          <option value="Primary School (Class 1 - 5)">Primary School (Class 1 - 5)</option>
+                          <option value="Lower Secondary School (Class 6 - 8)">Lower Secondary School (Class 6 - 8)</option>
+                          <option value="Secondary School (Class 9 - 10)">Secondary School (Class 9 - 10)</option>
                         </select>
                       </div>
 

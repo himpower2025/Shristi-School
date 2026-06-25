@@ -23,11 +23,11 @@ import SuggestionsSection from "./components/SuggestionsSection";
 const INITIAL_NOTICES: Notice[] = [
   {
     id: "notice-1",
-    title: "Urgent: Admissions Open for New Session (Montessori to Grade 10) - Batch 2083 BS",
-    content: "Shristi Academy Secondary School hereby announces that online registration queries are officially open for our Montessori Pre-School, Primary classes (Grade 1-5) and Secondary Level (Grade 6-10) programs.\n\nProspective parents and pupils are directed to complete our interactive Admissions form on the website or visit our administrative registrar desk in Mid-Baneshwor, Kathmandu for final enrollment and document review.\n\nEntrance examinations and orientations are scheduled to take place on Saturday, June 27, 2026. Complete merit scholarships are available for topper students and underprivileged backgrounds.",
+    title: "Urgent: Admissions Open for New Session (Kindergarten to Class 10) - Batch 2083 BS",
+    content: "Shristi Academy Secondary School hereby announces that online registration queries are officially open for our Kindergarten class, Primary classes (Class 1-5), Lower Secondary classes (Class 6-8), and Secondary Level (Class 9-10) programs.\n\nProspective parents and pupils are directed to complete our interactive Admissions form on the website or visit our administrative registrar desk in Mid-Baneshwor, Kathmandu for final enrollment and document review.\n\nEntrance examinations and orientations are scheduled to take place on Saturday, June 27, 2026. Complete merit scholarships are available for topper students and underprivileged backgrounds.",
     category: "Academic",
     date: "June 15, 2026",
-    targetAudience: "Nursery - Grade 10",
+    targetAudience: "Kindergarten - Class 10",
     author: "Vani Pradhan, Principal",
     pinned: true
   },
@@ -96,12 +96,12 @@ const INITIAL_SUGGESTIONS: SuggestionInquiry[] = [
   {
     id: "sugg-1",
     parentName: "Sanjay Shrestha",
-    title: "Inquiry on Montessori Early Friday Pickup Hours",
-    content: "Hi Shristi Team, since Friday school sessions end early for the nursery toddlers, could we request slightly extended pickup hours at the playground helper lounge until 1:00 PM? Some of us work until 12:30 PM. Thank you!",
+    title: "Inquiry on Kindergarten Early Friday Pickup Hours",
+    content: "Hi Shristi Team, since Friday school sessions end early for the kindergarten kids, could we request slightly extended pickup hours at the playground helper lounge until 1:00 PM? Some of us work until 12:30 PM. Thank you!",
     category: "Academics & Schedule",
     pin: "4321",
     submittedAt: "June 20, 2026, 11:30 AM",
-    adminReply: "Dear Mr. Shrestha, we appreciate your query. Starting next Friday, we will keep the Montessori indoor play lounge open with two on-duty nursery keepers until 1:30 PM to facilitate convenient parent pickups.",
+    adminReply: "Dear Mr. Shrestha, we appreciate your query. Starting next Friday, we will keep the Kindergarten indoor play lounge open with two on-duty keepers until 1:30 PM to facilitate convenient parent pickups.",
     repliedAt: "June 21, 2026, 09:00 AM"
   },
   {

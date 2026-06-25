@@ -1,7 +1,7 @@
 import { Award, Target, Landmark, Quote, ClipboardCheck, Sparkles, BookOpen, Laptop, PhoneCall, Check } from "lucide-react";
 import { motion } from "motion/react";
-import vaniImage from "../assets/images/vani_pradhan_headshot_1781710198419.jpg";
-import shantiImage from "../assets/images/shanti_pradhan_headshot_1781710218826.jpg";
+import vaniImage from "../assets/images/vani_pradhan.png";
+import shantiImage from "../assets/images/shanti_pradhan.png";
 
 import montessoriImg from "../assets/images/montessori_learning_1782145030889.jpg";
 import scienceLabImg from "../assets/images/science_lab_1782145047179.jpg";
@@ -10,9 +10,9 @@ import schoolActivitiesImg from "../assets/images/school_activities_178214506324
 const GALLERY_ITEMS = [
   {
     image: montessoriImg,
-    category: "Montessori Early Years",
+    category: "Kindergarten Foundations",
     title: "Learning Through Joyful Play",
-    description: "Young children building foundational motor skills and critical reasoning using custom child-centered pedagogy."
+    description: "Young children building foundational motor skills and social confidence in our standalone preparation class."
   },
   {
     image: scienceLabImg,
@@ -282,7 +282,7 @@ export default function AboutUs() {
                   Need a Physical Campus Tour?
                 </h4>
                 <p className="text-[11px] text-slate-500 font-medium">
-                  Our premises in Mid-Baneshwor, Kathmandu are open for walk-ins from Sunday to Friday, 9:00 AM to 4:00 PM. Contact us to schedule.
+                  Our premises in Mid-Baneshwor, Kathmandu are open for walk-ins from Monday to Friday, 9:00 AM to 4:00 PM. Contact us to schedule.
                 </p>
               </div>
             </div>

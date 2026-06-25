@@ -9,33 +9,43 @@ export default function Academics() {
   // Aligned strictly with real school curriculum details in Kathmandu, Nepal
   const programs: AcademicProgram[] = [
     {
-      id: "preschool",
-      level: "Pre-School",
-      title: "Montessori Early Years (Playgroup - UKG)",
-      description: "A warm, structured, and engaging Montessori environment prioritizing cognitive curiosities, motor skills development, social cooperative playtime, and language phonics.",
-      subjects: ["English Phonics", "Nepali Shabda Bodh", "Basic Math & Sorting", "Creative Arts & Music", "Sensory & Physical Play"],
-      careers: ["Nurtures Natural Curiosity", "Improves Fine Motor Reflexes", "Lays Foundation for Primary Core Literacy"],
-      duration: "4 Years (Nursery, LKG, UKG)",
+      id: "kindergarten",
+      level: "Kindergarten",
+      title: "Kindergarten Foundation Class",
+      description: "A single-year preparatory program designed to introduce letters, basic numeracy, fine motor coordination, and social behavior before entering Class 1.",
+      subjects: ["English Phonics", "Nepali Shabda Bodh", "Basic Numeracy & Shapes", "Creative Arts & Songs", "Sensory & Social Play"],
+      careers: ["Builds Learning Enthusiasm", "Enhances Basic Motor Skills", "Establishes Core Alphabetical Foundations"],
+      duration: "1 Year Standalone Class",
       iconName: "ToyBrick"
     },
     {
       id: "primary-level",
       level: "Primary School",
-      title: "Junior Core Curriculum (Class 1 to 5)",
-      description: "Comprehensive primary program aligned with CDC Nepal, ensuring that mathematical logical basics, English expression, and localized science foundations are fully set.",
-      subjects: ["English Language", "Nepali Grammar", "Primary Mathematics", "Science & Environment", "Social Studies & Moral Values", "Creative Art & Craft"],
-      careers: ["Linguistic Fluency (Eng/Nep)", "Solid Analytical & Numeric Foundations", "Collaborative Teamwork Habits"],
+      title: "Primary Education (Class 1 to 5)",
+      description: "Core primary curriculum aligned with CDC Nepal, ensuring solid foundations in math operations, natural science awareness, and dual-language comprehension.",
+      subjects: ["English Expression", "Nepali Vyakaran", "Primary Mathematics", "Science & Environment", "Social Studies & Moral Values", "Creative Art & Craft"],
+      careers: ["Dual-Language Reading & Writing", "Basic Scientific Method Foundations", "Collaborative Peer Coordination"],
       duration: "5 Years (Classes 1 - 5)",
       iconName: "BookOpen"
     },
     {
+      id: "lower-secondary",
+      level: "Lower Secondary",
+      title: "Lower Secondary Foundations (Class 6 to 8)",
+      description: "Critical transition phase with an increased focus on laboratory testing, mathematical problem-solving, computing concepts, and language literature.",
+      subjects: ["Compulsory Mathematics", "General Science & Labs", "English Literature Studies", "Nepali Sahitya", "Social Studies & Geography", "Computer & Tech Studies"],
+      careers: ["Logical & Analytical Comprehension", "Fundamental Computer Literacy", "Preparation for Rigorous Secondary Standards"],
+      duration: "3 Years (Classes 6 - 8)",
+      iconName: "FlaskConical"
+    },
+    {
       id: "secondary-level",
       level: "Secondary School",
-      title: "Senior Secondary Core (Class 6 to 10)",
-      description: "Advanced classes focusing on rigorous academic excellence to prepare students for the crucial Secondary Education Examination (SEE). Focuses heavily on critical thinking, coding, and logical science labs.",
-      subjects: ["Compulsory Mathematics", "Advanced English Studies", "Nepali sahitya", "Science & Technology", "Social Studies & Civics", "Optional Computer & Math"],
-      careers: ["Preparation for the NEB SEE Examination", "Advanced Problem Solving Capacities", "Modern Digital Literacy & Logical Reasoning"],
-      duration: "5 Years (Classes 6 - 10)",
+      title: "Secondary Board Prep (Class 9 & 10)",
+      description: "Rigorous high-school modules comprehensively prepared for the national Secondary Education Examination (SEE) following the strict CDC guidelines.",
+      subjects: ["SEE Compulsory Mathematics", "Optional Mathematics / Account", "Science & Advanced Physics", "Social Studies & Civics", "Nepali & Computer Science", "English Rhetoric"],
+      careers: ["Rigorous Prep for National SEE Board Exams", "Stream Selection Alignment (STEM/Management)", "Advanced Analytical Reasoning Skills"],
+      duration: "2 Years (Classes 9 - 10)",
       iconName: "GraduationCap"
     }
   ];
@@ -45,6 +55,7 @@ export default function Academics() {
     switch (name) {
       case "ToyBrick": return <ToyBrick className="w-6 h-6" />;
       case "BookOpen": return <BookOpen className="w-6 h-6" />;
+      case "FlaskConical": return <FlaskConical className="w-6 h-6" />;
       default: return <GraduationCap className="w-6 h-6" />;
     }
   };
@@ -107,7 +118,7 @@ export default function Academics() {
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 items-stretch"
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4 gap-8 items-stretch"
           >
             {programs.map((program) => (
               <div 

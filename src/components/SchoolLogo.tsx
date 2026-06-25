@@ -1,5 +1,5 @@
 import React from "react";
-import logoImage from "../assets/images/shristi_logo_1781709321314.jpg";
+import logoImage from "../assets/images/school_logo.png";
 
 interface SchoolLogoProps {
   className?: string;
