@@ -64,7 +64,7 @@ export default function Hero({ onExplorePrograms, onApplyNow, onViewNotices, las
       <div className="max-w-7xl mx-auto w-full relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
         
         {/* Text Messaging Column */}
-        <div className="lg:col-span-7 space-y-8 text-left">
+        <div className="lg:col-span-6 space-y-6 text-left">
           
           {/* Announcement Alert Capsule */}
           {lastNoticeTitle && (
@@ -86,19 +86,25 @@ export default function Hero({ onExplorePrograms, onApplyNow, onViewNotices, las
 
           {/* Heading */}
           <div className="space-y-4">
-            <h1 className="font-display font-black text-4xl sm:text-5xl md:text-6xl tracking-tight leading-[1.05] text-slate-900">
-              Education for <br />
+            <span className="text-xs font-mono font-extrabold uppercase tracking-widest text-indigo-600 bg-indigo-50 px-3 py-1.5 rounded-lg inline-block border border-indigo-150">
+              🏫 Shristi Academy Secondary School
+            </span>
+            <h1 className="font-display font-black text-4xl sm:text-5xl md:text-6xl tracking-tight leading-[1.1] text-slate-900">
+              Where Young Minds <br />
               <span className="bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-500">
-                Excellence & Character.
+                Thrive & Excel.
               </span>
             </h1>
-            <p className="text-slate-500 text-lg md:text-xl font-medium leading-relaxed max-w-2xl">
-              Nurturing young minds in Mid-Baneshwor, Kathmandu. Shristi Academy merges foundational kindergarten preparation with rigorous secondary education to prepare scholars for SEE excellence.
+            <p className="text-indigo-600 text-sm sm:text-base font-bold italic border-l-2 border-pink-500 pl-3">
+              "I Care, So I Teach" — Our Sacred Academic Motto
+            </p>
+            <p className="text-slate-600 text-base md:text-lg font-medium leading-relaxed max-w-xl">
+              Nurturing students in Mid-Baneshwor, Kathmandu from Kindergarten to Class 10 (SEE). We deliver a safe, family-like school environment blending high academic quality with robust holistic care.
             </p>
           </div>
 
           {/* CTA Buttons */}
-          <div className="flex flex-col sm:flex-row gap-4">
+          <div className="flex flex-col sm:flex-row gap-4 pt-2">
             <button
               onClick={onApplyNow}
               className="px-8 py-4 bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-700 hover:opacity-95 text-white font-bold rounded-2xl shadow-xl shadow-indigo-100 flex items-center justify-center space-x-2.5 cursor-pointer transition-all hover:translate-y-[-3px]"
@@ -117,19 +123,19 @@ export default function Hero({ onExplorePrograms, onApplyNow, onViewNotices, las
           </div>
 
           {/* Location Badge */}
-          <div className="pt-2 flex items-center space-x-4 text-slate-400 text-xs font-mono font-bold">
+          <div className="pt-2 flex flex-wrap gap-y-2 items-center gap-x-4 text-slate-500 text-xs font-mono font-bold">
             <span className="flex items-center text-indigo-600">
               <span className="w-2.5 h-2.5 rounded-full bg-pink-500 mr-2 animate-ping" />
               Admissions Open for Batch 2083 BS
             </span>
-            <span>•</span>
+            <span className="hidden sm:inline">•</span>
             <span className="text-slate-500">Kindergarten to Class 10 (SEE)</span>
           </div>
 
         </div>
 
         {/* Visual Right Showcase Column (SaaS inspired card UI layout + Mini Gallery) */}
-        <div className="lg:col-span-5 relative">
+        <div className="lg:col-span-6 relative">
           <div className="relative mx-auto max-w-[420px] lg:max-w-none">
             
             {/* Visual Backframe Glow - Beautiful neon purple orange palette */}

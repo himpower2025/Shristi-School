@@ -77,39 +77,11 @@ export default function Academics() {
           </p>
         </div>
 
-        {/* Core Educational Philosophy */}
-        <div className="bg-gradient-to-tr from-[#FAF9F6] via-white to-indigo-50/20 border border-indigo-100/35 rounded-[32px] p-6 md:p-10 shadow-xl shadow-indigo-100/5 max-w-5xl mx-auto space-y-6 text-left relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-305/5 blur-2xl pointer-events-none rounded-full" />
-          <div className="flex items-center space-x-3.5">
-            <div className="p-3 bg-indigo-50 text-indigo-600 border border-indigo-100/50 rounded-2xl shadow-sm">
-              <Award className="w-6 h-6" />
-            </div>
-            <div>
-              <span className="text-[10px] font-mono font-black uppercase tracking-widest text-indigo-600 leading-none">Our Foundations</span>
-              <h3 className="font-display font-black text-xl sm:text-2xl text-slate-900 tracking-tight mt-1">
-                Our Educational Philosophy & Compass
-              </h3>
-            </div>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 text-xs sm:text-sm text-slate-600 leading-relaxed font-semibold">
-            <div className="space-y-4">
-              <p className="font-black text-slate-800 border-l-2 border-indigo-600 pl-4 py-1 text-sm leading-relaxed">
-                Our academic philosophy is deeply rooted in a holistic, child-centered approach that nurtures each student’s intellectual, emotional, and social development.
-              </p>
-              <p className="font-medium text-slate-500 leading-relaxed">
-                Since its foundation in 2016, Shristi Academy has worked with a steadfast commitment to delivering interactive, child-centered education and outstanding primary and secondary academic excellence.
-              </p>
-            </div>
-            <div className="space-y-4">
-              <p className="font-medium text-slate-500 leading-relaxed">
-                Our curriculum is designed to be highly interactive and evidence-based, encompassing key developmental focus areas: English, Nepali, Mathematics, Science, Computer Studies, Music, and Art. We prepare students to navigate the future with confidence and compassion.
-              </p>
-              <div className="bg-indigo-50/40 p-4 rounded-2xl border border-indigo-100/30 text-[11.5px] text-indigo-950 font-bold leading-normal">
-                🥗 <strong className="text-indigo-900">Student Well-being priority:</strong> Alongside standard textbooks, we secure balanced, nutritious school meals/snacks and include professional physical workouts to ensure robust physical growth.
-              </div>
-            </div>
-          </div>
+        {/* Core Educational Philosophy - streamlined */}
+        <div className="bg-[#FAF9F6]/85 border border-indigo-100 rounded-2xl p-5 max-w-3xl mx-auto text-center shadow-sm">
+          <p className="text-slate-700 text-xs sm:text-sm leading-relaxed font-semibold">
+            🥗 <strong>Student Well-being Priority:</strong> Shristi Academy couples rigorous National Examination Board syllabus preparation with fresh, balanced organic campus meals and professional physical workouts to ensure robust physical growth alongside academic excellence.
+          </p>
         </div>
 
         {/* Content Render Grid */}

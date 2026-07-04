@@ -6,7 +6,7 @@ export default function WhyShristi() {
     {
       id: "why-pillar-1",
       title: "A Legacy of Excellence",
-      description: "Shristi Academy was established in 2016 with a commitment to providing academic excellence, critical thinking, and compassionate learning for every student.",
+      description: "Established in 2016 AD, we deliver top-tier educational standards and critical academic foundations to young minds.",
       icon: Award,
       badgeColor: "bg-amber-100 text-amber-700 border-amber-200/50",
       accentBg: "hover:border-amber-400 group-hover:bg-amber-50"
@@ -14,23 +14,23 @@ export default function WhyShristi() {
     {
       id: "why-pillar-2",
       title: "Holistic Development",
-      description: "We nurture the whole child—intellectually, emotionally, socially, and physically—preparing them to thrive in school and life with self-assurance.",
+      description: "Nurturing intellectual, social, and physical growth to prepare children for self-assurance in school and life.",
       icon: Flame,
       badgeColor: "bg-purple-100 text-purple-700 border-purple-200/50",
       accentBg: "hover:border-purple-400 group-hover:bg-purple-50"
     },
     {
       id: "why-pillar-3",
-      title: "Experienced & Passionate Educators",
-      description: "Our teachers bring both expertise and heart into every classroom, ensuring personalized, empathetic, and engaging learning experiences for every single student.",
+      title: "Experienced Educators",
+      description: "Highly qualified educators who bring interactive care, expertise, and personalized guidance to every class.",
       icon: Heart,
       badgeColor: "bg-pink-100 text-pink-700 border-pink-200/50",
       accentBg: "hover:border-pink-400 group-hover:bg-pink-50"
     },
     {
       id: "why-pillar-4",
-      title: "Inclusive & Respectful Environment",
-      description: "We foster a space where every child feels seen, valued, and heard—celebrating localized ethnic diversity while actively promoting universal empathy.",
+      title: "Inclusive & Respectful Culture",
+      description: "A welcoming campus celebrating cultural diversity and actively fostering respect, humility, and peer cooperation.",
       icon: Handshake,
       badgeColor: "bg-emerald-100 text-emerald-700 border-emerald-200/50",
       accentBg: "hover:border-emerald-400 group-hover:bg-emerald-50"
@@ -38,15 +38,15 @@ export default function WhyShristi() {
     {
       id: "why-pillar-5",
       title: "Safe & Supportive Setting",
-      description: "Children flourish best where they feel absolutely safe. At Shristi, we offer a secure, highly protective and caring atmosphere that encourages confidence.",
+      description: "A deeply secure, highly protective, and clean environment so children can learn and grow with confidence.",
       icon: ShieldCheck,
       badgeColor: "bg-blue-100 text-blue-700 border-blue-200/50",
       accentBg: "hover:border-blue-400 group-hover:bg-blue-50"
     },
     {
       id: "why-pillar-6",
-      title: "Modern, Interactive Learning",
-      description: "With a focus on practical, evidence-based teaching, students engage in hands-on tasks, digital programming utilities, and real-world science evaluations.",
+      title: "Modern Interactive Learning",
+      description: "Audio-visual classrooms, computer reference facilities, and equipped laboratories for active practical learning.",
       icon: Laptop,
       badgeColor: "bg-indigo-100 text-indigo-700 border-indigo-200/50",
       accentBg: "hover:border-indigo-400 group-hover:bg-indigo-50"
