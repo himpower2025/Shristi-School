@@ -89,47 +89,47 @@ export default function Hero({ onExplorePrograms, onApplyNow, onViewNotices, las
             <span className="text-xs font-mono font-extrabold uppercase tracking-widest text-indigo-600 bg-indigo-50 px-3 py-1.5 rounded-lg inline-block border border-indigo-150">
               🏫 Shristi Academy Secondary School
             </span>
-            <h1 className="font-display font-black text-4xl sm:text-5xl md:text-6xl tracking-tight leading-[1.1] text-slate-900">
+            <h1 className="font-display font-black text-5xl sm:text-6xl md:text-7xl tracking-tight leading-[1.05] text-slate-900">
               Where Young Minds <br />
               <span className="bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-500">
                 Thrive & Excel.
               </span>
             </h1>
-            <p className="text-indigo-600 text-sm sm:text-base font-bold italic border-l-2 border-pink-500 pl-3">
+            <p className="text-indigo-700 text-lg sm:text-xl font-black italic border-l-4 border-pink-500 pl-4 py-1 bg-pink-50/30 rounded-r-lg max-w-lg">
               "I Care, So I Teach" — Our Sacred Academic Motto
             </p>
-            <p className="text-slate-600 text-base md:text-lg font-medium leading-relaxed max-w-xl">
+            <p className="text-slate-700 text-lg sm:text-xl font-bold leading-relaxed max-w-2xl">
               Nurturing students in Mid-Baneshwor, Kathmandu from Kindergarten to Class 10 (SEE). We deliver a safe, family-like school environment blending high academic quality with robust holistic care.
             </p>
           </div>
 
           {/* CTA Buttons */}
-          <div className="flex flex-col sm:flex-row gap-4 pt-2">
+          <div className="flex flex-col sm:flex-row gap-4 pt-4">
             <button
               onClick={onApplyNow}
-              className="px-8 py-4 bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-700 hover:opacity-95 text-white font-bold rounded-2xl shadow-xl shadow-indigo-100 flex items-center justify-center space-x-2.5 cursor-pointer transition-all hover:translate-y-[-3px]"
+              className="px-8 py-4 bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-700 hover:opacity-95 text-white font-black rounded-2xl shadow-xl shadow-indigo-100 flex items-center justify-center space-x-2.5 cursor-pointer transition-all hover:translate-y-[-3px]"
             >
-              <GraduationCap className="w-5.5 h-5.5" />
-              <span>Apply Online Admission</span>
-              <ArrowRight className="w-4.5 h-4.5" />
+              <GraduationCap className="w-6 h-6" />
+              <span className="text-sm sm:text-base">Apply Online Admission</span>
+              <ArrowRight className="w-5 h-5" />
             </button>
 
             <button
               onClick={onExplorePrograms}
-              className="px-8 py-4 bg-white hover:bg-slate-50 text-indigo-700 font-bold rounded-2xl border border-indigo-100 flex items-center justify-center space-x-2 cursor-pointer shadow-sm transition-all hover:translate-y-[-3px]"
+              className="px-8 py-4 bg-white hover:bg-slate-50 text-indigo-700 font-black rounded-2xl border border-indigo-250 flex items-center justify-center space-x-2 cursor-pointer shadow-sm transition-all hover:translate-y-[-3px]"
             >
-              <span>Explore Curriculum Outlets</span>
+              <span className="text-sm sm:text-base">Explore Curriculum Outlets</span>
             </button>
           </div>
 
           {/* Location Badge */}
-          <div className="pt-2 flex flex-wrap gap-y-2 items-center gap-x-4 text-slate-500 text-xs font-mono font-bold">
-            <span className="flex items-center text-indigo-600">
-              <span className="w-2.5 h-2.5 rounded-full bg-pink-500 mr-2 animate-ping" />
+          <div className="pt-4 flex flex-wrap gap-y-2 items-center gap-x-4 text-slate-600 text-xs sm:text-sm font-mono font-black">
+            <span className="flex items-center text-indigo-700">
+              <span className="w-3 h-3 rounded-full bg-pink-500 mr-2 animate-ping" />
               Admissions Open for Batch 2083 BS
             </span>
             <span className="hidden sm:inline">•</span>
-            <span className="text-slate-500">Kindergarten to Class 10 (SEE)</span>
+            <span className="text-slate-600">Kindergarten to Class 10 (SEE)</span>
           </div>
 
         </div>

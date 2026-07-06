@@ -65,18 +65,18 @@ export default function AboutUs() {
   ];
 
   return (
-    <section className="py-20 px-4 bg-white border-y border-indigo-100/45" id="about-us">
-      <div className="max-w-7xl mx-auto space-y-16">
+    <section className="py-24 px-4 bg-white border-y border-indigo-100/45" id="about-us">
+      <div className="max-w-7xl mx-auto space-y-20">
         
         {/* Section Heading */}
         <div className="text-center max-w-3xl mx-auto space-y-4">
           <span className="text-xs font-mono font-bold uppercase tracking-wider text-indigo-600 bg-indigo-50 px-3.5 py-1.5 rounded-full inline-block">
             Our Identity
           </span>
-          <h2 className="font-display font-black text-3xl sm:text-4xl text-slate-900 tracking-tight">
-            Cultivating Confident, Compassionate, and Capable Individuals
+          <h2 className="font-display font-black text-4xl sm:text-5xl text-slate-900 tracking-tight leading-tight">
+            Cultivating Confident, Compassionate, and Capable Scholars
           </h2>
-          <p className="text-slate-600 font-semibold text-base sm:text-lg leading-relaxed">
+          <p className="text-slate-600 font-bold text-base sm:text-lg leading-relaxed">
             Shristi Academy delivers high-quality education from Kindergarten to Class 10 (SEE). We merge modern science & tech utilities with a safe, caring, family-like campus atmosphere in Kathmandu.
           </p>
         </div>
@@ -85,42 +85,44 @@ export default function AboutUs() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-stretch">
           
           {/* Main Story Column */}
-          <div className="lg:col-span-6 flex flex-col justify-between space-y-6">
-            <div className="space-y-4 text-left">
-              <h3 className="font-display font-bold text-2xl text-slate-900">
+          <div className="lg:col-span-6 flex flex-col justify-between space-y-8">
+            <div className="space-y-6 text-left">
+              <h3 className="font-display font-black text-2xl sm:text-3xl text-slate-950">
                 The Legacy of Shristi Academy
               </h3>
-              <p className="text-slate-800 text-sm sm:text-base leading-relaxed font-bold border-l-4 border-indigo-500 pl-4 py-1 bg-indigo-50/20 rounded-r-lg pr-2">
-                Established in 2016 AD, Shristi Academy was founded to deliver exceptional educational standards to Kathmandu's youth.
+              
+              {/* Highlight Statement - enlarged */}
+              <p className="text-indigo-950 text-base sm:text-lg leading-relaxed font-black border-l-4 border-indigo-600 pl-4 py-2 bg-indigo-50/30 rounded-r-2xl pr-4 shadow-sm">
+                Established in 2016 AD, Shristi Academy was founded to deliver exceptional educational standards and holistic development to Kathmandu's youth.
               </p>
               
-              <ul className="space-y-2 text-slate-600 text-xs sm:text-sm font-semibold pt-2">
+              <ul className="space-y-3 text-slate-700 text-sm sm:text-base font-bold pt-2">
                 <li className="flex items-start">
-                  <span className="text-indigo-600 mr-2 font-bold">•</span>
-                  <span><strong>Student-First Curriculum:</strong> CDC aligned core studies coupled with interactive, evidence-based practical learning.</span>
+                  <span className="text-indigo-600 mr-2.5 font-black text-lg">•</span>
+                  <span><strong>Student-First Curriculum:</strong> National CDC aligned core studies coupled with highly interactive, practical learning modules.</span>
                 </li>
                 <li className="flex items-start">
-                  <span className="text-indigo-600 mr-2 font-bold">•</span>
-                  <span><strong>Robust Health & Wellness:</strong> We provide fresh, nutritious organic school meals and daily active physical playgroups.</span>
+                  <span className="text-indigo-600 mr-2.5 font-black text-lg">•</span>
+                  <span><strong>Robust Health & Wellness:</strong> Fresh, organic, school-prepared balanced lunch options alongside structured daily sports activities.</span>
                 </li>
                 <li className="flex items-start">
-                  <span className="text-indigo-600 mr-2 font-bold">•</span>
-                  <span><strong>Dedicated Mentors:</strong> Highly certified, compassionate teachers committed to standard school board exams.</span>
+                  <span className="text-indigo-600 mr-2.5 font-black text-lg">•</span>
+                  <span><strong>Dedicated Mentors:</strong> Highly certified, compassionate teachers committed to standard school board exams and life preparedness.</span>
                 </li>
               </ul>
             </div>
 
             {/* Values Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 pt-4">
               {values.map((v, i) => {
                 const Icon = v.icon;
                 return (
-                  <div key={i} className="border border-indigo-50/50 p-4 rounded-xl bg-slate-50/80 space-y-2 shadow-sm hover:shadow-md transition-all">
-                    <div className={`p-2 w-9 h-9 rounded-lg border flex items-center justify-center ${v.color}`}>
-                      <Icon className="w-4 h-4" />
+                  <div key={i} className="border border-indigo-100 p-5 rounded-2xl bg-slate-50/80 space-y-3 shadow-sm hover:shadow-md transition-all">
+                    <div className={`p-2.5 w-11 h-11 rounded-xl border flex items-center justify-center ${v.color} shadow-sm`}>
+                      <Icon className="w-5 h-5" />
                     </div>
-                    <h4 className="font-extrabold text-xs text-slate-800">{v.title}</h4>
-                    <p className="text-[10.5px] text-slate-500 leading-normal font-medium">{v.description}</p>
+                    <h4 className="font-black text-sm text-slate-950">{v.title}</h4>
+                    <p className="text-xs text-slate-500 leading-relaxed font-semibold">{v.description}</p>
                   </div>
                 );
               })}
@@ -128,28 +130,30 @@ export default function AboutUs() {
           </div>
 
           {/* Principal & Administrator dual message cards Column */}
-          <div className="lg:col-span-6 flex flex-col justify-between gap-6 relative">
+          <div className="lg:col-span-6 flex flex-col justify-between gap-8 relative">
             
             {/* Card 1: Principal Vani Pradhan */}
-            <div className="bg-gradient-to-br from-indigo-50/70 via-indigo-50/20 to-white text-slate-800 rounded-[24px] p-6 shadow-md relative overflow-hidden border border-indigo-100 flex flex-col justify-between group hover:border-indigo-300 transition-all duration-300">
-              <div className="space-y-3">
+            <div className="bg-gradient-to-br from-indigo-50/70 via-indigo-50/20 to-white text-slate-800 rounded-[32px] p-8 shadow-md relative overflow-hidden border border-indigo-150 flex flex-col justify-between group hover:border-indigo-300 transition-all duration-300">
+              <div className="space-y-4">
                 <div className="flex items-center justify-between text-pink-600 font-mono text-xs font-bold">
-                  <span className="bg-pink-100 text-pink-700 px-3 py-1 rounded-full text-[9px] tracking-wider uppercase font-black">
+                  <span className="bg-pink-100 text-pink-800 px-3.5 py-1.5 rounded-full text-[10px] tracking-wider uppercase font-black">
                      Principal Message
                   </span>
-                  <div className="flex items-center space-x-1.5 bg-indigo-50 px-2.5 py-1 rounded-full text-[9px] text-indigo-700 font-bold">
-                    <Quote className="w-3 text-pink-500 shrink-0" />
+                  <div className="flex items-center space-x-1.5 bg-indigo-50 px-3 py-1.5 rounded-full text-[10px] text-indigo-700 font-bold">
+                    <Quote className="w-3.5 text-pink-500 shrink-0" />
                     <span>" I Care, So I Teach "</span>
                   </div>
                 </div>
-                <p className="italic text-slate-700 text-xs sm:text-[13px] leading-relaxed font-semibold">
-                  "Our purpose is to provide a safe, happy environment for your child, where they are able to be themselves and thrive; while acquiring the academic foundations to achieve their absolute best in life."
+                
+                {/* Founders quotes - MUCH LARGER & MORE PROFESSIONAL */}
+                <p className="italic text-slate-900 text-sm sm:text-base md:text-lg leading-relaxed font-black">
+                  "Our ultimate goal is to provide a safe, happy environment for your child, where they are fully able to express themselves, thrive, and acquire the fundamental academic building blocks to achieve their absolute best in life."
                 </p>
               </div>
 
-              <div className="pt-4 mt-4 border-t border-indigo-100 flex items-center justify-between">
-                <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-pink-400 shrink-0 bg-white shadow-sm">
+              <div className="pt-6 mt-6 border-t border-indigo-100 flex items-center justify-between">
+                <div className="flex items-center space-x-4">
+                  <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-pink-400 shrink-0 bg-white shadow-md">
                     <img 
                       src={vaniImage} 
                       alt="Vani Pradhan" 
@@ -158,33 +162,35 @@ export default function AboutUs() {
                     />
                   </div>
                   <div>
-                    <h4 className="font-extrabold text-xs text-slate-900">Vani Pradhan</h4>
-                    <p className="text-[9.5px] text-indigo-600 font-bold">Principal, Shristi Academy</p>
+                    <h4 className="font-black text-sm text-slate-950">Vani Pradhan</h4>
+                    <p className="text-xs text-indigo-600 font-bold">Principal, Shristi Academy</p>
                   </div>
                 </div>
               </div>
             </div>
 
             {/* Card 2: Administrator Shanti K. Pradhan */}
-            <div className="bg-gradient-to-br from-emerald-50/60 via-emerald-50/10 to-white text-slate-800 rounded-[24px] p-6 shadow-md relative overflow-hidden border border-emerald-100 flex flex-col justify-between group hover:border-emerald-300 transition-all duration-300">
-              <div className="space-y-3">
+            <div className="bg-gradient-to-br from-emerald-50/60 via-emerald-50/10 to-white text-slate-800 rounded-[32px] p-8 shadow-md relative overflow-hidden border border-emerald-150 flex flex-col justify-between group hover:border-emerald-300 transition-all duration-300">
+              <div className="space-y-4">
                 <div className="flex items-center justify-between text-emerald-700 font-mono text-xs font-bold">
-                  <span className="bg-emerald-100 text-emerald-800 px-3 py-1 rounded-full text-[9px] tracking-wider uppercase font-black">
+                  <span className="bg-emerald-100 text-emerald-900 px-3.5 py-1.5 rounded-full text-[10px] tracking-wider uppercase font-black">
                      Administration Message
                   </span>
-                  <div className="flex items-center space-x-1.5 bg-emerald-50 px-2.5 py-1 rounded-full text-[9px] text-emerald-700 font-bold">
-                    <Quote className="w-3 text-emerald-600 shrink-0" />
+                  <div className="flex items-center space-x-1.5 bg-emerald-50 px-3 py-1.5 rounded-full text-[10px] text-emerald-700 font-bold">
+                    <Quote className="w-3.5 text-emerald-600 shrink-0" />
                     <span>" Family-like Nurture "</span>
                   </div>
                 </div>
-                <p className="italic text-slate-700 text-xs sm:text-[13px] leading-relaxed font-semibold">
-                  "Shristi Academy is a place where learning feels like home. We meticulously blend academic rigor with heartfelt nurture, helping our students grow smart, strong, and confident."
+
+                {/* Quote - MUCH LARGER */}
+                <p className="italic text-slate-900 text-sm sm:text-base md:text-lg leading-relaxed font-black">
+                  "Shristi Academy is a place where learning feels like home. We meticulously blend intense academic focus with heartfelt holistic care, helping students grow smart, physically strong, and resilient."
                 </p>
               </div>
 
-              <div className="pt-4 mt-4 border-t border-emerald-100 flex items-center justify-between">
-                <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-emerald-400 shrink-0 bg-white shadow-sm">
+              <div className="pt-6 mt-6 border-t border-emerald-100 flex items-center justify-between">
+                <div className="flex items-center space-x-4">
+                  <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-emerald-400 shrink-0 bg-white shadow-md">
                     <img 
                       src={shantiImage} 
                       alt="Shanti K. Pradhan" 
@@ -193,8 +199,8 @@ export default function AboutUs() {
                     />
                   </div>
                   <div>
-                    <h4 className="font-extrabold text-xs text-slate-900">Shanti K. Pradhan</h4>
-                    <p className="text-[9.5px] text-emerald-700 font-bold">Administrator, Shristi Academy</p>
+                    <h4 className="font-black text-sm text-slate-950">Shanti K. Pradhan</h4>
+                    <p className="text-xs text-emerald-700 font-bold">Administrator, Shristi Academy</p>
                   </div>
                 </div>
               </div>
@@ -205,15 +211,15 @@ export default function AboutUs() {
         </div>
 
         {/* Campus Gallery Section - DENSE & LARGE PICTORIAL SHOWCASE */}
-        <div className="space-y-8 pt-12 border-t border-slate-100/80">
+        <div className="space-y-8 pt-16 border-t border-slate-150">
           <div className="text-left space-y-2">
             <span className="text-xs font-mono font-bold uppercase tracking-wider text-indigo-600 bg-indigo-50 px-3.5 py-1.5 rounded-full inline-block">
               School Life In Action
             </span>
-            <h3 className="font-display font-black text-2xl md:text-3xl text-slate-900 tracking-tight">
+            <h3 className="font-display font-black text-3xl md:text-4xl text-slate-900 tracking-tight leading-none">
               Moments of Joy, Discovery, & Academic Progress
             </h3>
-            <p className="text-slate-500 text-sm max-w-2xl font-semibold">
+            <p className="text-slate-600 text-sm sm:text-base font-bold">
               Take an interactive look inside Shristi Academy. <strong>Click any photo to open full-screen view</strong> to see our vibrant campus activities, science laboratory setups, and classroom playgroups.
             </p>
           </div>
@@ -225,10 +231,10 @@ export default function AboutUs() {
                 key={idx}
                 whileHover={{ y: -8 }}
                 onClick={() => setSelectedImage(item)}
-                className="bg-white rounded-[28px] overflow-hidden border border-indigo-100/50 p-4 shadow-md hover:shadow-2xl transition-all duration-300 flex flex-col justify-between group cursor-pointer"
+                className="bg-white rounded-[32px] overflow-hidden border border-slate-200 p-5 shadow-md hover:shadow-2xl transition-all duration-300 flex flex-col justify-between group cursor-pointer"
               >
                 {/* Image Wrap (Vivid Aspect Ratio) */}
-                <div className="relative aspect-[16/10] overflow-hidden rounded-2xl bg-slate-100">
+                <div className="relative aspect-[16/10] overflow-hidden rounded-2xl bg-slate-100 shadow-inner">
                   <img
                     src={item.image}
                     alt={item.title}
@@ -236,7 +242,7 @@ export default function AboutUs() {
                     referrerPolicy="no-referrer"
                   />
                   {/* Floating category */}
-                  <div className="absolute top-3 left-3 bg-[#1e1b4b]/95 backdrop-blur-sm text-white text-[9px] font-mono font-extrabold uppercase px-2.5 py-1.5 rounded-lg shadow-md">
+                  <div className="absolute top-3 left-3 bg-[#1e1b4b]/95 backdrop-blur-sm text-white text-[10px] font-mono font-black uppercase px-3 py-1.5 rounded-xl shadow-md">
                     {item.category}
                   </div>
                   {/* Hover indicator overlay */}
@@ -250,10 +256,10 @@ export default function AboutUs() {
                 
                 {/* Brief, impact-oriented descriptions */}
                 <div className="p-4 text-left space-y-1.5">
-                  <h4 className="font-extrabold text-base text-slate-900 group-hover:text-indigo-600 transition-colors">
+                  <h4 className="font-black text-lg text-slate-950 group-hover:text-indigo-600 transition-colors leading-snug">
                     {item.title}
                   </h4>
-                  <p className="text-[11.5px] text-slate-500 font-semibold leading-relaxed">
+                  <p className="text-xs text-slate-600 font-bold leading-relaxed">
                     {item.description}
                   </p>
                 </div>
@@ -263,43 +269,43 @@ export default function AboutUs() {
         </div>
 
         {/* Facilities Section Showcase */}
-        <div className="bg-[#FAF9F6]/90 rounded-[32px] p-8 md:p-12 border border-indigo-50/50 shadow-sm shadow-indigo-100/40">
+        <div className="bg-[#FAF9F6]/90 rounded-[36px] p-8 md:p-12 border border-indigo-100 shadow-sm shadow-indigo-100/40">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center font-sans text-left">
             
             {/* Title Block */}
-            <div className="lg:col-span-5 space-y-4">
-              <span className="text-xs font-mono text-indigo-600 font-bold uppercase tracking-wider block">
+            <div className="lg:col-span-5 space-y-5">
+              <span className="text-xs font-mono text-indigo-600 font-black uppercase tracking-wider block">
                 Modern Campus Amenities
               </span>
-              <h3 className="font-display font-black text-2xl md:text-3xl text-slate-900 leading-tight">
+              <h3 className="font-display font-black text-3xl text-slate-950 leading-tight">
                 Academic Facilities Equipped for Tomorrow
               </h3>
-              <p className="text-slate-500 text-xs md:text-sm leading-relaxed font-semibold">
-                We maintain active setup facilities to support computer programming, interactive science tests, safe bus transit routes, and co-curricular sports.
+              <p className="text-slate-600 text-sm leading-relaxed font-bold">
+                We maintain state-of-the-art facilities to support deep scientific inquiry, computing studies, comfortable local transit routes, and co-curricular physical play.
               </p>
               
-              <div className="p-4 bg-white rounded-2xl border border-indigo-50/50 space-y-2 shadow-sm">
-                <h4 className="text-xs font-bold text-indigo-600 flex items-center">
-                  <PhoneCall className="w-3.5 h-3.5 mr-1.5 text-pink-500" />
+              <div className="p-5 bg-white rounded-2xl border border-indigo-100 space-y-3 shadow-sm">
+                <h4 className="text-sm font-black text-indigo-700 flex items-center">
+                  <PhoneCall className="w-4 h-4 mr-1.5 text-pink-500" />
                   Need a Physical Campus Tour?
                 </h4>
-                <p className="text-[11px] text-slate-500 font-medium">
-                  Our premises in Mid-Baneshwor, Kathmandu are open for walk-ins from Monday to Friday, 9:00 AM to 4:00 PM. Call us at <strong>01-4496573</strong> to schedule.
+                <p className="text-xs text-slate-600 font-bold">
+                  Our premises in Mid-Baneshwor, Kathmandu are open for walk-ins from Monday to Friday, 9:00 AM to 4:00 PM. Call us at <strong className="text-indigo-700">01-4496573</strong> to schedule.
                 </p>
               </div>
             </div>
 
-            {/* List Showcase Block */}
+            {/* List Showcase Block - LARGE TEXT AS REQUESTED */}
             <div className="lg:col-span-7 grid grid-cols-1 sm:grid-cols-2 gap-4">
               {featuresList.map((feature, idx) => (
                 <div 
                   key={idx}
-                  className="bg-white p-3.5 rounded-xl border border-indigo-50/50 flex items-center space-x-3 hover:translate-x-1 hover:border-indigo-100 transition-all shadow-sm"
+                  className="bg-white p-4 rounded-2xl border border-slate-200 flex items-center space-x-3 hover:translate-x-1 hover:border-indigo-300 transition-all shadow-sm"
                 >
-                  <div className="bg-indigo-50 text-indigo-600 p-1 rounded-lg shrink-0">
-                    <Check className="w-4 h-4 text-indigo-600" />
+                  <div className="bg-indigo-50 text-indigo-600 p-1.5 rounded-lg shrink-0 border border-indigo-100">
+                    <Check className="w-4 h-4 text-indigo-700 font-black" />
                   </div>
-                  <span className="text-xs font-bold text-slate-700">{feature}</span>
+                  <span className="text-xs sm:text-sm font-black text-slate-800">{feature}</span>
                 </div>
               ))}
             </div>
