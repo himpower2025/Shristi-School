@@ -96,79 +96,126 @@ export default function Academics() {
             transition={{ duration: 0.5 }}
             className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4 gap-8 items-stretch"
           >
-            {programs.map((program) => (
-              <div 
-                key={program.id}
-                className="bg-white border border-slate-200 p-8 md:p-10 rounded-[36px] shadow-xl shadow-indigo-100/25 flex flex-col justify-between hover:border-indigo-400 hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 group"
-              >
-                <div className="space-y-6">
-                  
-                  {/* Program Header */}
-                  <div className="flex justify-between items-start">
-                    <div className="w-14 h-14 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center border border-indigo-100/50 group-hover:scale-110 group-hover:rotate-6 transition-all shadow-sm">
-                      {renderIcon(program.iconName)}
-                    </div>
-                    <span className="text-[11px] font-mono uppercase bg-purple-50 text-purple-700 py-1.5 px-3.5 rounded-xl font-black tracking-wider">
-                      {program.duration}
-                    </span>
-                  </div>
+            {programs.map((program, pIdx) => {
+              // Custom vibrant themes for each level to make the website look colorful, bouncy and highly intuitive!
+              const themes = [
+                {
+                  bg: "bg-gradient-to-b from-white to-pink-50/35 hover:border-pink-400 shadow-pink-100/30 hover:shadow-pink-200/50",
+                  border: "border-pink-200",
+                  iconBg: "bg-pink-100 text-pink-700 border-pink-200",
+                  durBg: "bg-pink-200/80 text-pink-950 font-black border border-pink-300",
+                  focusBg: "bg-pink-50 border-pink-200/60",
+                  focusText: "text-pink-900",
+                  dotColor: "bg-pink-500",
+                  benefitIcon: "bg-pink-100 text-pink-800 border-pink-200"
+                },
+                {
+                  bg: "bg-gradient-to-b from-white to-indigo-50/35 hover:border-indigo-400 shadow-indigo-100/30 hover:shadow-indigo-200/50",
+                  border: "border-indigo-200",
+                  iconBg: "bg-indigo-100 text-indigo-700 border-indigo-200",
+                  durBg: "bg-indigo-200/80 text-indigo-950 font-black border border-indigo-300",
+                  focusBg: "bg-indigo-50 border-indigo-200/60",
+                  focusText: "text-indigo-900",
+                  dotColor: "bg-indigo-500",
+                  benefitIcon: "bg-indigo-100 text-indigo-800 border-indigo-200"
+                },
+                {
+                  bg: "bg-gradient-to-b from-white to-purple-50/35 hover:border-purple-400 shadow-purple-100/30 hover:shadow-purple-200/50",
+                  border: "border-purple-200",
+                  iconBg: "bg-purple-100 text-purple-700 border-purple-200",
+                  durBg: "bg-purple-200/80 text-purple-950 font-black border border-purple-300",
+                  focusBg: "bg-purple-50 border-purple-200/60",
+                  focusText: "text-purple-900",
+                  dotColor: "bg-purple-500",
+                  benefitIcon: "bg-purple-100 text-purple-800 border-purple-200"
+                },
+                {
+                  bg: "bg-gradient-to-b from-white to-indigo-50/20 hover:border-pink-500 shadow-indigo-100/40 hover:shadow-pink-200/60 border-2 border-indigo-200",
+                  border: "border-indigo-300",
+                  iconBg: "bg-gradient-to-r from-pink-500 to-indigo-600 text-white border-transparent",
+                  durBg: "bg-pink-500 text-slate-950 font-black border-2 border-white shadow-md",
+                  focusBg: "bg-gradient-to-r from-pink-50 to-indigo-50 border-pink-300",
+                  focusText: "text-indigo-950",
+                  dotColor: "bg-pink-500",
+                  benefitIcon: "bg-indigo-600 text-white border-transparent"
+                }
+              ];
+              const t = themes[pIdx] || themes[0];
 
-                  {/* Program Details */}
-                  <div className="space-y-3">
-                    <h3 className="font-display font-black text-2xl text-slate-950 tracking-tight leading-tight group-hover:text-indigo-600 transition-colors">
-                      {program.title}
-                    </h3>
+              return (
+                <div 
+                  key={program.id}
+                  className={`bg-white border-2 ${t.border} p-8 md:p-10 rounded-[36px] shadow-xl flex flex-col justify-between hover:scale-[1.04] transition-all duration-300 group ${t.bg}`}
+                >
+                  <div className="space-y-6">
                     
-                    {/* Emphasis Focus Tag - HIGHLY PROMINENT */}
-                    <div className="bg-indigo-50/70 border border-indigo-100 px-3 py-1.5 rounded-xl">
-                      <p className="text-indigo-700 font-extrabold text-xs sm:text-sm">
-                        🔑 Focus: {program.focus}
+                    {/* Program Header */}
+                    <div className="flex justify-between items-start">
+                      <div className={`w-14 h-14 rounded-2xl flex items-center justify-center border group-hover:scale-110 group-hover:rotate-6 transition-all shadow-sm ${t.iconBg}`}>
+                        {renderIcon(program.iconName)}
+                      </div>
+                      <span className={`text-[11px] font-mono uppercase py-1.5 px-3.5 rounded-xl font-black tracking-wider ${t.durBg}`}>
+                        {program.duration}
+                      </span>
+                    </div>
+
+                    {/* Program Details */}
+                    <div className="space-y-3 text-left">
+                      <h3 className="font-display font-black text-2xl text-slate-950 tracking-tight leading-tight group-hover:text-indigo-600 transition-colors">
+                        {program.title}
+                      </h3>
+                      
+                      {/* Emphasis Focus Tag - HIGHLY PROMINENT */}
+                      <div className={`border px-3.5 py-2 rounded-xl ${t.focusBg}`}>
+                        <p className={`font-black text-xs sm:text-sm ${t.focusText}`}>
+                          🔑 Focus: {program.focus}
+                        </p>
+                      </div>
+
+                      <p className="text-slate-700 text-sm leading-relaxed font-bold">
+                        {program.description}
                       </p>
                     </div>
 
-                    <p className="text-slate-600 text-sm leading-relaxed font-semibold">
-                      {program.description}
-                    </p>
-                  </div>
-
-                  {/* Subjects Block */}
-                  <div className="space-y-3 pt-2">
-                    <h4 className="font-black text-xs text-indigo-600 tracking-wider uppercase font-mono">
-                      Key Learning Subjects
-                    </h4>
-                    <div className="grid grid-cols-1 gap-1.5">
-                      {program.subjects.map((sub, idx) => (
-                        <div key={idx} className="flex items-center space-x-2 text-xs text-slate-600 font-bold">
-                          <span className="w-2.5 h-2.5 rounded-full bg-pink-500 shrink-0" />
-                          <span className="truncate">{sub}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                </div>
-
-                {/* Highlights/Outcomes Block */}
-                <div className="mt-8 pt-6 border-t border-slate-100 space-y-4">
-                  <div className="space-y-3">
-                    <h4 className="font-black text-xs text-indigo-600 tracking-wider uppercase font-mono">
-                      Direct Academic Benefits
-                    </h4>
-                    <div className="space-y-2">
-                      {program.careers.map((career, idx) => (
-                        <div key={idx} className="flex items-start space-x-2.5 text-xs text-slate-600 font-extrabold">
-                          <div className="p-0.5 bg-indigo-100 text-indigo-700 rounded-lg mt-0.5 shrink-0">
-                            <Check className="w-3.5 h-3.5 text-indigo-700 font-black" />
+                    {/* Subjects Block */}
+                    <div className="space-y-3 pt-2 text-left">
+                      <h4 className="font-black text-xs text-indigo-700 tracking-wider uppercase font-mono">
+                        Key Learning Subjects
+                      </h4>
+                      <div className="grid grid-cols-1 gap-1.5">
+                        {program.subjects.map((sub, idx) => (
+                          <div key={idx} className="flex items-center space-x-2 text-xs text-slate-700 font-extrabold">
+                            <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${t.dotColor}`} />
+                            <span className="truncate">{sub}</span>
                           </div>
-                          <span className="leading-tight">{career}</span>
-                        </div>
-                      ))}
+                        ))}
+                      </div>
+                    </div>
+
+                  </div>
+
+                  {/* Highlights/Outcomes Block */}
+                  <div className="mt-8 pt-6 border-t-2 border-dashed border-slate-200 space-y-4 text-left">
+                    <div className="space-y-3">
+                      <h4 className="font-black text-xs text-indigo-700 tracking-wider uppercase font-mono">
+                        Direct Academic Benefits
+                      </h4>
+                      <div className="space-y-2">
+                        {program.careers.map((career, idx) => (
+                          <div key={idx} className="flex items-start space-x-2.5 text-xs text-slate-700 font-black">
+                            <div className={`p-0.5 rounded-lg mt-0.5 shrink-0 border ${t.benefitIcon}`}>
+                              <Check className="w-3.5 h-3.5 font-black" />
+                            </div>
+                            <span className="leading-tight">{career}</span>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   </div>
-                </div>
 
-              </div>
-            ))}
+                </div>
+              );
+            })}
           </motion.div>
         </div>
 

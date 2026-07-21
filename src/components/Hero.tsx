@@ -104,60 +104,85 @@ export default function Hero({ onExplorePrograms, onApplyNow, onViewNotices, las
           </div>
 
           {/* CTA Buttons */}
-          <div className="flex flex-col sm:flex-row gap-4 pt-4">
+          <div className="flex flex-col sm:flex-row gap-4 pt-6">
             <button
               onClick={onApplyNow}
-              className="px-8 py-4 bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-700 hover:opacity-95 text-white font-black rounded-2xl shadow-xl shadow-indigo-100 flex items-center justify-center space-x-2.5 cursor-pointer transition-all hover:translate-y-[-3px]"
+              className="px-8 py-4 bg-gradient-to-r from-pink-400 via-pink-300 to-pink-500 hover:from-pink-500 hover:to-pink-600 hover:scale-105 active:scale-95 text-slate-950 font-black rounded-2xl shadow-xl shadow-pink-200/60 flex items-center justify-center space-x-2.5 cursor-pointer transition-all duration-300 border-b-4 border-pink-600"
             >
-              <GraduationCap className="w-6 h-6" />
-              <span className="text-sm sm:text-base">Apply Online Admission</span>
+              <GraduationCap className="w-6 h-6 text-slate-950" />
+              <span className="text-sm sm:text-base tracking-tight">Apply Online Admission</span>
               <ArrowRight className="w-5 h-5" />
             </button>
 
             <button
               onClick={onExplorePrograms}
-              className="px-8 py-4 bg-white hover:bg-slate-50 text-indigo-700 font-black rounded-2xl border border-indigo-250 flex items-center justify-center space-x-2 cursor-pointer shadow-sm transition-all hover:translate-y-[-3px]"
+              className="px-8 py-4 bg-white hover:bg-indigo-50 hover:scale-105 active:scale-95 text-indigo-700 font-black rounded-2xl border-2 border-indigo-500 flex items-center justify-center space-x-2 cursor-pointer shadow-md transition-all duration-300"
             >
               <span className="text-sm sm:text-base">Explore Curriculum Outlets</span>
             </button>
           </div>
 
           {/* Location Badge */}
-          <div className="pt-4 flex flex-wrap gap-y-2 items-center gap-x-4 text-slate-600 text-xs sm:text-sm font-mono font-black">
-            <span className="flex items-center text-indigo-700">
+          <div className="pt-6 flex flex-wrap gap-y-2 items-center gap-x-4 text-slate-600 text-xs sm:text-sm font-mono font-black">
+            <span className="flex items-center text-indigo-700 bg-indigo-100/65 px-3.5 py-1.5 rounded-full border border-indigo-200 shadow-sm">
               <span className="w-3 h-3 rounded-full bg-pink-500 mr-2 animate-ping" />
               Admissions Open for Batch 2083 BS
             </span>
-            <span className="hidden sm:inline">•</span>
-            <span className="text-slate-600">Kindergarten to Class 10 (SEE)</span>
+            <span className="hidden sm:inline text-indigo-300">•</span>
+            <span className="text-slate-700 font-bold bg-slate-100 px-3 py-1.5 rounded-full border border-slate-200">Kindergarten to Class 10 (SEE)</span>
           </div>
 
         </div>
 
         {/* Visual Right Showcase Column (SaaS inspired card UI layout + Mini Gallery) */}
-        <div className="lg:col-span-6 relative">
+        <div className="lg:col-span-6 relative pt-8 lg:pt-0">
           <div className="relative mx-auto max-w-[420px] lg:max-w-none">
             
             {/* Visual Backframe Glow - Beautiful neon purple orange palette */}
-            <div className="absolute inset-0 bg-gradient-to-tr from-indigo-400/20 via-purple-400/10 to-pink-400/20 rounded-[36px] blur-3xl transform rotate-6 pointer-events-none" />
+            <div className="absolute inset-0 bg-gradient-to-tr from-indigo-400/30 via-purple-400/20 to-pink-400/30 rounded-[36px] blur-3xl transform rotate-6 pointer-events-none" />
+
+            {/* Playful Floating Badges - Super Bouncy, Energetic School Vibe */}
+            <div className="absolute -left-4 sm:-left-10 top-16 bg-white/95 border-2 border-indigo-500 p-3 rounded-2xl shadow-xl z-20 flex items-center space-x-2 animate-bounce cursor-pointer select-none" style={{ animationDuration: "3s" }}>
+              <span className="text-xl">📚</span>
+              <div className="text-left leading-none">
+                <span className="text-[10px] text-slate-500 font-mono font-black block">CURRICULUM</span>
+                <span className="text-xs font-black text-indigo-950">CDC Approved</span>
+              </div>
+            </div>
+
+            <div className="absolute -right-4 sm:-right-8 top-1/3 bg-white/95 border-2 border-pink-500 p-3 rounded-2xl shadow-xl z-20 flex items-center space-x-2 animate-pulse cursor-pointer select-none" style={{ animationDuration: "2.5s" }}>
+              <span className="text-xl">🚌</span>
+              <div className="text-left leading-none">
+                <span className="text-[10px] text-slate-500 font-mono font-black block">BUS SYSTEM</span>
+                <span className="text-xs font-black text-pink-950">Safe Transit</span>
+              </div>
+            </div>
+
+            <div className="absolute -left-6 bottom-32 bg-white/95 border-2 border-purple-500 p-3 rounded-2xl shadow-xl z-20 flex items-center space-x-2 animate-bounce cursor-pointer select-none hidden sm:flex" style={{ animationDuration: "4.5s" }}>
+              <span className="text-xl">🍲</span>
+              <div className="text-left leading-none">
+                <span className="text-[10px] text-slate-500 font-mono font-black block">WELLNESS</span>
+                <span className="text-xs font-black text-purple-950">Organic Meal</span>
+              </div>
+            </div>
 
             {/* Premium Card Container */}
-            <div className="relative bg-white/80 backdrop-blur-md border border-indigo-50 p-6 md:p-8 rounded-[32px] shadow-2xl shadow-indigo-100/60">
+            <div className="relative bg-white/90 backdrop-blur-md border-2 border-indigo-100 p-6 md:p-8 rounded-[32px] shadow-2xl shadow-indigo-100/80">
               
               <div className="flex justify-between items-center mb-5">
-                <div className="flex space-x-2 animate-pulse">
+                <div className="flex space-x-2 items-center">
                   <div className="w-3 h-3 rounded-full bg-pink-500 animate-bounce" style={{ animationDelay: '0ms' }} />
                   <div className="w-3 h-3 rounded-full bg-indigo-500 animate-bounce" style={{ animationDelay: '150ms' }} />
-                  <div className="w-3 h-3 rounded-full bg-amber-500 animate-bounce" style={{ animationDelay: '300ms' }} />
+                  <div className="w-3 h-3 rounded-full bg-purple-500 animate-bounce" style={{ animationDelay: '300ms' }} />
                 </div>
-                <div className="flex items-center space-x-1 bg-indigo-50 text-indigo-700 px-2.5 py-1 rounded-full text-[10px] font-mono font-bold uppercase tracking-wider">
-                  <Sparkles className="w-3 h-3 text-pink-500" />
-                  <span>Campus Gallery Live</span>
+                <div className="flex items-center space-x-1.5 bg-indigo-50 text-indigo-700 px-3 py-1.5 rounded-xl text-[10px] font-mono font-black uppercase tracking-wider border border-indigo-100">
+                  <Sparkles className="w-3.5 h-3.5 text-pink-500 animate-spin" style={{ animationDuration: "3s" }} />
+                  <span>Campus Life In Action</span>
                 </div>
               </div>
 
               {/* Dynamic Slideshow Showcase Card */}
-              <div className="relative aspect-[4/3] rounded-2xl overflow-hidden bg-slate-900 border border-slate-100/40 shadow-md group/gallery mb-6">
+              <div className="relative aspect-[4/3] rounded-2xl overflow-hidden bg-slate-900 border-2 border-indigo-200 shadow-inner group/gallery mb-6">
                 
                 {/* Active Image with transition */}
                 <AnimatePresence mode="wait">
@@ -182,7 +207,7 @@ export default function Hero({ onExplorePrograms, onApplyNow, onViewNotices, las
                 </AnimatePresence>
 
                 {/* Floating Tag */}
-                <div className="absolute top-3 left-3 bg-white/95 backdrop-blur-sm shadow-md text-indigo-700 font-mono text-[9px] font-black uppercase tracking-wider py-1 px-2.5 rounded-lg select-none">
+                <div className="absolute top-3 left-3 bg-white/95 backdrop-blur-sm shadow-md text-indigo-700 font-mono text-[10px] font-black uppercase tracking-wider py-1.5 px-3 rounded-xl select-none border border-indigo-100">
                   {CAMPUS_MOMENTS[currentSlide].tag}
                 </div>
 
@@ -235,43 +260,43 @@ export default function Hero({ onExplorePrograms, onApplyNow, onViewNotices, las
               <div className="space-y-4">
                 
                 {/* Visual Segment 1: Classroom Pedagogy */}
-                <div className="bg-[#FAF9F6]/80 p-3.5 border border-indigo-50/50 rounded-2xl flex items-center space-x-3.5 shadow-sm">
-                  <div className="w-10 h-10 text-indigo-600 bg-indigo-50 rounded-xl flex items-center justify-center shrink-0 shadow-inner">
-                    <GraduationCap className="w-5.5 h-5.5" />
+                <div className="bg-indigo-50/60 p-4 border border-indigo-100 rounded-2xl flex items-center space-x-3.5 shadow-sm hover:scale-[1.02] transition-transform duration-200">
+                  <div className="w-11 h-11 text-indigo-700 bg-white border border-indigo-200 rounded-xl flex items-center justify-center shrink-0 shadow-sm">
+                    <GraduationCap className="w-6 h-6" />
                   </div>
                   <div className="text-left">
-                    <h3 className="font-extrabold text-xs text-slate-900">Kindergarten to SEE Level</h3>
-                    <p className="text-[10px] text-slate-500">Excelling from Kindergarten to Class 10</p>
+                    <h3 className="font-black text-sm text-indigo-950">Kindergarten to SEE Level</h3>
+                    <p className="text-xs text-slate-600 font-bold">Outstanding focus from Kindergarten to Class 10</p>
                   </div>
                 </div>
 
                 {/* Visual Segment 2: Interactive Tech */}
-                <div className="bg-[#FAF9F6]/80 p-3.5 border border-indigo-50/50 rounded-2xl flex items-center space-x-3.5 shadow-sm">
-                  <div className="w-10 h-10 text-purple-600 bg-purple-50 rounded-xl flex items-center justify-center shrink-0 shadow-inner">
-                    <Users className="w-5.5 h-5.5" />
+                <div className="bg-purple-50/60 p-4 border border-purple-100 rounded-2xl flex items-center space-x-3.5 shadow-sm hover:scale-[1.02] transition-transform duration-200">
+                  <div className="w-11 h-11 text-purple-700 bg-white border border-purple-200 rounded-xl flex items-center justify-center shrink-0 shadow-sm">
+                    <Users className="w-6 h-6" />
                   </div>
                   <div className="text-left">
-                    <h3 className="font-extrabold text-xs text-slate-900">Modern Digital Pedagogy</h3>
-                    <p className="text-[10px] text-slate-500">Audio-Visual classrooms & tech labs</p>
+                    <h3 className="font-black text-sm text-purple-950">Modern Digital Pedagogy</h3>
+                    <p className="text-xs text-slate-600 font-bold">Audio-Visual multimedia setups & tech labs</p>
                   </div>
                 </div>
 
                 {/* Academic certified progress bar */}
-                <div className="pt-1.5">
-                  <div className="flex justify-between text-[10px] text-slate-500 mb-1.5 font-mono font-bold">
+                <div className="pt-2">
+                  <div className="flex justify-between text-[11px] text-slate-600 mb-1.5 font-mono font-black">
                     <span>Academic Quality Standard</span>
-                    <span className="text-indigo-600 font-extrabold">Grade A+ Certified</span>
+                    <span className="text-indigo-700 font-black">Grade A+ Board Standard</span>
                   </div>
-                  <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                  <div className="w-full bg-slate-100 h-3 rounded-full overflow-hidden border border-slate-200/50">
                     <div className="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 h-full w-[96%]" />
                   </div>
                 </div>
 
                 {/* Government accreditation badge */}
-                <div className="p-3 bg-pink-50/50 border border-pink-100/40 rounded-xl flex items-start space-x-2 text-left">
-                  <AlertCircle className="w-3.5 h-3.5 text-pink-500 shrink-0 mt-0.5" />
-                  <p className="text-[10px] text-slate-500 leading-relaxed font-semibold">
-                    Accredited under the National Examinations Board (NEB) of Nepal, recognized for fostering scholar excellence.
+                <div className="p-4 bg-pink-50 border border-pink-100 rounded-xl flex items-start space-x-3 text-left shadow-sm">
+                  <AlertCircle className="w-4 h-4 text-pink-600 shrink-0 mt-0.5 animate-pulse" />
+                  <p className="text-xs text-slate-700 leading-relaxed font-bold">
+                    Accredited under the National Examinations Board (NEB) of Nepal, recognized for cultivating scholars of high competence and character.
                   </p>
                 </div>
 
@@ -280,7 +305,7 @@ export default function Hero({ onExplorePrograms, onApplyNow, onViewNotices, las
             </div>
 
             {/* Tiny Floating decorative tag */}
-            <div className="absolute -bottom-4 right-4 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-500 text-white font-mono text-[9px] font-bold uppercase tracking-widest py-1.5 px-4 rounded-full shadow-lg">
+            <div className="absolute -bottom-4 right-4 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-500 text-white font-mono text-[10px] font-black uppercase tracking-widest py-2 px-5 rounded-full shadow-lg">
               #ModernNepalPedagogy
             </div>
 

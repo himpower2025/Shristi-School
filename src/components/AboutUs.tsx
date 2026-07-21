@@ -269,7 +269,7 @@ export default function AboutUs() {
         </div>
 
         {/* Facilities Section Showcase */}
-        <div className="bg-[#FAF9F6]/90 rounded-[36px] p-8 md:p-12 border border-indigo-100 shadow-sm shadow-indigo-100/40">
+        <div className="bg-gradient-to-br from-indigo-50/75 via-white to-pink-50/50 rounded-[36px] p-8 md:p-12 border-2 border-indigo-200 shadow-xl shadow-indigo-100/20">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center font-sans text-left">
             
             {/* Title Block */}

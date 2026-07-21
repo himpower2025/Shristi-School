@@ -53,20 +53,20 @@ export default function Header({
   return (
     <>
       {/* Top Professional Utility Info Bar */}
-      <div className="bg-gradient-to-r from-indigo-900 via-[#271E51] to-purple-900 text-slate-100 text-[11px] py-2 px-4 shadow-sm hidden sm:block">
+      <div className="bg-gradient-to-r from-indigo-600 via-indigo-700 to-pink-600 text-white text-[11px] py-2.5 px-4 shadow-sm hidden sm:block">
         <div className="max-w-7xl mx-auto flex justify-between items-center font-mono">
           <div className="flex items-center space-x-4">
-            <span className="flex items-center text-indigo-200">
-              <MapPin className="w-3.5 h-3.5 mr-1 text-pink-400" />
+            <span className="flex items-center text-white font-extrabold">
+              <MapPin className="w-3.5 h-3.5 mr-1 text-pink-300" />
               Mid-Baneshwor, Kathmandu, Nepal
             </span>
-            <span className="text-slate-600">|</span>
-            <span className="text-indigo-300 font-bold uppercase tracking-wider">Shristi Academy (Est. 2016 AD)</span>
+            <span className="text-white/40">|</span>
+            <span className="text-pink-100 font-black uppercase tracking-widest">Shristi Academy (Established 2016 AD)</span>
           </div>
           <div className="flex items-center space-x-4">
-            <span className="text-slate-200">Call: <strong className="text-white">01-4496573</strong></span>
+            <span className="text-white font-black">Call: <strong className="text-pink-200">01-4496573</strong></span>
             <span>•</span>
-            <span className="text-indigo-200">info@shristiacademy.edu.np</span>
+            <span className="text-white font-black">info@shristiacademy.edu.np</span>
           </div>
         </div>
       </div>
@@ -74,25 +74,25 @@ export default function Header({
       {/* Persistent Elegant Header Container */}
       <header className={`sticky top-0 z-40 transition-all duration-300 ${
         isScrolled 
-          ? "bg-white/95 backdrop-blur-md border-b border-indigo-100 py-3.5 shadow-md" 
-          : "bg-[#FAF9F6] border-b border-indigo-50/70 py-5"
+          ? "bg-white/95 backdrop-blur-md border-b-2 border-indigo-200 py-3 shadow-lg" 
+          : "bg-white border-b-2 border-slate-100 py-5"
       }`}>
         <div className="max-w-7xl mx-auto px-4 flex justify-between items-center">
           
           {/* Left: School Logo & Title */}
           <div 
             onClick={() => handleNavigate("home")}
-            className="flex items-center space-x-3 cursor-pointer group"
+            className="flex items-center space-x-3.5 cursor-pointer group"
           >
-            <div className="w-11 h-11 bg-white border border-indigo-100 rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-100/50 group-hover:scale-105 group-hover:rotate-6 transition-all duration-300 overflow-hidden p-0.5">
+            <div className="w-12 h-12 bg-white border-2 border-indigo-500 rounded-2xl flex items-center justify-center shadow-md shadow-indigo-100 group-hover:scale-110 group-hover:rotate-6 transition-all duration-300 overflow-hidden p-0.5">
               <SchoolLogo className="w-full h-full" />
             </div>
             <div>
-              <span className="font-display font-black text-base sm:text-lg bg-clip-text text-transparent bg-gradient-to-r from-indigo-700 via-purple-700 to-indigo-950 tracking-tight leading-none block">
+              <span className="font-display font-black text-xl sm:text-2xl bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 via-pink-600 to-indigo-800 tracking-tight leading-none block">
                 SHRISTI ACADEMY
               </span>
-              <p className="text-[9px] text-purple-600 font-bold font-mono tracking-widest leading-none mt-1">
-                PRIMARY & SECONDARY SCHOOL
+              <p className="text-[10px] text-indigo-700 font-extrabold font-mono tracking-widest leading-none mt-1.5 uppercase">
+                Primary & Secondary School
               </p>
             </div>
           </div>
@@ -102,7 +102,7 @@ export default function Header({
             {/* Admissions Quick Apply Button - Persistent for excellent UX Conversion */}
             <button
               onClick={() => handleNavigate("admission")}
-              className="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold text-xs px-4 py-2.5 rounded-xl transition-all duration-300 shadow-sm border border-indigo-100/40 hidden md:block"
+              className="bg-pink-100 hover:bg-pink-200 text-pink-800 font-black text-xs px-4 py-2.5 rounded-xl transition-all duration-300 shadow-md border border-pink-200 hidden md:block"
             >
               Apply Online
             </button>
@@ -110,12 +110,12 @@ export default function Header({
             {/* Pinned Announcements Bell Quick-click */}
             <button
               onClick={() => handleNavigate("notices")}
-              className="p-2.5 text-slate-600 hover:text-indigo-600 relative bg-white border border-slate-100 rounded-xl shadow-sm hover:scale-105 transition-all"
+              className="p-2.5 text-slate-700 hover:text-indigo-600 relative bg-white border-2 border-slate-200 rounded-xl shadow-sm hover:scale-110 transition-all"
               title="Show Notices"
             >
               <Bell className="w-4 h-4" />
               {unreadCount > 0 && (
-                <span className="absolute -top-1.5 -right-1.5 bg-pink-500 text-white text-[9px] font-bold rounded-full w-4 h-4 flex items-center justify-center shadow-md">
+                <span className="absolute -top-1.5 -right-1.5 bg-pink-500 text-white text-[10px] font-black rounded-full w-5 h-5 flex items-center justify-center shadow-md animate-bounce">
                   {unreadCount}
                 </span>
               )}
@@ -125,11 +125,11 @@ export default function Header({
             <button
               id="hamburger-navigation-trigger"
               onClick={() => setIsDrawerOpen(true)}
-              className="flex items-center space-x-2 px-3.5 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white rounded-xl shadow-md border border-indigo-500/30 transition-all duration-300 hover:scale-[1.03] cursor-pointer group"
+              className="flex items-center space-x-2 px-4 py-2.5 bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 text-white rounded-xl shadow-md border border-indigo-500/30 transition-all duration-300 hover:scale-[1.05] cursor-pointer group"
               title="Open Navigation Menu"
             >
-              <Menu className="w-4 h-4 text-pink-400 group-hover:rotate-90 transition-transform duration-300" />
-              <span className="text-[10px] sm:text-xs font-mono font-black tracking-widest uppercase">
+              <Menu className="w-4 h-4 text-pink-300 group-hover:rotate-90 transition-transform duration-300" />
+              <span className="text-[11px] sm:text-xs font-mono font-black tracking-widest uppercase">
                 Menu
               </span>
             </button>
