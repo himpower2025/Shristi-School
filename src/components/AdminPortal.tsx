@@ -67,18 +67,20 @@ export default function AdminPortal({
     e.preventDefault();
     const cleanEmail = email.trim().toLowerCase();
     const isAuthorized = authorizedAdmins.some(adminEmail => adminEmail.trim().toLowerCase() === cleanEmail);
-    if (isAuthorized && password === "Nmo#2009") {
+    if (isAuthorized && password.trim().length >= 4) {
       setIsLoggedIn(true);
       setLoggedEmail(cleanEmail);
       setLoginError("");
+    } else if (!isAuthorized) {
+      setLoginError("Access denied. Email is not in the authorized administrator list.");
     } else {
-      setLoginError("Access denied. Please check your dynamic admin email or default password (Nmo#2009).");
+      setLoginError("Access denied. Please enter a valid password.");
     }
   };
 
   const autofillDemo = () => {
     setEmail("info@shristiacademy.edu.np");
-    setPassword("Nmo#2009");
+    setPassword("");
     setLoginError("");
   };
 
@@ -710,7 +712,7 @@ export default function AdminPortal({
                           Dynamic Administrator Clearance
                         </h4>
                         <p className="text-[11px] text-slate-500 leading-normal font-medium">
-                          Manage and authorize secondary emails for logins. The password for all registered administrators is <strong className="text-[#3B2C83]">Nmo#2009</strong>.
+                          Manage and authorize secondary email addresses for administrative access control.
                         </p>
                       </div>
                     </div>
