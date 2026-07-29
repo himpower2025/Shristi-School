@@ -49,11 +49,52 @@ export interface SuggestionInquiry {
   id: string;
   title: string;
   parentName: string;
+  email: string;
+  mobileNo: string;
   category: string;
   content: string;
   pin: string; // 4-digit security code
   submittedAt: string;
+  createdAtMs?: number; // Epoch timestamp for 1-year auto-expiration
   adminReply?: string;
   repliedAt?: string;
+}
+
+export interface PopupNoticeConfig {
+  enabled: boolean;
+  type: "image" | "custom";
+  // Option 1: Image / Poster / PDF File
+  mediaUrl?: string | null;
+  mediaType?: "image" | "pdf";
+  fileName?: string;
+  
+  // Option 2: Structured Event / Notice Format
+  title: string;
+  badge?: string;
+  eventTime?: string;
+  eventLocation?: string;
+  content: string;
+  ctaText?: string;
+  ctaLink?: string;
+  
+  updatedAt?: string;
+}
+
+export interface SchoolProfileConfig {
+  pdfUrl: string | null;
+  fileName: string;
+  fileSize?: string;
+  updatedAt?: string;
+  title?: string;
+  description?: string;
+}
+
+export interface GalleryItem {
+  id: string;
+  image: string;
+  title: string;
+  category: string;
+  description: string;
+  uploadedAt?: string;
 }
 

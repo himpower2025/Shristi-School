@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { Award, Target, Landmark, Quote, PhoneCall, Check, X, Maximize2 } from "lucide-react";
+import { Award, Target, Landmark, Quote, PhoneCall, Check, X, Maximize2, FileText, Eye, Download, Sparkles, ArrowRight, Image as ImageIcon } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
+import { SchoolProfileConfig, GalleryItem } from "../types";
 import vaniImage from "../assets/images/vani_pradhan.png";
 import shantiImage from "../assets/images/shanti_pradhan.png";
 
@@ -8,20 +9,23 @@ import montessoriImg from "../assets/images/montessori_learning_1782145030889.jp
 import scienceLabImg from "../assets/images/science_lab_1782145047179.jpg";
 import schoolActivitiesImg from "../assets/images/school_activities_1782145063241.jpg";
 
-const GALLERY_ITEMS = [
+export const DEFAULT_GALLERY_ITEMS: GalleryItem[] = [
   {
+    id: "gal-1",
     image: montessoriImg,
     category: "Kindergarten Foundations",
     title: "Learning Through Joyful Play",
     description: "Young children building foundational motor skills and social confidence in our standalone preparation class."
   },
   {
+    id: "gal-2",
     image: scienceLabImg,
     category: "Secondary Academy",
     title: "Preparing Scholars for SEE Success",
     description: "Equipped science, technology, and computer reference infrastructures guiding exemplary board results."
   },
   {
+    id: "gal-3",
     image: schoolActivitiesImg,
     category: "Co-Curricular Activities",
     title: "Vibrant Teamwork & Character Play",
@@ -29,39 +33,46 @@ const GALLERY_ITEMS = [
   }
 ];
 
-export default function AboutUs() {
-  const [selectedImage, setSelectedImage] = useState<typeof GALLERY_ITEMS[0] | null>(null);
+interface AboutUsProps {
+  onOpenSchoolProfile?: () => void;
+  schoolProfileConfig?: SchoolProfileConfig;
+  galleryItems?: GalleryItem[];
+}
+
+export default function AboutUs({ onOpenSchoolProfile, schoolProfileConfig, galleryItems }: AboutUsProps) {
+  const activeGallery = galleryItems && galleryItems.length > 0 ? galleryItems : DEFAULT_GALLERY_ITEMS;
+  const [selectedImage, setSelectedImage] = useState<GalleryItem | null>(null);
 
   const values = [
     { 
-      title: "Academic Excellence", 
-      description: "Rigorous focus on core syllabus accompanied by regular mock tests and assessments.",
+      title: "Strong Academics", 
+      description: "Focus on core subjects with clear teaching, regular practice, and helpful feedback.",
       icon: Award, 
       color: "bg-indigo-50 text-indigo-600 border-indigo-100" 
     },
     { 
-      title: "Holistic Character", 
-      description: "Values of humility, mutual respect, and regular civic programs form our base.",
+      title: "Good Values & Character", 
+      description: "Teaching respect, honesty, kindness, and good habits for everyday life.",
       icon: Target, 
       color: "bg-purple-50 text-purple-600 border-purple-100" 
     },
     { 
-      title: "Community & Culture", 
-      description: "We celebrate rich ethnic diversity and foster localized leadership qualities.",
+      title: "Friendly Community", 
+      description: "A welcoming, family-like school where students support each other.",
       icon: Landmark, 
       color: "bg-pink-50 text-pink-600 border-pink-100" 
     },
   ];
 
   const featuresList = [
-    "State-of-the-Art Science & Botany Labs",
-    "Smart Audio-Visual Interactive Classrooms",
-    "Computer Science Center (NEB Configured)",
-    "Extensive Secondary General Reference Library",
-    "Clean Secure College Transportation Network",
-    "Dedicated Indoor & Outdoor Sports Complexes",
-    "Affordable Fees with Complete Scholarship Options",
-    "Counseling Support for Career & Abroad Studies"
+    "Modern Science & Chemistry Labs",
+    "Smart Classrooms with Audio-Visual Tools",
+    "Computer Lab with High-Speed Internet",
+    "School Library with Books & Study Guides",
+    "Safe & Reliable School Bus Service",
+    "Indoor & Outdoor Sports Facilities",
+    "Affordable Fees & Scholarship Support",
+    "Friendly Guidance for Higher Studies"
   ];
 
   return (
@@ -70,15 +81,48 @@ export default function AboutUs() {
         
         {/* Section Heading */}
         <div className="text-center max-w-3xl mx-auto space-y-4">
-          <span className="text-xs font-mono font-bold uppercase tracking-wider text-indigo-600 bg-indigo-50 px-3.5 py-1.5 rounded-full inline-block">
-            Our Identity
-          </span>
+          <div className="inline-flex items-center space-x-2 bg-gradient-to-r from-amber-500 to-amber-600 text-white px-4 py-1.5 rounded-full shadow-md text-xs font-mono font-black tracking-widest uppercase">
+            <Award className="w-4 h-4 text-amber-200" />
+            <span>Government Certified Category 'A' School</span>
+          </div>
           <h2 className="font-display font-black text-4xl sm:text-5xl text-slate-900 tracking-tight leading-tight">
-            Cultivating Confident, Compassionate, and Capable Scholars
+            Helping Every Child Learn, Grow, and Succeed
           </h2>
           <p className="text-slate-600 font-bold text-base sm:text-lg leading-relaxed">
-            Shristi Academy delivers high-quality education from Kindergarten to Class 10 (SEE). We merge modern science & tech utilities with a safe, caring, family-like campus atmosphere in Kathmandu.
+            Shristi Academy offers quality education from Kindergarten to Class 10 (SEE). Officially recognized as a <strong className="text-indigo-900 underline decoration-amber-400 decoration-4">Category A</strong> school by government education standards, we combine top-quality facilities with a safe, warm, and welcoming school environment.
           </p>
+        </div>
+
+        {/* OFFICIAL SCHOOL PROFILE SHOWCASE BANNER */}
+        <div className="bg-gradient-to-r from-indigo-900 via-purple-900 to-slate-900 text-white rounded-[32px] p-6 sm:p-8 md:p-10 shadow-xl border border-indigo-700/50 relative overflow-hidden text-left flex flex-col md:flex-row items-center justify-between gap-6">
+          <div className="space-y-3 max-w-2xl">
+            <div className="inline-flex items-center space-x-2 bg-white/10 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-white/20 text-pink-300 text-xs font-mono font-bold">
+              <Sparkles className="w-3.5 h-3.5" />
+              <span>OFFICIAL SCHOOL BROCHURE</span>
+            </div>
+            <h3 className="font-display font-black text-2xl sm:text-3xl text-white tracking-tight">
+              Shristi Academy School Profile & PDF Guide
+            </h3>
+            <p className="text-indigo-100 text-xs sm:text-sm font-medium leading-relaxed">
+              Read our official school guide to learn about our campus, facilities, expert teachers, and SEE exam achievements. View the full PDF directly in your browser anytime!
+            </p>
+            {schoolProfileConfig?.fileName && (
+              <p className="text-[11px] font-mono text-indigo-300/80">
+                Current File: {schoolProfileConfig.fileName} {schoolProfileConfig.fileSize ? `(${schoolProfileConfig.fileSize})` : ""}
+              </p>
+            )}
+          </div>
+
+          <div className="shrink-0 flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
+            <button
+              type="button"
+              onClick={onOpenSchoolProfile}
+              className="w-full sm:w-auto px-6 py-3.5 bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 hover:from-pink-600 hover:to-indigo-600 text-white rounded-2xl text-xs font-mono font-black tracking-wider shadow-lg shadow-pink-500/20 flex items-center justify-center space-x-2 transition-all cursor-pointer hover:scale-105"
+            >
+              <Eye className="w-4 h-4 text-white" />
+              <span>VIEW SCHOOL PROFILE (PDF)</span>
+            </button>
+          </div>
         </div>
 
         {/* Content Row: Story & Principal's Message */}
@@ -88,28 +132,67 @@ export default function AboutUs() {
           <div className="lg:col-span-6 flex flex-col justify-between space-y-8">
             <div className="space-y-6 text-left">
               <h3 className="font-display font-black text-2xl sm:text-3xl text-slate-950">
-                The Legacy of Shristi Academy
+                About Shristi Academy
               </h3>
               
               {/* Highlight Statement - enlarged */}
               <p className="text-indigo-950 text-base sm:text-lg leading-relaxed font-black border-l-4 border-indigo-600 pl-4 py-2 bg-indigo-50/30 rounded-r-2xl pr-4 shadow-sm">
-                Established in 2016 AD, Shristi Academy was founded to deliver exceptional educational standards and holistic development to Kathmandu's youth.
+                Founded in 2016 AD, Shristi Academy was created to give children in Kathmandu a strong education and a safe place to learn and grow.
               </p>
               
               <ul className="space-y-3 text-slate-700 text-sm sm:text-base font-bold pt-2">
                 <li className="flex items-start">
-                  <span className="text-indigo-600 mr-2.5 font-black text-lg">•</span>
-                  <span><strong>Student-First Curriculum:</strong> National CDC aligned core studies coupled with highly interactive, practical learning modules.</span>
+                  <span className="text-amber-500 mr-2.5 font-black text-lg">•</span>
+                  <span><strong>Certified Category 'A' School:</strong> Top-rated by government education standards for excellent classrooms, qualified teachers, and strong exam results.</span>
                 </li>
                 <li className="flex items-start">
                   <span className="text-indigo-600 mr-2.5 font-black text-lg">•</span>
-                  <span><strong>Robust Health & Wellness:</strong> Fresh, organic, school-prepared balanced lunch options alongside structured daily sports activities.</span>
+                  <span><strong>Easy-to-Follow Curriculum:</strong> National curriculum taught with hands-on activities and interactive lessons.</span>
                 </li>
                 <li className="flex items-start">
                   <span className="text-indigo-600 mr-2.5 font-black text-lg">•</span>
-                  <span><strong>Dedicated Mentors:</strong> Highly certified, compassionate teachers committed to standard school board exams and life preparedness.</span>
+                  <span><strong>Healthy Meals & Activities:</strong> Freshly prepared school lunches and daily sports for healthy growth.</span>
+                </li>
+                <li className="flex items-start">
+                  <span className="text-indigo-600 mr-2.5 font-black text-lg">•</span>
+                  <span><strong>Caring Teachers:</strong> Kind, experienced teachers who give personal attention to every child.</span>
                 </li>
               </ul>
+            </div>
+
+            {/* Category A Institutional School Accreditation Showcase Card */}
+            <div className="bg-gradient-to-br from-amber-500/10 via-amber-500/5 to-indigo-50/50 p-6 sm:p-7 rounded-[28px] border-2 border-amber-300/80 shadow-md space-y-4 relative overflow-hidden">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2.5">
+                  <div className="p-2 bg-amber-500 text-white rounded-xl shadow-md">
+                    <Award className="w-5 h-5 text-amber-100" />
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-mono font-black text-amber-700 tracking-wider uppercase block">Government Accreditation</span>
+                    <h4 className="font-display font-black text-lg text-slate-900">Certified Category 'A' School</h4>
+                  </div>
+                </div>
+                <span className="px-3 py-1 bg-amber-500 text-white text-xs font-mono font-black rounded-full shadow-sm">Grade A</span>
+              </div>
+
+              <p className="text-xs sm:text-sm text-slate-700 font-bold leading-relaxed">
+                Shristi Academy is officially certified as a <strong>Category A</strong> school by government education authorities. Category 'A' is the highest rating given to schools that meet strict standards for good classrooms, qualified teachers, student safety, cleanliness, and top SEE exam scores.
+              </p>
+
+              <div className="grid grid-cols-3 gap-2.5 pt-1 text-center">
+                <div className="bg-white/80 p-2.5 rounded-xl border border-amber-200">
+                  <span className="block text-[10px] font-mono font-bold text-slate-500 uppercase">Facilities</span>
+                  <span className="text-xs font-black text-amber-900">Category A</span>
+                </div>
+                <div className="bg-white/80 p-2.5 rounded-xl border border-amber-200">
+                  <span className="block text-[10px] font-mono font-bold text-slate-500 uppercase">Teaching</span>
+                  <span className="text-xs font-black text-amber-900">Category A</span>
+                </div>
+                <div className="bg-white/80 p-2.5 rounded-xl border border-amber-200">
+                  <span className="block text-[10px] font-mono font-bold text-slate-500 uppercase">Clean & Safe</span>
+                  <span className="text-xs font-black text-amber-900">Category A</span>
+                </div>
+              </div>
             </div>
 
             {/* Values Grid */}
@@ -224,11 +307,11 @@ export default function AboutUs() {
             </p>
           </div>
 
-          {/* GIGANTIC RESPONSIVE GRID FOR VIVID GRAPHICS */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {GALLERY_ITEMS.map((item, idx) => (
+          {/* GIGANTIC RESPONSIVE GRID FOR VIVID GRAPHICS (DYNAMIC - ONLY UPLOADED PHOTOS DISPLAYED, MAX 10) */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {activeGallery.slice(0, 10).map((item) => (
               <motion.div
-                key={idx}
+                key={item.id || item.title}
                 whileHover={{ y: -8 }}
                 onClick={() => setSelectedImage(item)}
                 className="bg-white rounded-[32px] overflow-hidden border border-slate-200 p-5 shadow-md hover:shadow-2xl transition-all duration-300 flex flex-col justify-between group cursor-pointer"

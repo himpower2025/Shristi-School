@@ -9,18 +9,17 @@ interface FooterProps {
 export default function Footer({ onNavigate, onOpenAdmin }: FooterProps) {
   
   const academicMenus = [
-    { label: "Kindergarten Foundation", section: "academics" },
-    { label: "Primary Education (Class 1-5)", section: "academics" },
+    { label: "Kindergarten Classes", section: "academics" },
+    { label: "Primary School (Class 1-5)", section: "academics" },
     { label: "Lower Secondary (Class 6-8)", section: "academics" },
-    { label: "Secondary Board Prep (Class 9-10)", section: "academics" },
+    { label: "Secondary SEE Prep (Class 9-10)", section: "academics" },
   ];
 
   const servicesMenus = [
-    { label: "Online Admissions Query Register", section: "admission" },
-    { label: "NEB Nepal GPA Grading Calculator", section: "tools" },
-    { label: "Co-curricular events timeline", section: "tools" },
-    { label: "CDC Syllabus downloads center", section: "academics" },
-    { label: "Admissions prospectus (DRAFT)", section: "admission" },
+    { label: "Online Admission Form", section: "admission" },
+    { label: "GPA Grading Calculator", section: "tools" },
+    { label: "School Calendar & Events", section: "tools" },
+    { label: "School Profile & Prospectus", section: "about" },
   ];
 
   return (
@@ -72,7 +71,7 @@ export default function Footer({ onNavigate, onOpenAdmin }: FooterProps) {
         <div className="space-y-4">
           <h4 className="font-black text-[10.5px] text-white uppercase tracking-widest font-mono flex items-center border-b border-white/10 pb-2">
             <BookOpen className="w-3.5 h-3.5 mr-2 text-indigo-400" />
-            Academics Outlets
+            Academic Programs
           </h4>
           <ul className="space-y-2 text-slate-300 font-semibold">
             {academicMenus.map((menu, i) => (

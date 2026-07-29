@@ -50,15 +50,18 @@ app.post("/api/parse-calendar", async (req, res) => {
       cleanBase64 = parts[1];
     }
 
-    const prompt = `You are an expert academic registrar. Analyze this uploaded school academic calendar image.
-Extract all key events, holidays, examinations, sports days, and other important calendar items for the academic year.
+    const currentYear = new Date().getFullYear();
+
+    const prompt = `You are an expert academic registrar. Analyze this uploaded school academic calendar document (image or PDF).
+Extract all key events, holidays, examinations, sports days, cultural festivals, parent meetings, and other important calendar items for the entire academic year across all months.
+
 Parse each event into the following structure:
 - title: string (clear, descriptive name of the event, e.g., "First Terminal Examinations", "Science & Robotics Exhibition")
-- date: string (format as "Month Day, Year", e.g., "June 28, 2026" or "July 12, 2026". Since the current session is 2026, normalize year to 2026. If only Nepali month is mentioned like Baishakh or Ashadh, pick an equivalent Gregorian date or approximate date in 2026)
+- date: string (format strictly as "Month Day, Year", e.g., "July 28, 2026" or "August 15, 2026". Use full English month names: January, February, March, April, May, June, July, August, September, October, November, December. Default year to ${currentYear} if not specified)
 - time: string (e.g. "10:00 AM - 1:00 PM" or "All Day" or "9:30 AM onwards")
-- location: string (e.g., "School Premises", "Auditorium", etc. If not specified, default to "School Premises")
+- location: string (e.g., "School Premises", "Auditorium", "Sports Ground". Default to "School Premises" if not mentioned)
 - description: string (brief description of what happens, max 120 chars)
-- type: string (must be exactly one of: "Sports", "Academic", "Excursion", "Ceremony")
+- type: string (must be strictly one of: "Sports", "Academic", "Excursion", "Ceremony")
 
 Return the extracted list as a JSON array of events. Do not write any markdown wrappers or comments, just valid JSON matching the schema.`;
 

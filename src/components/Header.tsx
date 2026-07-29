@@ -3,7 +3,7 @@ import SchoolLogo from "./SchoolLogo";
 import { 
   Menu, X, Shield, ShieldCheck, NotebookText, Bell, 
   MapPin, GraduationCap, Home, BookOpen, Clock, Layers,
-  Phone, Mail, Calendar, ChevronRight, Award, HelpCircle
+  Phone, Mail, Calendar, ChevronRight, Award, HelpCircle, FileText, Eye
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 
@@ -13,6 +13,7 @@ interface HeaderProps {
   isAdminMode: boolean;
   setIsAdminMode: (admin: boolean) => void;
   unreadCount: number;
+  onOpenSchoolProfile?: () => void;
 }
 
 export default function Header({ 
@@ -20,7 +21,8 @@ export default function Header({
   setCurrentSection, 
   isAdminMode, 
   setIsAdminMode,
-  unreadCount 
+  unreadCount,
+  onOpenSchoolProfile
 }: HeaderProps) {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
@@ -34,16 +36,25 @@ export default function Header({
   }, []);
 
   const menuItems = [
-    { id: "home", label: "Welcome Home", sub: "Main Entrance Screen", icon: Home },
-    { id: "about", label: "About Our Legacy", sub: "Our History (Established 2016 AD)", icon: Layers },
-    { id: "academics", label: "Academic Programs", sub: "Kindergarten & SEE Curriculums", icon: BookOpen },
-    { id: "notices", label: "Notices & Announcements", sub: "Circulars, Routings & Events", icon: NotebookText, badge: unreadCount },
-    { id: "suggestions", label: "Suggestion Board", sub: "Parents' inquiries & shared complaints", icon: HelpCircle },
-    { id: "tools", label: "School Calendar", sub: "Official Schedule & Dynamic Events", icon: Calendar },
-    { id: "admission", label: "Admissions & Entry", sub: "Apply Online for Session 2083 BS", icon: GraduationCap, highlights: true },
+    { id: "home", label: "Home", sub: "Main Entrance", icon: Home },
+    { id: "about", label: "About Our School", sub: "Category A Certified • Est. 2016", icon: Layers },
+    { id: "academics", label: "Classes & Curriculum", sub: "Kindergarten to Grade 10 (SEE)", icon: BookOpen },
+    { id: "notices", label: "Notices & News", sub: "School Circulars & Event Updates", icon: NotebookText, badge: unreadCount },
+    { id: "suggestions", label: "Parents' Voice", sub: "Questions & Feedback Board", icon: HelpCircle },
+    { id: "tools", label: "School Calendar", sub: "Term Dates & Holiday Schedule", icon: Calendar },
+    { id: "admission", label: "Online Admission", sub: "Apply for 2083 BS Session", icon: GraduationCap, highlights: true },
   ];
 
   const handleNavigate = (id: string) => {
+    if (id === "school-profile") {
+      if (onOpenSchoolProfile) {
+        onOpenSchoolProfile();
+      } else {
+        setCurrentSection("about");
+      }
+      setIsDrawerOpen(false);
+      return;
+    }
     setCurrentSection(id);
     setIsAdminMode(false);
     setIsDrawerOpen(false);
@@ -99,6 +110,16 @@ export default function Header({
 
           {/* Right Area: Main Call to Action & Hamburger Multi-Trigger (Desktop + Mobile Unified) */}
           <div className="flex items-center space-x-3.5">
+            {/* School Profile PDF Quick View Button */}
+            <button
+              onClick={() => handleNavigate("school-profile")}
+              className="bg-indigo-50 hover:bg-indigo-100/80 text-indigo-900 font-extrabold text-xs px-3.5 py-2.5 rounded-xl transition-all duration-300 border border-indigo-200 hidden lg:flex items-center space-x-1.5 shadow-sm"
+              title="View Official School Profile PDF"
+            >
+              <FileText className="w-3.5 h-3.5 text-indigo-600" />
+              <span>School Profile PDF</span>
+            </button>
+
             {/* Admissions Quick Apply Button - Persistent for excellent UX Conversion */}
             <button
               onClick={() => handleNavigate("admission")}

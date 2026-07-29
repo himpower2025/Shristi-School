@@ -1,10 +1,13 @@
-import { useState, FormEvent } from "react";
+import { useState, FormEvent, ChangeEvent } from "react";
 import { 
   Lock, Unlock, ShieldAlert, Sparkles, Send, FileEdit, 
-  Trash2, Plus, Megaphone, Users, Calendar, ArrowRight, UserCheck, CheckCircle2, Bookmark, Info, CircleAlert, HelpCircle
+  Trash2, Plus, Megaphone, Users, Calendar, ArrowRight, UserCheck, CheckCircle2, Bookmark, Info, CircleAlert, HelpCircle,
+  BellRing, Image as ImageIcon, LayoutTemplate, Eye, Upload, Check, Power, Download, FileText
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
-import { Notice, NoticeCategory, AdmissionQuery, SuggestionInquiry } from "../types";
+import { Notice, NoticeCategory, AdmissionQuery, SuggestionInquiry, PopupNoticeConfig, SchoolProfileConfig, GalleryItem } from "../types";
+import PopupModal from "./PopupModal";
+import SchoolProfileModal from "./SchoolProfileModal";
 
 interface AdminPortalProps {
   notices: Notice[];
@@ -19,6 +22,12 @@ interface AdminPortalProps {
   suggestions: SuggestionInquiry[];
   onAddReply: (id: string, reply: string) => void;
   onDeleteSuggestion: (id: string) => void;
+  popupConfig: PopupNoticeConfig;
+  onUpdatePopupConfig: (config: PopupNoticeConfig) => void;
+  schoolProfileConfig: SchoolProfileConfig;
+  onUpdateSchoolProfileConfig: (config: SchoolProfileConfig) => void;
+  galleryItems?: GalleryItem[];
+  onUpdateGalleryItems?: (items: GalleryItem[]) => void;
 }
 
 export default function AdminPortal({ 
@@ -33,7 +42,13 @@ export default function AdminPortal({
   onDeleteAuthorizedAdmin,
   suggestions,
   onAddReply,
-  onDeleteSuggestion
+  onDeleteSuggestion,
+  popupConfig,
+  onUpdatePopupConfig,
+  schoolProfileConfig,
+  onUpdateSchoolProfileConfig,
+  galleryItems = [],
+  onUpdateGalleryItems
 }: AdminPortalProps) {
   // Login Gate State variables
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -43,7 +58,175 @@ export default function AdminPortal({
   const [loggedEmail, setLoggedEmail] = useState("");
 
   // CMS Tabs State variables
-  const [cmsTab, setCmsTab] = useState<"ManageNo" | "WritePost" | "Admit" | "Admins" | "ParentsVoice">("ManageNo");
+  const [cmsTab, setCmsTab] = useState<"ManageNo" | "WritePost" | "Admit" | "Admins" | "ParentsVoice" | "PopupNotice" | "SchoolProfile" | "CampusGallery">("ManageNo");
+
+  // Popup Management Form States
+  const [popEnabled, setPopEnabled] = useState<boolean>(popupConfig?.enabled ?? false);
+  const [popType, setPopType] = useState<"image" | "custom">(popupConfig?.type ?? "custom");
+  const [popMediaUrl, setPopMediaUrl] = useState<string | null>(popupConfig?.mediaUrl ?? null);
+  const [popMediaType, setPopMediaType] = useState<"image" | "pdf">(popupConfig?.mediaType ?? "image");
+  const [popFileName, setPopFileName] = useState<string>(popupConfig?.fileName ?? "");
+  const [popTitle, setPopTitle] = useState<string>(popupConfig?.title ?? "");
+  const [popBadge, setPopBadge] = useState<string>(popupConfig?.badge ?? "SPECIAL ANNOUNCEMENT");
+  const [popEventTime, setPopEventTime] = useState<string>(popupConfig?.eventTime ?? "");
+  const [popEventLocation, setPopEventLocation] = useState<string>(popupConfig?.eventLocation ?? "");
+  const [popContent, setPopContent] = useState<string>(popupConfig?.content ?? "");
+  const [popCtaText, setPopCtaText] = useState<string>(popupConfig?.ctaText ?? "Apply For Admission");
+  const [popCtaLink, setPopCtaLink] = useState<string>(popupConfig?.ctaLink ?? "#admissions");
+
+  // School Profile Management States
+  const [spPdfUrl, setSpPdfUrl] = useState<string | null>(schoolProfileConfig?.pdfUrl ?? null);
+  const [spFileName, setSpFileName] = useState<string>(schoolProfileConfig?.fileName ?? "Shristi_Academy_School_Profile_2083.pdf");
+  const [spFileSize, setSpFileSize] = useState<string>(schoolProfileConfig?.fileSize ?? "2.4 MB");
+  const [spTitle, setSpTitle] = useState<string>(schoolProfileConfig?.title ?? "Shristi Academy • School Profile Prospectus 2083 BS");
+  const [spDescription, setSpDescription] = useState<string>(schoolProfileConfig?.description ?? "Official institutional prospectus detailing academic programs, facilities, and campus history.");
+
+  // Campus Gallery Management States
+  const [galTitle, setGalTitle] = useState("");
+  const [galCategory, setGalCategory] = useState("");
+  const [galDescription, setGalDescription] = useState("");
+  const [galImage, setGalImage] = useState<string | null>(null);
+
+  // Live Admin Preview States
+  const [showLivePreview, setShowLivePreview] = useState(false);
+  const [showSpPreview, setShowSpPreview] = useState(false);
+
+  // File upload handler for Campus Gallery Photo
+  const handleGalleryFileUpload = (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (galleryItems.length >= 10) {
+      alert("Maximum limit of 10 photos reached! Please delete an existing photo before uploading a new one.");
+      return;
+    }
+    if (file.size > 15 * 1024 * 1024) {
+      alert("File is too large! Please select an image file under 15MB.");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const base64 = event.target?.result as string;
+      setGalImage(base64);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleAddGalleryPhoto = (e: FormEvent) => {
+    e.preventDefault();
+    if (galleryItems.length >= 10) {
+      alert("Maximum limit of 10 photos reached! Please delete an existing photo before uploading a new one.");
+      return;
+    }
+    if (!galImage) {
+      alert("Please select an image file to upload.");
+      return;
+    }
+    const newItem: GalleryItem = {
+      id: "gal-" + Date.now(),
+      image: galImage,
+      title: galTitle.trim() || "Campus Life Photo",
+      category: galCategory.trim() || "Campus Activity",
+      description: galDescription.trim() || "Moments of learning and discovery at Shristi Academy.",
+      uploadedAt: new Date().toLocaleDateString("en-US", { month: "short", year: "numeric" }),
+    };
+    const updated = [...galleryItems, newItem];
+    if (onUpdateGalleryItems) {
+      onUpdateGalleryItems(updated);
+    }
+    setGalTitle("");
+    setGalCategory("");
+    setGalDescription("");
+    setGalImage(null);
+  };
+
+  const handleDeleteGalleryPhoto = (id: string) => {
+    if (confirm("Are you sure you want to delete this photo from the campus gallery?")) {
+      const updated = galleryItems.filter(item => item.id !== id);
+      if (onUpdateGalleryItems) {
+        onUpdateGalleryItems(updated);
+      }
+    }
+  };
+
+  // File upload handler for School Profile PDF
+  const handleSchoolProfileFileUpload = (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 25 * 1024 * 1024) {
+      alert("File is too large! Please select a PDF file under 25MB.");
+      return;
+    }
+    const sizeInMb = (file.size / (1024 * 1024)).toFixed(1) + " MB";
+    const reader = new FileReader();
+    reader.onload = () => {
+      setSpPdfUrl(reader.result as string);
+      setSpFileName(file.name);
+      setSpFileSize(sizeInMb);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleSaveSchoolProfile = (e: FormEvent) => {
+    e.preventDefault();
+    const updated: SchoolProfileConfig = {
+      pdfUrl: spPdfUrl,
+      fileName: spFileName,
+      fileSize: spFileSize,
+      title: spTitle,
+      description: spDescription,
+      updatedAt: new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
+    };
+    onUpdateSchoolProfileConfig(updated);
+  };
+
+  // File upload handler for Option 1 (Image/PDF)
+  const handlePopupFileUpload = (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 10 * 1024 * 1024) {
+      alert("File is too large! Please choose a file smaller than 10MB.");
+      return;
+    }
+    const isPdf = file.type === "application/pdf" || file.name.endsWith(".pdf");
+    const reader = new FileReader();
+    reader.onload = () => {
+      setPopMediaUrl(reader.result as string);
+      setPopMediaType(isPdf ? "pdf" : "image");
+      setPopFileName(file.name);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  // Save Popup configuration handler
+  const handleSavePopupConfig = (e: FormEvent) => {
+    e.preventDefault();
+    const updated: PopupNoticeConfig = {
+      enabled: popEnabled,
+      type: popType,
+      mediaUrl: popMediaUrl,
+      mediaType: popMediaType,
+      fileName: popFileName,
+      title: popTitle,
+      badge: popBadge,
+      eventTime: popEventTime,
+      eventLocation: popEventLocation,
+      content: popContent,
+      ctaText: popCtaText,
+      ctaLink: popCtaLink,
+      updatedAt: new Date().toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "short",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit"
+      })
+    };
+    onUpdatePopupConfig(updated);
+    alert(popEnabled 
+      ? "🎉 Pop-up notice activated! Visitors on the website will now see this pop-up."
+      : "💾 Pop-up settings saved successfully (Currently inactive)."
+    );
+  };
 
   // Dynamic admin add input field
   const [newAdminEmail, setNewAdminEmail] = useState("");
@@ -349,7 +532,44 @@ export default function AdminPortal({
                 >
                   💬 PARENTS' VOICE ({suggestions.length})
                 </button>
+
+                <button
+                  onClick={() => setCmsTab("PopupNotice")}
+                  className={`px-4 py-3 rounded-2xl text-xs font-mono font-black tracking-wider transition-all cursor-pointer flex items-center space-x-1.5 ${
+                    cmsTab === "PopupNotice"
+                      ? "bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-md shadow-indigo-100"
+                      : "text-slate-500 hover:text-indigo-600 hover:bg-slate-100/50"
+                  }`}
+                >
+                  <BellRing className="w-3.5 h-3.5 text-pink-300" />
+                  <span>📢 POPUP ANNOUNCEMENT {popEnabled ? "(ACTIVE)" : "(OFF)"}</span>
+                </button>
+
+                <button
+                  onClick={() => setCmsTab("SchoolProfile")}
+                  className={`px-4 py-3 rounded-2xl text-xs font-mono font-black tracking-wider transition-all cursor-pointer flex items-center space-x-1.5 ${
+                    cmsTab === "SchoolProfile"
+                      ? "bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-md shadow-indigo-100"
+                      : "text-slate-500 hover:text-indigo-600 hover:bg-slate-100/50"
+                  }`}
+                >
+                  <FileText className="w-3.5 h-3.5 text-pink-300" />
+                  <span>📄 SCHOOL PROFILE (PDF)</span>
+                </button>
+
+                <button
+                  onClick={() => setCmsTab("CampusGallery")}
+                  className={`px-4 py-3 rounded-2xl text-xs font-mono font-black tracking-wider transition-all cursor-pointer flex items-center space-x-1.5 ${
+                    cmsTab === "CampusGallery"
+                      ? "bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-md shadow-indigo-100"
+                      : "text-slate-500 hover:text-indigo-600 hover:bg-slate-100/50"
+                  }`}
+                >
+                  <ImageIcon className="w-3.5 h-3.5 text-pink-300" />
+                  <span>🖼️ CAMPUS GALLERY ({galleryItems.length}/10)</span>
+                </button>
               </div>
+
 
               {/* Tab Outputs */}
               <div className="min-h-[400px]">
@@ -841,9 +1061,31 @@ export default function AdminPortal({
                                   Parent PIN: {item.pin}
                                 </span>
                               </div>
-                              <p className="text-xs text-slate-500 font-semibold mt-1">
-                                Filed by: <strong className="text-slate-800">{item.parentName}</strong>
-                              </p>
+                              <div className="flex items-center justify-between flex-wrap gap-2 pt-1">
+                                <p className="text-xs text-slate-500 font-semibold">
+                                  Filed by Parent: <strong className="text-slate-800 font-extrabold">{item.parentName}</strong>
+                                </p>
+                                <div className="flex items-center space-x-3 text-xs font-mono font-bold">
+                                  {item.email && (
+                                    <a 
+                                      href={`mailto:${item.email}`}
+                                      className="text-indigo-600 hover:underline flex items-center bg-indigo-50/70 px-2.5 py-1 rounded-lg border border-indigo-100"
+                                      title="Click to send direct email response"
+                                    >
+                                      📧 {item.email}
+                                    </a>
+                                  )}
+                                  {item.mobileNo && (
+                                    <a 
+                                      href={`tel:${item.mobileNo}`}
+                                      className="text-purple-600 hover:underline flex items-center bg-purple-50/70 px-2.5 py-1 rounded-lg border border-purple-100"
+                                      title="Click to call or send SMS"
+                                    >
+                                      📱 {item.mobileNo}
+                                    </a>
+                                  )}
+                                </div>
+                              </div>
                             </div>
 
                             <div className="p-4 bg-indigo-50/30 rounded-2xl border border-indigo-100/20">
@@ -917,6 +1159,638 @@ export default function AdminPortal({
                     )}
                   </div>
                 )}
+
+                {/* TAB 6: WEBSITE VISITOR POP-UP ANNOUNCEMENT MANAGER */}
+                {cmsTab === "PopupNotice" && (
+                  <div className="bg-white p-6 sm:p-8 rounded-[32px] border border-indigo-100 shadow-sm space-y-8 animate-fadeIn text-left">
+                    {/* Live Preview Modal Overlay when admin clicks preview */}
+                    <PopupModal
+                      config={{
+                        enabled: popEnabled,
+                        type: popType,
+                        mediaUrl: popMediaUrl,
+                        mediaType: popMediaType,
+                        fileName: popFileName,
+                        title: popTitle,
+                        badge: popBadge,
+                        eventTime: popEventTime,
+                        eventLocation: popEventLocation,
+                        content: popContent,
+                        ctaText: popCtaText,
+                        ctaLink: popCtaLink,
+                      }}
+                      isOpen={showLivePreview}
+                      onClose={() => setShowLivePreview(false)}
+                      isPreviewMode={true}
+                    />
+
+                    {/* Section Title & Status Bar */}
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-indigo-50 pb-6">
+                      <div className="flex items-center space-x-3">
+                        <div className="p-3 bg-pink-50 text-pink-600 border border-pink-100 rounded-2xl">
+                          <BellRing className="w-6 h-6" />
+                        </div>
+                        <div>
+                          <h3 className="font-display font-black text-xl text-slate-900 leading-tight">
+                            Website Visitor Pop-up Notice Manager
+                          </h3>
+                          <p className="text-xs text-slate-500 font-medium mt-0.5">
+                            Configure site-wide popup modal overlays for website visitors. Choose between pre-designed poster image/PDF or a clean structured template.
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Live Preview & Toggle Controls */}
+                      <div className="flex items-center space-x-3 shrink-0">
+                        <button
+                          type="button"
+                          onClick={() => setShowLivePreview(true)}
+                          className="px-4 py-2.5 bg-indigo-50 hover:bg-indigo-100/80 text-indigo-700 rounded-xl border border-indigo-150 text-xs font-mono font-bold flex items-center space-x-1.5 transition-all cursor-pointer"
+                        >
+                          <Eye className="w-4 h-4 text-indigo-600" />
+                          <span>LIVE PREVIEW POPUP</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => setPopEnabled(!popEnabled)}
+                          className={`px-4 py-2.5 rounded-xl border text-xs font-mono font-black flex items-center space-x-2 transition-all cursor-pointer ${
+                            popEnabled
+                              ? "bg-emerald-500 text-white border-emerald-600 shadow-md shadow-emerald-100"
+                              : "bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200"
+                          }`}
+                        >
+                          <Power className="w-4 h-4" />
+                          <span>{popEnabled ? "POPUP IS ACTIVE" : "POPUP IS DISABLED"}</span>
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Main Configuration Form */}
+                    <form onSubmit={handleSavePopupConfig} className="space-y-8">
+                      {/* Option Selection Radio Tabs */}
+                      <div className="space-y-3">
+                        <label className="block text-xs font-mono font-bold text-slate-700 uppercase">
+                          CHOOSE POPUP TYPE / FORMAT
+                        </label>
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          {/* OPTION 1: Poster Image / PDF */}
+                          <div
+                            onClick={() => setPopType("image")}
+                            className={`p-5 rounded-2xl border-2 cursor-pointer transition-all space-y-2 text-left relative ${
+                              popType === "image"
+                                ? "bg-indigo-50/40 border-indigo-600 shadow-md"
+                                : "bg-slate-50/50 border-slate-200 hover:border-slate-300"
+                            }`}
+                          >
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center space-x-2.5 text-indigo-900 font-extrabold text-sm">
+                                <ImageIcon className="w-5 h-5 text-indigo-600" />
+                                <span>OPTION 1: Upload Poster Image or PDF</span>
+                              </div>
+                              <input
+                                type="radio"
+                                name="popType"
+                                checked={popType === "image"}
+                                onChange={() => setPopType("image")}
+                                className="w-4 h-4 text-indigo-600 cursor-pointer"
+                              />
+                            </div>
+                            <p className="text-xs text-slate-600 leading-relaxed font-medium pl-7">
+                              Display an official pre-designed JPG/PNG poster image or PDF document directly inside the visitor popup window.
+                            </p>
+                          </div>
+
+                          {/* OPTION 2: Structured Shristi Aesthetic Layout */}
+                          <div
+                            onClick={() => setPopType("custom")}
+                            className={`p-5 rounded-2xl border-2 cursor-pointer transition-all space-y-2 text-left relative ${
+                              popType === "custom"
+                                ? "bg-purple-50/40 border-purple-600 shadow-md"
+                                : "bg-slate-50/50 border-slate-200 hover:border-slate-300"
+                            }`}
+                          >
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center space-x-2.5 text-purple-900 font-extrabold text-sm">
+                                <LayoutTemplate className="w-5 h-5 text-purple-600" />
+                                <span>OPTION 2: Structured Event Layout</span>
+                              </div>
+                              <input
+                                type="radio"
+                                name="popType"
+                                checked={popType === "custom"}
+                                onChange={() => setPopType("custom")}
+                                className="w-4 h-4 text-purple-600 cursor-pointer"
+                              />
+                            </div>
+                            <p className="text-xs text-slate-600 leading-relaxed font-medium pl-7">
+                              Fill in simple text details (Event Title, Date/Time, Location, Description, CTA Button) to render a stylish notice matching Shristi Academy's branding!
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* FORM FIELDS DEPENDING ON OPTION */}
+                      {popType === "image" ? (
+                        /* OPTION 1 FIELDS */
+                        <div className="p-6 bg-indigo-50/20 border border-indigo-100 rounded-2xl space-y-5 animate-fadeIn">
+                          <div className="space-y-2">
+                            <label className="block text-xs font-mono font-bold text-slate-700 uppercase">
+                              UPLOAD POSTER / PDF FILE (JPG, PNG, OR PDF)
+                            </label>
+                            <div className="flex flex-col sm:flex-row items-center gap-4">
+                              <label className="w-full sm:w-auto px-5 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-mono font-bold flex items-center justify-center space-x-2 cursor-pointer shadow-sm transition-all select-none">
+                                <Upload className="w-4 h-4 text-pink-300" />
+                                <span>CHOOSE IMAGE / PDF FILE</span>
+                                <input
+                                  type="file"
+                                  accept="image/*,application/pdf"
+                                  onChange={handlePopupFileUpload}
+                                  className="hidden"
+                                />
+                              </label>
+                              
+                              {popMediaUrl ? (
+                                <div className="flex items-center space-x-2 text-xs font-bold text-indigo-900 bg-white px-3 py-2 rounded-xl border border-indigo-100">
+                                  <Check className="w-4 h-4 text-emerald-600 shrink-0" />
+                                  <span className="truncate max-w-[200px]">{popFileName || "File loaded successfully"}</span>
+                                  <span className="text-[10px] font-mono text-slate-400 uppercase">({popMediaType})</span>
+                                </div>
+                              ) : (
+                                <span className="text-xs text-slate-400 font-medium">No file selected yet.</span>
+                              )}
+                            </div>
+                          </div>
+
+                          {popMediaUrl && (
+                            <div className="space-y-2">
+                              <span className="text-[10px] font-mono font-bold text-slate-500 uppercase block">MEDIA PREVIEW:</span>
+                              {popMediaType === "pdf" ? (
+                                <div className="p-4 bg-white border border-indigo-100 rounded-xl flex items-center space-x-3 text-indigo-900 text-xs font-bold">
+                                  <FileText className="w-6 h-6 text-indigo-600" />
+                                  <span>{popFileName || "Document.pdf"}</span>
+                                </div>
+                              ) : (
+                                <div className="max-w-md max-h-60 rounded-xl overflow-hidden border border-indigo-100 shadow-md">
+                                  <img src={popMediaUrl} alt="Popup Poster Preview" className="w-full h-full object-cover" />
+                                </div>
+                              )}
+                            </div>
+                          )}
+
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="space-y-1.5">
+                              <label className="block text-xs font-mono font-bold text-slate-700 uppercase">POPUP BADGE / TAG</label>
+                              <input
+                                type="text"
+                                placeholder="e.g. URGENT NOTICE / NOTICE POSTER"
+                                value={popBadge}
+                                onChange={(e) => setPopBadge(e.target.value)}
+                                className="w-full bg-white border border-indigo-100 p-3 rounded-xl text-xs font-bold focus:outline-none focus:border-indigo-600"
+                              />
+                            </div>
+                            <div className="space-y-1.5">
+                              <label className="block text-xs font-mono font-bold text-slate-700 uppercase">TITLE / CAPTION (OPTIONAL)</label>
+                              <input
+                                type="text"
+                                placeholder="e.g. Official Directive 2083"
+                                value={popTitle}
+                                onChange={(e) => setPopTitle(e.target.value)}
+                                className="w-full bg-white border border-indigo-100 p-3 rounded-xl text-xs font-bold focus:outline-none focus:border-indigo-600"
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      ) : (
+                        /* OPTION 2 FIELDS */
+                        <div className="p-6 bg-purple-50/20 border border-purple-100 rounded-2xl space-y-5 animate-fadeIn">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="space-y-1.5">
+                              <label className="block text-xs font-mono font-bold text-slate-700 uppercase">
+                                BADGE LABEL <span className="text-pink-600">*</span>
+                              </label>
+                              <input
+                                required={popType === "custom"}
+                                type="text"
+                                placeholder="e.g. SPECIAL ANNOUNCEMENT / ADMISSION OPEN"
+                                value={popBadge}
+                                onChange={(e) => setPopBadge(e.target.value)}
+                                className="w-full bg-white border border-indigo-100 p-3 rounded-xl text-xs font-bold focus:outline-none focus:border-indigo-600"
+                              />
+                            </div>
+
+                            <div className="space-y-1.5">
+                              <label className="block text-xs font-mono font-bold text-slate-700 uppercase">
+                                EVENT TITLE / HEADLINE <span className="text-pink-600">*</span>
+                              </label>
+                              <input
+                                required={popType === "custom"}
+                                type="text"
+                                placeholder="e.g. 2083/2084 Annual Parent Orientation & Cultural Gala"
+                                value={popTitle}
+                                onChange={(e) => setPopTitle(e.target.value)}
+                                className="w-full bg-white border border-indigo-100 p-3 rounded-xl text-xs font-bold focus:outline-none focus:border-indigo-600"
+                              />
+                            </div>
+
+                            <div className="space-y-1.5">
+                              <label className="block text-xs font-mono font-bold text-slate-700 uppercase">
+                                DATE & TIME
+                              </label>
+                              <input
+                                type="text"
+                                placeholder="e.g. Saturday, August 15, 2026 • 10:00 AM - 2:00 PM"
+                                value={popEventTime}
+                                onChange={(e) => setPopEventTime(e.target.value)}
+                                className="w-full bg-white border border-indigo-100 p-3 rounded-xl text-xs font-bold focus:outline-none focus:border-indigo-600"
+                              />
+                            </div>
+
+                            <div className="space-y-1.5">
+                              <label className="block text-xs font-mono font-bold text-slate-700 uppercase">
+                                LOCATION / VENUE
+                              </label>
+                              <input
+                                type="text"
+                                placeholder="e.g. Shristi Academy Main Auditorium, Mid-Baneshwor"
+                                value={popEventLocation}
+                                onChange={(e) => setPopEventLocation(e.target.value)}
+                                className="w-full bg-white border border-indigo-100 p-3 rounded-xl text-xs font-bold focus:outline-none focus:border-indigo-600"
+                              />
+                            </div>
+                          </div>
+
+                          <div className="space-y-1.5">
+                            <label className="block text-xs font-mono font-bold text-slate-700 uppercase">
+                              ANNOUNCEMENT DETAILS / MESSAGE <span className="text-pink-600">*</span>
+                            </label>
+                            <textarea
+                              required={popType === "custom"}
+                              rows={4}
+                              placeholder="Provide a clean description of the event or notice for website visitors..."
+                              value={popContent}
+                              onChange={(e) => setPopContent(e.target.value)}
+                              className="w-full bg-white border border-indigo-100 p-3 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:border-indigo-600 leading-relaxed"
+                            />
+                          </div>
+
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="space-y-1.5">
+                              <label className="block text-xs font-mono font-bold text-slate-700 uppercase">
+                                BUTTON ACTION TEXT
+                              </label>
+                              <input
+                                type="text"
+                                placeholder="e.g. Apply For Admission / View Notice Board"
+                                value={popCtaText}
+                                onChange={(e) => setPopCtaText(e.target.value)}
+                                className="w-full bg-white border border-indigo-100 p-3 rounded-xl text-xs font-bold focus:outline-none focus:border-indigo-600"
+                              />
+                            </div>
+
+                            <div className="space-y-1.5">
+                              <label className="block text-xs font-mono font-bold text-slate-700 uppercase">
+                                BUTTON NAVIGATION LINK
+                              </label>
+                              <select
+                                value={popCtaLink}
+                                onChange={(e) => setPopCtaLink(e.target.value)}
+                                className="w-full bg-white border border-indigo-100 p-3 rounded-xl text-xs font-bold focus:outline-none focus:border-indigo-600"
+                              >
+                                <option value="#admissions">🎓 Admission Form (#admissions)</option>
+                                <option value="#notices">📰 Notice Board (#notices)</option>
+                                <option value="#tools">📅 Academic Calendar (#tools)</option>
+                                <option value="#suggestions">💬 Parents' Voice (#suggestions)</option>
+                                <option value="#academics">📚 Academic Programs (#academics)</option>
+                              </select>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Save Button */}
+                      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-indigo-50">
+                        <button
+                          type="button"
+                          onClick={() => setShowLivePreview(true)}
+                          className="w-full sm:w-auto px-6 py-3.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-800 rounded-2xl text-xs font-mono font-bold flex items-center justify-center space-x-2 transition-all cursor-pointer"
+                        >
+                          <Eye className="w-4 h-4 text-indigo-600" />
+                          <span>PREVIEW POPUP BEFORE SAVING</span>
+                        </button>
+
+                        <button
+                          type="submit"
+                          className="w-full sm:w-auto px-8 py-3.5 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 hover:from-indigo-700 hover:to-pink-700 text-white rounded-2xl text-xs font-mono font-black tracking-wider shadow-lg shadow-indigo-100 transition-all cursor-pointer"
+                        >
+                          💾 SAVE & APPLY POPUP SETTINGS
+                        </button>
+                      </div>
+                    </form>
+                  </div>
+                )}
+
+                {/* TAB 7: SCHOOL PROFILE PDF MANAGER */}
+                {cmsTab === "SchoolProfile" && (
+                  <div className="bg-white p-6 sm:p-8 rounded-[32px] border border-indigo-100 shadow-sm space-y-8 animate-fadeIn text-left">
+                    {/* Live Preview Modal Overlay */}
+                    <SchoolProfileModal
+                      config={{
+                        pdfUrl: spPdfUrl,
+                        fileName: spFileName,
+                        fileSize: spFileSize,
+                        title: spTitle,
+                        description: spDescription,
+                      }}
+                      isOpen={showSpPreview}
+                      onClose={() => setShowSpPreview(false)}
+                      isAdminPreview={true}
+                    />
+
+                    {/* Section Header */}
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-indigo-50 pb-6">
+                      <div className="flex items-center space-x-3">
+                        <div className="p-3 bg-indigo-50 text-indigo-600 border border-indigo-100 rounded-2xl">
+                          <FileText className="w-6 h-6" />
+                        </div>
+                        <div>
+                          <h3 className="font-display font-black text-xl text-slate-900 leading-tight">
+                            School Profile & PDF Prospectus Manager
+                          </h3>
+                          <p className="text-xs text-slate-500 font-medium mt-0.5">
+                            Upload your official school prospectus / profile PDF. Visitors can preview it directly inside an in-browser interactive PDF reader without forcing downloads.
+                          </p>
+                        </div>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => setShowSpPreview(true)}
+                        className="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-mono font-bold flex items-center justify-center space-x-2 transition-all cursor-pointer shrink-0 shadow-sm"
+                      >
+                        <Eye className="w-4 h-4 text-pink-300" />
+                        <span>PREVIEW SCHOOL PROFILE</span>
+                      </button>
+                    </div>
+
+                    {/* Form Controls */}
+                    <form onSubmit={handleSaveSchoolProfile} className="space-y-6">
+                      {/* PDF File Upload Box */}
+                      <div className="p-6 bg-indigo-50/30 border-2 border-dashed border-indigo-200 rounded-2xl space-y-4 text-left">
+                        <div className="space-y-1">
+                          <label className="block text-xs font-mono font-bold text-slate-700 uppercase">
+                            SELECT OFFICIAL SCHOOL PROFILE PDF FILE
+                          </label>
+                          <p className="text-xs text-slate-500">
+                            Accepted file format: .PDF (Max file size: 25MB)
+                          </p>
+                        </div>
+
+                        <div className="flex flex-col sm:flex-row items-center gap-4 pt-2">
+                          <label className="w-full sm:w-auto px-6 py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl text-xs font-mono font-bold flex items-center justify-center space-x-2 cursor-pointer shadow-md shadow-indigo-100 transition-all select-none">
+                            <Upload className="w-4 h-4 text-pink-300" />
+                            <span>CHOOSE & UPLOAD NEW PDF</span>
+                            <input
+                              type="file"
+                              accept="application/pdf"
+                              onChange={handleSchoolProfileFileUpload}
+                              className="hidden"
+                            />
+                          </label>
+
+                          {spPdfUrl ? (
+                            <div className="flex items-center space-x-2 text-xs font-bold text-indigo-950 bg-white px-4 py-3 rounded-2xl border border-indigo-100 shadow-sm">
+                              <Check className="w-4 h-4 text-emerald-600 shrink-0" />
+                              <span className="truncate max-w-[240px]">{spFileName}</span>
+                              <span className="text-[10px] font-mono text-slate-400 uppercase">({spFileSize})</span>
+                            </div>
+                          ) : (
+                            <span className="text-xs text-slate-400 font-medium">No custom PDF selected yet (Using built-in digital prospectus).</span>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Title & Description metadata */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-1.5">
+                          <label className="block text-xs font-mono font-bold text-slate-700 uppercase">
+                            PROSPECTUS TITLE
+                          </label>
+                          <input
+                            type="text"
+                            required
+                            placeholder="e.g. Shristi Academy • School Profile Prospectus 2083 BS"
+                            value={spTitle}
+                            onChange={(e) => setSpTitle(e.target.value)}
+                            className="w-full bg-white border border-indigo-100 p-3 rounded-xl text-xs font-bold focus:outline-none focus:border-indigo-600"
+                          />
+                        </div>
+
+                        <div className="space-y-1.5">
+                          <label className="block text-xs font-mono font-bold text-slate-700 uppercase">
+                            FILE DISPLAY NAME
+                          </label>
+                          <input
+                            type="text"
+                            placeholder="e.g. Shristi_Academy_Official_Profile_2083.pdf"
+                            value={spFileName}
+                            onChange={(e) => setSpFileName(e.target.value)}
+                            className="w-full bg-white border border-indigo-100 p-3 rounded-xl text-xs font-bold focus:outline-none focus:border-indigo-600"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <label className="block text-xs font-mono font-bold text-slate-700 uppercase">
+                          PROSPECTUS DESCRIPTION / INTRO SUMMARY
+                        </label>
+                        <textarea
+                          rows={3}
+                          placeholder="Short summary describing the contents of this school profile PDF document..."
+                          value={spDescription}
+                          onChange={(e) => setSpDescription(e.target.value)}
+                          className="w-full bg-white border border-indigo-100 p-3 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:border-indigo-600 leading-relaxed"
+                        />
+                      </div>
+
+                      {/* Action buttons */}
+                      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-indigo-50">
+                        <button
+                          type="button"
+                          onClick={() => setShowSpPreview(true)}
+                          className="w-full sm:w-auto px-6 py-3.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-800 rounded-2xl text-xs font-mono font-bold flex items-center justify-center space-x-2 transition-all cursor-pointer"
+                        >
+                          <Eye className="w-4 h-4 text-indigo-600" />
+                          <span>PREVIEW PDF IN MODAL</span>
+                        </button>
+
+                        <button
+                          type="submit"
+                          className="w-full sm:w-auto px-8 py-3.5 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 hover:from-indigo-700 hover:to-pink-700 text-white rounded-2xl text-xs font-mono font-black tracking-wider shadow-lg shadow-indigo-100 transition-all cursor-pointer"
+                        >
+                          💾 SAVE & PUBLISH SCHOOL PROFILE PDF
+                        </button>
+                      </div>
+                    </form>
+                  </div>
+                )}
+
+                {/* TAB 8: CAMPUS PHOTO GALLERY MANAGER (MAX 10 PHOTOS) */}
+                {cmsTab === "CampusGallery" && (
+                  <div className="bg-white p-6 sm:p-8 rounded-[32px] border border-indigo-100 shadow-sm space-y-8 animate-fadeIn text-left">
+                    {/* Section Header */}
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-indigo-50 pb-6">
+                      <div className="flex items-center space-x-3">
+                        <div className="p-3 bg-indigo-50 text-indigo-600 border border-indigo-100 rounded-2xl">
+                          <ImageIcon className="w-6 h-6" />
+                        </div>
+                        <div>
+                          <h3 className="font-display font-black text-xl text-slate-900 leading-tight">
+                            Campus Photo Gallery Manager (Max 10 Photos)
+                          </h3>
+                          <p className="text-xs text-slate-500 font-medium mt-0.5">
+                            Upload up to 10 campus photos. Only uploaded photos will be displayed on the website without any blank/white placeholders.
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center space-x-2 bg-indigo-50 px-4 py-2 rounded-2xl border border-indigo-100 font-mono text-xs font-black text-indigo-900 shrink-0">
+                        <Sparkles className="w-4 h-4 text-pink-500" />
+                        <span>{galleryItems.length} / 10 Photos Live</span>
+                      </div>
+                    </div>
+
+                    {/* Photo Upload Form */}
+                    {galleryItems.length < 10 ? (
+                      <form onSubmit={handleAddGalleryPhoto} className="p-6 bg-slate-50 border border-indigo-100 rounded-2xl space-y-5">
+                        <h4 className="font-extrabold text-sm text-slate-900 flex items-center space-x-2">
+                          <Plus className="w-4 h-4 text-indigo-600" />
+                          <span>Upload New Campus Photo</span>
+                        </h4>
+
+                        {/* File Picker */}
+                        <div className="flex flex-col sm:flex-row items-center gap-4">
+                          <label className="w-full sm:w-auto px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-mono font-bold flex items-center justify-center space-x-2 cursor-pointer shadow-sm transition-all select-none">
+                            <Upload className="w-4 h-4 text-pink-300" />
+                            <span>SELECT IMAGE FILE</span>
+                            <input
+                              type="file"
+                              accept="image/*"
+                              onChange={handleGalleryFileUpload}
+                              className="hidden"
+                            />
+                          </label>
+
+                          {galImage ? (
+                            <div className="flex items-center space-x-3 bg-white px-4 py-2 rounded-xl border border-indigo-100">
+                              <img src={galImage} alt="Preview" className="w-10 h-10 object-cover rounded-lg" />
+                              <span className="text-xs font-bold text-emerald-600">✓ Image Loaded</span>
+                            </div>
+                          ) : (
+                            <span className="text-xs text-slate-400 font-medium">No image selected yet.</span>
+                          )}
+                        </div>
+
+                        {/* Form Inputs */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="space-y-1">
+                            <label className="block text-xs font-mono font-bold text-slate-700 uppercase">
+                              PHOTO TITLE
+                            </label>
+                            <input
+                              type="text"
+                              required
+                              placeholder="e.g. Science Laboratory Project"
+                              value={galTitle}
+                              onChange={(e) => setGalTitle(e.target.value)}
+                              className="w-full bg-white border border-indigo-100 p-2.5 rounded-xl text-xs font-bold focus:outline-none focus:border-indigo-600"
+                            />
+                          </div>
+
+                          <div className="space-y-1">
+                            <label className="block text-xs font-mono font-bold text-slate-700 uppercase">
+                              CATEGORY / TAG
+                            </label>
+                            <input
+                              type="text"
+                              required
+                              placeholder="e.g. Kindergarten / Academics / Sports"
+                              value={galCategory}
+                              onChange={(e) => setGalCategory(e.target.value)}
+                              className="w-full bg-white border border-indigo-100 p-2.5 rounded-xl text-xs font-bold focus:outline-none focus:border-indigo-600"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="space-y-1">
+                          <label className="block text-xs font-mono font-bold text-slate-700 uppercase">
+                            DESCRIPTION / CAPTION
+                          </label>
+                          <input
+                            type="text"
+                            required
+                            placeholder="e.g. Students engaging in hands-on physics experiments in our modern laboratory."
+                            value={galDescription}
+                            onChange={(e) => setGalDescription(e.target.value)}
+                            className="w-full bg-white border border-indigo-100 p-2.5 rounded-xl text-xs font-bold focus:outline-none focus:border-indigo-600"
+                          />
+                        </div>
+
+                        <button
+                          type="submit"
+                          className="px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white rounded-xl text-xs font-mono font-black tracking-wider shadow-md transition-all cursor-pointer"
+                        >
+                          ➕ ADD PHOTO TO GALLERY
+                        </button>
+                      </form>
+                    ) : (
+                      <div className="p-4 bg-amber-50 border border-amber-200 rounded-2xl text-amber-900 text-xs font-bold flex items-center space-x-2">
+                        <Info className="w-4 h-4 text-amber-600 shrink-0" />
+                        <span>Maximum limit of 10 photos reached. Remove an existing photo below to upload a new one.</span>
+                      </div>
+                    )}
+
+                    {/* Gallery Grid List */}
+                    <div className="space-y-4">
+                      <h4 className="font-mono font-bold text-xs uppercase text-slate-500">
+                        Current Live Gallery Photos ({galleryItems.length}) - Only these photos are displayed
+                      </h4>
+
+                      {galleryItems.length === 0 ? (
+                        <div className="p-8 text-center text-slate-400 font-bold text-xs bg-slate-50 rounded-2xl border border-dashed border-slate-200">
+                          No campus photos uploaded yet. Upload your first photo above!
+                        </div>
+                      ) : (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                          {galleryItems.map((item) => (
+                            <div key={item.id} className="bg-slate-50 p-3.5 rounded-2xl border border-slate-200 space-y-3 flex flex-col justify-between">
+                              <div className="relative aspect-[16/10] overflow-hidden rounded-xl bg-slate-200">
+                                <img src={item.image} alt={item.title} className="w-full h-full object-cover" />
+                                <span className="absolute top-2 left-2 bg-indigo-900/90 text-white text-[9px] font-mono font-black uppercase px-2 py-1 rounded-md">
+                                  {item.category}
+                                </span>
+                              </div>
+                              <div className="space-y-1 text-left">
+                                <h5 className="font-extrabold text-xs text-slate-900 truncate">{item.title}</h5>
+                                <p className="text-[11px] text-slate-500 line-clamp-2">{item.description}</p>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteGalleryPhoto(item.id)}
+                                className="w-full py-2 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-xl text-xs font-mono font-bold flex items-center justify-center space-x-1 transition-colors"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                                <span>Delete Photo</span>
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
 
               </div>
 

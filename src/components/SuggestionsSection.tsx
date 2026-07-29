@@ -26,6 +26,8 @@ export default function SuggestionsSection({
 
   // Form states
   const [formName, setFormName] = useState("");
+  const [formEmail, setFormEmail] = useState("");
+  const [formMobile, setFormMobile] = useState("");
   const [formCategory, setFormCategory] = useState("School Facilities");
   const [formTitle, setFormTitle] = useState("");
   const [formContent, setFormContent] = useState("");
@@ -52,8 +54,18 @@ export default function SuggestionsSection({
   const handleFormSubmit = (e: FormEvent) => {
     e.preventDefault();
 
-    if (!formName.trim() || !formTitle.trim() || !formContent.trim()) {
-      alert("Please fill in all general details.");
+    if (!formName.trim() || !formEmail.trim() || !formMobile.trim() || !formTitle.trim() || !formContent.trim()) {
+      alert("Please fill in all required details, including Parent Name, Email Address, Mobile Number, Subject, and Message.");
+      return;
+    }
+
+    if (!formEmail.includes("@") || !formEmail.includes(".")) {
+      alert("Please specify a valid email address so the administration can respond to you directly.");
+      return;
+    }
+
+    if (formMobile.trim().length < 7) {
+      alert("Please specify a valid mobile/phone number so the administration can contact you if needed.");
       return;
     }
 
@@ -66,9 +78,12 @@ export default function SuggestionsSection({
       id: "suggest-" + Date.now(),
       title: formTitle,
       parentName: formName,
+      email: formEmail.trim(),
+      mobileNo: formMobile.trim(),
       category: formCategory,
       content: formContent,
       pin: formPin,
+      createdAtMs: Date.now(),
       submittedAt: new Date().toLocaleDateString("en-US", {
         year: "numeric",
         month: "short",
@@ -83,11 +98,13 @@ export default function SuggestionsSection({
     // Reset form
     setFormTitle("");
     setFormName("");
+    setFormEmail("");
+    setFormMobile("");
     setFormContent("");
     setFormPin("");
     setShowForm(false);
 
-    setSuccessMsg("🎉 Your inquiry/suggestion was successfully files to the school board! Give your 4-digit password to the administrator or use it to unlock your details below.");
+    setSuccessMsg("🎉 Your inquiry/suggestion was successfully filed to the school board! Give your 4-digit password to the administrator or use it to unlock your details below.");
     setTimeout(() => setSuccessMsg(""), 7000);
   };
 
@@ -181,7 +198,9 @@ export default function SuggestionsSection({
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                   <div className="space-y-1.5">
-                    <label className="block text-xs font-mono font-bold text-slate-500 uppercase">PARENT / GUARDIAN NAME</label>
+                    <label className="block text-xs font-mono font-bold text-slate-700 uppercase">
+                      PARENT / GUARDIAN NAME <span className="text-pink-600">*REQUIRED</span>
+                    </label>
                     <input
                       required
                       type="text"
@@ -193,7 +212,9 @@ export default function SuggestionsSection({
                   </div>
 
                   <div className="space-y-1.5">
-                    <label className="block text-xs font-mono font-bold text-slate-500 uppercase">CATEGORY AREA</label>
+                    <label className="block text-xs font-mono font-bold text-slate-700 uppercase">
+                      CATEGORY AREA
+                    </label>
                     <select
                       value={formCategory}
                       onChange={(e) => setFormCategory(e.target.value)}
@@ -205,8 +226,38 @@ export default function SuggestionsSection({
                     </select>
                   </div>
 
+                  <div className="space-y-1.5">
+                    <label className="block text-xs font-mono font-bold text-slate-700 uppercase">
+                      EMAIL ADDRESS <span className="text-pink-600">*REQUIRED</span>
+                    </label>
+                    <input
+                      required
+                      type="email"
+                      placeholder="e.g. parent.name@gmail.com"
+                      value={formEmail}
+                      onChange={(e) => setFormEmail(e.target.value)}
+                      className="w-full bg-[#FAF9F6] border border-indigo-50 p-3 rounded-xl text-xs text-slate-800 focus:outline-none focus:border-indigo-600 font-bold shadow-inner"
+                    />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="block text-xs font-mono font-bold text-slate-700 uppercase">
+                      MOBILE / PHONE NO <span className="text-pink-600">*REQUIRED</span>
+                    </label>
+                    <input
+                      required
+                      type="tel"
+                      placeholder="e.g. +977-9841234567"
+                      value={formMobile}
+                      onChange={(e) => setFormMobile(e.target.value)}
+                      className="w-full bg-[#FAF9F6] border border-indigo-50 p-3 rounded-xl text-xs text-slate-800 focus:outline-none focus:border-indigo-600 font-bold shadow-inner"
+                    />
+                  </div>
+
                   <div className="space-y-1.5 md:col-span-2">
-                    <label className="block text-xs font-mono font-bold text-slate-500 uppercase">INQUIRY SUBJECT / TITLE</label>
+                    <label className="block text-xs font-mono font-bold text-slate-700 uppercase">
+                      INQUIRY SUBJECT / TITLE <span className="text-pink-600">*REQUIRED</span>
+                    </label>
                     <input
                       required
                       type="text"
@@ -218,21 +269,23 @@ export default function SuggestionsSection({
                   </div>
 
                   <div className="space-y-1.5 md:col-span-2">
-                    <label className="block text-xs font-mono font-bold text-slate-500 uppercase">YOUR MESSAGE / EXPLANATION</label>
+                    <label className="block text-xs font-mono font-bold text-slate-700 uppercase">
+                      YOUR MESSAGE / EXPLANATION <span className="text-pink-600">*REQUIRED</span>
+                    </label>
                     <textarea
                       required
                       rows={4}
-                      placeholder="Provide precise details so the Academic Lead and Vani Pradhan (Principal) can take appropriate action and write back to you..."
+                      placeholder="Provide precise details so the Academic Lead and Vani Pradhan (Principal) can take appropriate action and write back to you directly..."
                       value={formContent}
                       onChange={(e) => setFormContent(e.target.value)}
                       className="w-full bg-[#FAF9F6] border border-indigo-50 p-3 rounded-xl text-xs text-slate-800 focus:outline-none focus:border-indigo-600 font-bold shadow-inner"
                     />
                   </div>
 
-                  <div className="space-y-1.5">
+                  <div className="space-y-1.5 md:col-span-2">
                     <label className="block text-xs font-mono font-bold text-slate-700 uppercase flex items-center">
                       <Key className="w-3.5 h-3.5 text-indigo-600 mr-1" />
-                      SET 4-DIGIT PIN CODE (REQUIRED)
+                      SET 4-DIGIT PIN CODE <span className="text-pink-600 ml-1">*REQUIRED</span>
                     </label>
                     <input
                       required
@@ -242,9 +295,12 @@ export default function SuggestionsSection({
                       placeholder="e.g. 5056"
                       value={formPin}
                       onChange={(e) => setFormPin(e.target.value.replace(/\D/g, ""))}
-                      className="w-full bg-indigo-50/50 border border-indigo-100 p-3 rounded-xl text-xs text-indigo-900 focus:outline-none focus:border-indigo-600 font-mono font-black shadow-inner tracking-widest text-center"
+                      className="w-full max-w-xs bg-indigo-50/50 border border-indigo-100 p-3 rounded-xl text-xs text-indigo-900 focus:outline-none focus:border-indigo-600 font-mono font-black shadow-inner tracking-widest text-center"
                     />
-                    <p className="text-[10px] text-slate-400 font-medium">Remember this custom code. You will type it in to view details and school replies.</p>
+                    <p className="text-[10px] text-slate-400 font-medium pt-1">
+                      🔒 Your contact information (Email & Phone) allows the school board to contact you directly via email or SMS for follow-ups and complaint resolutions.
+                      Entries are protected with your 4-digit PIN and are automatically deleted after <strong>1 year (365 days)</strong> to keep server data optimized.
+                    </p>
                   </div>
                 </div>
 
@@ -365,6 +421,18 @@ export default function SuggestionsSection({
                       ) : (
                         /* UNLOCKED FULL CONTENT DIRECTIVE */
                         <div className="space-y-4 pt-1 animate-fadeIn">
+                          {/* Submitter Contact Details */}
+                          <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-slate-700 font-bold bg-indigo-50/50 p-3 rounded-2xl border border-indigo-100/60">
+                            <span className="flex items-center text-indigo-900">
+                              <span className="text-[10px] font-mono text-slate-400 uppercase mr-1">Email:</span>
+                              <strong>{item.email || "N/A"}</strong>
+                            </span>
+                            <span className="flex items-center text-indigo-900">
+                              <span className="text-[10px] font-mono text-slate-400 uppercase mr-1">Phone/SMS:</span>
+                              <strong>{item.mobileNo || "N/A"}</strong>
+                            </span>
+                          </div>
+
                           <div className="p-4 bg-indigo-50/20 border border-indigo-100/40 rounded-2xl">
                             <p className="text-[10px] text-indigo-400 font-mono uppercase font-black tracking-wider mb-1">Parent Message Details:</p>
                             <p className="text-[12.5px] text-slate-700 font-semibold leading-relaxed whitespace-pre-wrap">

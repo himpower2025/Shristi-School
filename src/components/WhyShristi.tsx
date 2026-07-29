@@ -5,63 +5,63 @@ export default function WhyShristi() {
   const pillars = [
     {
       id: "why-pillar-1",
-      title: "I. Academic Excellence Legacy",
-      highlight: "SEE Toppers & Board Success",
-      description: "Established in 2016 AD, we deliver premier curriculum modules, outstanding National Board Exam (SEE) preparation, and comprehensive learning foundations.",
+      title: "1. Top Quality Learning",
+      highlight: "Great Results & Exam Success",
+      description: "Since 2016, we help every student build strong skills in math, science, and languages so they do well in school and national SEE board exams.",
       icon: Award,
       badgeColor: "bg-pink-100 text-pink-700 border-pink-300",
       accentBg: "hover:border-pink-500 hover:bg-pink-50/10 shadow-pink-100/45",
-      label: "Gold Standard"
+      label: "Strong Studies"
     },
     {
       id: "why-pillar-2",
-      title: "II. Holistic Development",
-      highlight: "Beyond Classroom Boundaries",
-      description: "Nurturing emotional maturity, collaborative teamwork, and physical fitness alongside scholastic milestones to foster confident leaders.",
+      title: "2. Growing Beyond Books",
+      highlight: "Sports, Arts & Teamwork",
+      description: "We encourage students to play sports, join fun activities, make good friends, and build real confidence every single day.",
       icon: Flame,
       badgeColor: "bg-purple-100 text-purple-700 border-purple-300",
       accentBg: "hover:border-purple-500 hover:bg-purple-50/10 shadow-purple-100/45",
-      label: "Vitality & Play"
+      label: "Sports & Play"
     },
     {
       id: "why-pillar-3",
-      title: "III. Distinguished Faculty",
-      highlight: "Experienced & Compassionate",
-      description: "Our highly licensed, certified educators bring active empathy, academic rigor, and individual attention to unleash every student's potential.",
+      title: "3. Caring & Friendly Teachers",
+      highlight: "Kind Guidance for Every Child",
+      description: "Our teachers know each student by name, listen to their questions, and give extra help so no child is ever left behind.",
       icon: Heart,
       badgeColor: "bg-indigo-100 text-indigo-700 border-indigo-300",
       accentBg: "hover:border-indigo-500 hover:bg-indigo-50/10 shadow-indigo-100/45",
-      label: "Heart & Nurture"
+      label: "Kind Mentors"
     },
     {
       id: "why-pillar-4",
-      title: "IV. Cultural Harmony & Ethics",
-      highlight: "Humility, Respect & Integrity",
-      description: "Celebrating diverse background heritages in Kathmandu while anchoring students in mutual respect, ethical leadership, and high civic values.",
+      title: "4. Good Values & Respect",
+      highlight: "Honesty, Kindness & Good Habits",
+      description: "We teach children to be polite, honest, and respectful, helping them grow into caring people who treat everyone with kindness.",
       icon: Handshake,
       badgeColor: "bg-indigo-100 text-indigo-700 border-indigo-300",
       accentBg: "hover:border-indigo-500 hover:bg-indigo-50/10 shadow-indigo-100/45",
-      label: "Integrity"
+      label: "Good Habits"
     },
     {
       id: "why-pillar-5",
-      title: "V. Safe & Supportive Sanctuary",
-      highlight: "A Protective Second Home",
-      description: "A secure, modern campus equipped with round-the-clock safety, professional counseling, and healthy, nutrient-rich meal options.",
+      title: "5. Safe & Healthy School",
+      highlight: "Secure Campus & Fresh Meals",
+      description: "Your child is always safe here. We have secure gates, friendly supervisors, and fresh, healthy school lunches every day.",
       icon: ShieldCheck,
       badgeColor: "bg-purple-100 text-purple-700 border-purple-300",
       accentBg: "hover:border-purple-500 hover:bg-purple-50/10 shadow-purple-100/45",
-      label: "Care & Comfort"
+      label: "Safe & Warm"
     },
     {
       id: "why-pillar-6",
-      title: "VI. Advanced Laboratories & Tech",
-      highlight: "Practical Experiential Learning",
-      description: "Equipped science labs, multi-media classrooms, and advanced computer workstations to translate textbook theory into real-world insights.",
+      title: "6. Computer & Science Labs",
+      highlight: "Fun Hands-On Practice",
+      description: "Students learn by doing! They try real experiments in our science labs and learn modern technology skills in our computer lab.",
       icon: Laptop,
       badgeColor: "bg-pink-100 text-pink-700 border-pink-300",
       accentBg: "hover:border-pink-500 hover:bg-pink-50/10 shadow-pink-100/45",
-      label: "Innovation Hub"
+      label: "Modern Labs"
     }
   ];
 
@@ -76,13 +76,13 @@ export default function WhyShristi() {
         {/* Section Title */}
         <div className="text-center max-w-3xl mx-auto space-y-4">
           <span className="text-xs font-mono font-black uppercase tracking-widest text-indigo-700 bg-indigo-100/80 border border-indigo-200 px-4 py-2 rounded-xl inline-block shadow-sm">
-            🏫 Our 6 Pillars of Educational Philosophy
+            🏫 Why Families Choose Shristi Academy
           </span>
           <h2 id="why-shristi-title" className="font-display font-black text-4xl sm:text-5xl text-slate-900 tracking-tight leading-tight">
             Why Shristi Academy?
           </h2>
           <p className="text-slate-700 font-bold text-base sm:text-lg leading-relaxed">
-            Discover the six core institutional anchors that drive our excellence in Mid-Baneshwor, Kathmandu. We blend a historic academic legacy with highly focused experiential learning.
+            Six simple reasons why parents and students love learning with us in Mid-Baneshwor, Kathmandu.
           </p>
         </div>
 

@@ -11,45 +11,45 @@ export default function Academics() {
     {
       id: "kindergarten",
       level: "Kindergarten",
-      title: "Kindergarten Foundation Class",
-      focus: "Play-Based Phonics & Socialization",
-      description: "A specialized play-based preparatory program designed to build early phonics, letters, numbers, and motor coordination skills to establish confidence before Class 1.",
-      subjects: ["English Phonics", "Nepali Shabda Bodh", "Basic Numeracy & Shapes", "Creative Arts & Songs", "Sensory & Social Play"],
-      careers: ["Builds Learning Enthusiasm", "Enhances Basic Motor Skills", "Establishes Core Alphabetical Foundations"],
-      duration: "1 Year Standalone Class",
+      title: "Kindergarten Program",
+      focus: "Play, Letters & Numbers",
+      description: "A fun and gentle play-based program that helps young children build early reading, counting, drawing, and social skills before starting Grade 1.",
+      subjects: ["English Phonics & Reading", "Nepali Word Learning", "Basic Numbers & Shapes", "Drawing, Craft & Songs", "Fun Play & Socializing"],
+      careers: ["Builds a Love for Learning", "Improves Fine Motor & Hand Skills", "Learns Alphabet & Numbers Easily"],
+      duration: "Early Learning Stage",
       iconName: "ToyBrick"
     },
     {
       id: "primary-level",
       level: "Primary School",
-      title: "Primary Education (Class 1 to 5)",
-      focus: "CDC Aligned Dual-Language Core",
-      description: "Comprehensive primary curriculum fully certified by CDC Nepal. This stage builds strong mental arithmetic, multi-lingual reading, and scientific query awareness.",
-      subjects: ["English Expression", "Nepali Vyakaran", "Primary Mathematics", "Science & Environment", "Social Studies & Moral Values", "Creative Art & Craft"],
-      careers: ["Dual-Language Reading & Writing", "Basic Scientific Method Foundations", "Collaborative Peer Coordination"],
-      duration: "5 Years (Classes 1 - 5)",
+      title: "Primary School (Classes 1 to 5)",
+      focus: "Reading, Writing & Science Basics",
+      description: "Covers the official national curriculum. Focuses on building strong reading and writing skills in English and Nepali, basic math, and simple science concepts.",
+      subjects: ["English Language", "Nepali Reading & Grammar", "Mathematics", "Science & Environment", "Social Studies & Values", "Arts & Crafts"],
+      careers: ["Reading & Writing in English & Nepali", "Understanding Science Basics", "Developing Good Study Habits & Teamwork"],
+      duration: "Classes 1 to 5 (5 Years)",
       iconName: "BookOpen"
     },
     {
       id: "lower-secondary",
       level: "Lower Secondary",
-      title: "Lower Secondary (Class 6 to 8)",
-      focus: "Analytical Problem Solving & IT Labs",
-      description: "Critical transition program emphasizing computer laboratory studies, complex arithmetic, scientific experiments, and creative language literature.",
-      subjects: ["Compulsory Mathematics", "General Science & Labs", "English Literature Studies", "Nepali Sahitya", "Social Studies & Geography", "Computer & Tech Studies"],
-      careers: ["Logical & Analytical Comprehension", "Fundamental Computer Literacy", "Preparation for Rigorous Secondary Standards"],
-      duration: "3 Years (Classes 6 - 8)",
+      title: "Lower Secondary (Classes 6 to 8)",
+      focus: "Maths, Science & Computer Studies",
+      description: "Prepares students for higher classes with practical computer labs, science experiments, problem-solving math, and creative language reading.",
+      subjects: ["Mathematics", "General Science & Experiments", "English Reading & Writing", "Nepali Literature", "Social Studies & Civics", "Computer Studies"],
+      careers: ["Problem-Solving & Logical Thinking", "Computer & Typing Literacy", "Smooth Step to High School"],
+      duration: "Classes 6 to 8 (3 Years)",
       iconName: "FlaskConical"
     },
     {
       id: "secondary-level",
       level: "Secondary School",
-      title: "Secondary Board Prep (Class 9 & 10)",
-      focus: "Comprehensive SEE National Board Prep",
-      description: "Rigorous academic program fully tailored to help young scholars achieve outstanding GPA scores in the national Secondary Education Examination (SEE).",
-      subjects: ["SEE Compulsory Mathematics", "Optional Mathematics / Account", "Science & Advanced Physics", "Social Studies & Civics", "Nepali & Computer Science", "English Rhetoric"],
-      careers: ["Rigorous Prep for National SEE Board Exams", "Stream Selection Alignment (STEM/Management)", "Advanced Analytical Reasoning Skills"],
-      duration: "2 Years (Classes 9 - 10)",
+      title: "Secondary SEE Prep (Classes 9 & 10)",
+      focus: "National Board (SEE) Exam Success",
+      description: "Focused preparation for the national Secondary Education Examination (SEE). Includes practice tests, teacher guidance, and subject coaching to achieve top marks.",
+      subjects: ["Compulsory Mathematics", "Optional Maths / Accounting", "Science & Physics", "Social Studies & Civics", "Nepali & Computer Science", "English Language"],
+      careers: ["Thorough Preparation for National SEE Exams", "Prepares for High School Streams (Science/Management)", "Builds Strong Exam Confidence"],
+      duration: "Classes 9 & 10 (2 Years)",
       iconName: "GraduationCap"
     }
   ];
@@ -71,20 +71,20 @@ export default function Academics() {
         {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto space-y-4">
           <span className="text-xs font-mono font-bold uppercase tracking-wider text-indigo-600 bg-indigo-50 px-3.5 py-1.5 rounded-full inline-block">
-            Curriculum Structure
+            Our Academic Programs
           </span>
           <h2 className="font-display font-black text-4xl sm:text-5xl text-slate-900 tracking-tight leading-tight">
-            Academic Paths to Power Diverse Strengths
+            Clear Learning Steps for Every Age
           </h2>
           <p className="text-slate-600 font-bold text-base sm:text-lg leading-relaxed">
-            At Shristi Academy, we structure our educational milestones into clear, high-impact categories. We nurture student potential from early playgroups up to secondary board certification (SEE).
+            At Shristi Academy, we guide children through each stage of learning—from early fun in Kindergarten all the way to Grade 10 SEE exams.
           </p>
         </div>
 
         {/* Core Educational Philosophy - streamlined & prominent */}
         <div className="bg-[#FAF9F6]/85 border border-indigo-100 rounded-3xl p-6 md:p-8 max-w-4xl mx-auto text-center shadow-md">
           <p className="text-slate-700 text-sm sm:text-base leading-relaxed font-bold">
-            🥗 <span className="text-indigo-600">Student Well-being Priority:</span> Shristi Academy couples rigorous National Examination Board (NEB/CDC) syllabus preparation with organic campus-prepared lunches and active daily sports/wellness sessions to ensure healthy physical and mental development.
+            🥗 <span className="text-indigo-600">Student Health & Well-being:</span> Shristi Academy combines official national curriculum studies with fresh, healthy school lunches and daily sports activities to keep students energetic, healthy, and happy.
           </p>
         </div>
 

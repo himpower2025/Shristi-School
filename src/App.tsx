@@ -4,12 +4,13 @@ import {
   MapPin, CheckCircle, HelpCircle, ArrowUp, Calendar, Inbox
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
-import { Notice, AdmissionQuery, SuggestionInquiry } from "./types";
+import { Notice, AdmissionQuery, SuggestionInquiry, PopupNoticeConfig, SchoolProfileConfig, GalleryItem } from "./types";
 
 // Import modular subcomponents
 import Header from "./components/Header";
 import Hero from "./components/Hero";
-import AboutUs from "./components/AboutUs";
+import AboutUs, { DEFAULT_GALLERY_ITEMS } from "./components/AboutUs";
+
 import Academics from "./components/Academics";
 import NoticeBoard from "./components/NoticeBoard";
 import AdminPortal from "./components/AdminPortal";
@@ -18,6 +19,33 @@ import ToolsSection from "./components/ToolsSection";
 import Footer from "./components/Footer";
 import WhyShristi from "./components/WhyShristi";
 import SuggestionsSection from "./components/SuggestionsSection";
+import PopupModal from "./components/PopupModal";
+import SchoolProfileModal from "./components/SchoolProfileModal";
+
+// DEFAULT SCHOOL PROFILE CONFIGURATION
+const DEFAULT_SCHOOL_PROFILE_CONFIG: SchoolProfileConfig = {
+  pdfUrl: null,
+  fileName: "Shristi_Academy_School_Profile_2083.pdf",
+  fileSize: "2.4 MB",
+  title: "Shristi Academy • School Profile Prospectus 2083 BS",
+  description: "Official institutional prospectus detailing academic programs, SEE board performance history, faculty credentials, and campus infrastructure.",
+  updatedAt: "June 2026",
+};
+
+// DEFAULT POPUP ANNOUNCEMENT CONFIGURATION
+const DEFAULT_POPUP_CONFIG: PopupNoticeConfig = {
+  enabled: false, // Turned OFF by default as requested
+  type: "custom",
+  mediaUrl: null,
+  mediaType: "image",
+  title: "2083/2084 Annual Parent Orientation & Cultural Gala",
+  badge: "SPECIAL ANNOUNCEMENT",
+  eventTime: "Saturday, August 15, 2026 • 10:00 AM - 2:00 PM",
+  eventLocation: "Shristi Academy Main Auditorium, Mid-Baneshwor",
+  content: "We cordially invite all current and prospective parents to our annual school orientation and cultural showcase. Tour our modern computer and robotics labs, meet faculty members, and review merit scholarship opportunities.",
+  ctaText: "Apply For Admission",
+  ctaLink: "#admissions"
+};
 
 // DEFAULT MOCK NOTICES FOR REALISTIC INITIALIZATION
 const INITIAL_NOTICES: Notice[] = [
@@ -96,22 +124,28 @@ const INITIAL_SUGGESTIONS: SuggestionInquiry[] = [
   {
     id: "sugg-1",
     parentName: "Sanjay Shrestha",
+    email: "sanjay.shrestha@gmail.com",
+    mobileNo: "+977-9851023456",
     title: "Inquiry on Kindergarten Early Friday Pickup Hours",
     content: "Hi Shristi Team, since Friday school sessions end early for the kindergarten kids, could we request slightly extended pickup hours at the playground helper lounge until 1:00 PM? Some of us work until 12:30 PM. Thank you!",
     category: "Academics & Schedule",
     pin: "4321",
     submittedAt: "June 20, 2026, 11:30 AM",
+    createdAtMs: Date.now() - 36000000,
     adminReply: "Dear Mr. Shrestha, we appreciate your query. Starting next Friday, we will keep the Kindergarten indoor play lounge open with two on-duty keepers until 1:30 PM to facilitate convenient parent pickups.",
     repliedAt: "June 21, 2026, 09:00 AM"
   },
   {
     id: "sugg-2",
     parentName: "Rita Karki",
+    email: "rita.karki@yahoo.com",
+    mobileNo: "+977-9841987654",
     title: "School Bus Transport Route Extension to Sallaghari",
     content: "Greetings, is it possible for the afternoon secondary school bus route to go slightly further near the Sallaghari roundabout? It is currently about a 12-minute walk from our main gate.",
     category: "Facilities & Transport",
     pin: "9988",
-    submittedAt: "June 19, 2026, 03:45 PM"
+    submittedAt: "June 19, 2026, 03:45 PM",
+    createdAtMs: Date.now() - 72000000
   }
 ];
 
@@ -125,6 +159,11 @@ export default function App() {
   const [admissions, setAdmissions] = useState<AdmissionQuery[]>([]);
   const [authorizedAdmins, setAuthorizedAdmins] = useState<string[]>([]);
   const [suggestions, setSuggestions] = useState<SuggestionInquiry[]>([]);
+  const [popupConfig, setPopupConfig] = useState<PopupNoticeConfig>(DEFAULT_POPUP_CONFIG);
+  const [isVisitorPopupOpen, setIsVisitorPopupOpen] = useState(false);
+  const [schoolProfileConfig, setSchoolProfileConfig] = useState<SchoolProfileConfig>(DEFAULT_SCHOOL_PROFILE_CONFIG);
+  const [isSchoolProfileOpen, setIsSchoolProfileOpen] = useState(false);
+  const [galleryItems, setGalleryItems] = useState<GalleryItem[]>([]);
 
   // Load from local storage or initialize realistic mock templates
   useEffect(() => {
@@ -132,6 +171,9 @@ export default function App() {
     const cachedAdmissions = localStorage.getItem("shristi_admissions_cache");
     const cachedAdmins = localStorage.getItem("shristi_admins_cache");
     const cachedSuggestions = localStorage.getItem("shristi_suggestions_cache");
+    const cachedPopup = localStorage.getItem("shristi_popup_config_cache");
+    const cachedProfile = localStorage.getItem("shristi_school_profile_cache");
+    const cachedGallery = localStorage.getItem("shristi_gallery_items_cache");
 
     if (cachedNotices) {
       setNotices(JSON.parse(cachedNotices));
@@ -160,12 +202,90 @@ export default function App() {
     }
 
     if (cachedSuggestions) {
-      setSuggestions(JSON.parse(cachedSuggestions));
+      try {
+        const parsed: SuggestionInquiry[] = JSON.parse(cachedSuggestions);
+        const ONE_YEAR_MS = 365 * 24 * 60 * 60 * 1000;
+        const now = Date.now();
+        const validSuggestions = parsed.filter(item => {
+          const createdTime = item.createdAtMs || (item.submittedAt ? Date.parse(item.submittedAt) : 0) || now;
+          return (now - createdTime) <= ONE_YEAR_MS;
+        });
+        setSuggestions(validSuggestions);
+        localStorage.setItem("shristi_suggestions_cache", JSON.stringify(validSuggestions));
+      } catch (err) {
+        setSuggestions(INITIAL_SUGGESTIONS);
+      }
     } else {
       setSuggestions(INITIAL_SUGGESTIONS);
       localStorage.setItem("shristi_suggestions_cache", JSON.stringify(INITIAL_SUGGESTIONS));
     }
+
+    if (cachedPopup) {
+      try {
+        const parsed: PopupNoticeConfig = JSON.parse(cachedPopup);
+        setPopupConfig(parsed);
+        const isClosedToday = sessionStorage.getItem("shristi_popup_closed_today");
+        if (parsed.enabled && !isClosedToday) {
+          setIsVisitorPopupOpen(true);
+        }
+      } catch (err) {
+        setPopupConfig(DEFAULT_POPUP_CONFIG);
+      }
+    } else {
+      setPopupConfig(DEFAULT_POPUP_CONFIG);
+      localStorage.setItem("shristi_popup_config_cache", JSON.stringify(DEFAULT_POPUP_CONFIG));
+    }
+
+    if (cachedProfile) {
+      try {
+        setSchoolProfileConfig(JSON.parse(cachedProfile));
+      } catch (err) {
+        setSchoolProfileConfig(DEFAULT_SCHOOL_PROFILE_CONFIG);
+      }
+    } else {
+      setSchoolProfileConfig(DEFAULT_SCHOOL_PROFILE_CONFIG);
+      localStorage.setItem("shristi_school_profile_cache", JSON.stringify(DEFAULT_SCHOOL_PROFILE_CONFIG));
+    }
+
+    if (cachedGallery) {
+      try {
+        const parsed = JSON.parse(cachedGallery);
+        setGalleryItems(Array.isArray(parsed) ? parsed : DEFAULT_GALLERY_ITEMS);
+      } catch (err) {
+        setGalleryItems(DEFAULT_GALLERY_ITEMS);
+      }
+    } else {
+      setGalleryItems(DEFAULT_GALLERY_ITEMS);
+      localStorage.setItem("shristi_gallery_items_cache", JSON.stringify(DEFAULT_GALLERY_ITEMS));
+    }
   }, []);
+
+  const handleUpdatePopupConfig = (updated: PopupNoticeConfig) => {
+    setPopupConfig(updated);
+    localStorage.setItem("shristi_popup_config_cache", JSON.stringify(updated));
+    if (updated.enabled) {
+      sessionStorage.removeItem("shristi_popup_closed_today");
+      setIsVisitorPopupOpen(true);
+      showToast("📢 Website Pop-up is now ACTIVE for visitors.");
+    } else {
+      setIsVisitorPopupOpen(false);
+      showToast("💾 Pop-up settings saved (Currently inactive).");
+    }
+  };
+
+  const handleUpdateSchoolProfileConfig = (updated: SchoolProfileConfig) => {
+    setSchoolProfileConfig(updated);
+    localStorage.setItem("shristi_school_profile_cache", JSON.stringify(updated));
+    showToast("📄 School Profile PDF updated successfully!");
+  };
+
+  const handleUpdateGalleryItems = (updated: GalleryItem[]) => {
+    const limited = updated.slice(0, 10);
+    setGalleryItems(limited);
+    localStorage.setItem("shristi_gallery_items_cache", JSON.stringify(limited));
+    showToast("🖼️ Campus photo gallery updated!");
+  };
+
 
   // Sync back to local storage whenever they change
   const saveNoticesToStorage = (updatedList: Notice[]) => {
@@ -308,6 +428,29 @@ export default function App() {
   return (
     <div className="min-h-screen bg-[#FAF9F6] flex flex-col font-sans overflow-x-hidden">
       
+      {/* Visitor Site-Wide Popup Modal */}
+      <PopupModal
+        config={popupConfig}
+        isOpen={isVisitorPopupOpen}
+        onClose={() => setIsVisitorPopupOpen(false)}
+        onDontShowToday={() => sessionStorage.setItem("shristi_popup_closed_today", "true")}
+        onActionClick={(link) => {
+          if (link && link.startsWith("#")) {
+            const targetSect = link.substring(1);
+            setCurrentSection(targetSect);
+            setIsAdminMode(false);
+            window.scrollTo({ top: 0, behavior: "smooth" });
+          }
+        }}
+      />
+
+      {/* Official School Profile PDF Preview Modal */}
+      <SchoolProfileModal
+        config={schoolProfileConfig}
+        isOpen={isSchoolProfileOpen}
+        onClose={() => setIsSchoolProfileOpen(false)}
+      />
+
       {/* Toast alert notification banner */}
       <AnimatePresence>
         {toastMessage && (
@@ -330,6 +473,7 @@ export default function App() {
         isAdminMode={isAdminMode}
         setIsAdminMode={setIsAdminMode}
         unreadCount={notices.length}
+        onOpenSchoolProfile={() => setIsSchoolProfileOpen(true)}
       />
 
       {/* Main Body Organizer */}
@@ -363,6 +507,12 @@ export default function App() {
                 suggestions={suggestions}
                 onAddReply={handleAddReply}
                 onDeleteSuggestion={handleDeleteSuggestion}
+                popupConfig={popupConfig}
+                onUpdatePopupConfig={handleUpdatePopupConfig}
+                schoolProfileConfig={schoolProfileConfig}
+                onUpdateSchoolProfileConfig={handleUpdateSchoolProfileConfig}
+                galleryItems={galleryItems}
+                onUpdateGalleryItems={handleUpdateGalleryItems}
               />
             </motion.div>
 
@@ -488,7 +638,11 @@ export default function App() {
                       </p>
                     </div>
                   </div>
-                  <AboutUs />
+                  <AboutUs 
+                    onOpenSchoolProfile={() => setIsSchoolProfileOpen(true)}
+                    schoolProfileConfig={schoolProfileConfig}
+                    galleryItems={galleryItems}
+                  />
                 </div>
               ) : currentSection === "academics" ? (
                 <div className="animate-fade-in">

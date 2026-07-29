@@ -14,7 +14,7 @@ const DEFAULT_EVENTS: SchoolEvent[] = [
   {
     id: "evt-1",
     title: "First Terminal Examination Reviews",
-    date: "June 25, 2026",
+    date: "July 10, 2026",
     time: "10:00 AM - 1:00 PM",
     location: "Active Block A Halls",
     description: "Compulsory term review starting for Grade 1 up to Class 10 (SEE batches).",
@@ -23,7 +23,7 @@ const DEFAULT_EVENTS: SchoolEvent[] = [
   {
     id: "evt-2",
     title: "Science & Robotics Exhibition 2026",
-    date: "July 05, 2026",
+    date: "July 22, 2026",
     time: "9:30 AM onwards",
     location: "Main Ground Exhibition Tent",
     description: "Interactive projects, coding, chemistry visual tests by our Senior School science students.",
@@ -31,20 +31,38 @@ const DEFAULT_EVENTS: SchoolEvent[] = [
   },
   {
     id: "evt-3",
-    title: "Inter-House Volleyball Finals",
-    date: "July 12, 2026",
+    title: "Inter-House Volleyball & Athletics Finals",
+    date: "July 28, 2026",
     time: "1:30 PM - 4:00 PM",
     location: "Mid-Baneshwor Campus Sports Court",
-    description: "The peak final volleyball faceoff between Mount Everest House and Annapurna House.",
+    description: "The peak final athletic faceoff between Mount Everest House and Annapurna House.",
     type: "Sports"
   },
   {
     id: "evt-4",
-    title: "Bhanu Jayanti Celebrations",
-    date: "July 13, 2026",
+    title: "Bhanu Jayanti & Cultural Poetry Meet",
+    date: "August 04, 2026",
     time: "11:00 AM - 2:00 PM",
     location: "Auditorium Hall Building B",
-    description: "Nepalese kavya, poetry completions, dramatic plays marking Bhanubhakta Acharya's legacy.",
+    description: "Nepalese kavya, poetry competitions, dramatic plays marking literary achievements.",
+    type: "Ceremony"
+  },
+  {
+    id: "evt-5",
+    title: "Second Terminal Parent Teacher Conference (PTM)",
+    date: "August 18, 2026",
+    time: "10:00 AM - 3:00 PM",
+    location: "Academic Block B",
+    description: "Individual academic progress reviews and student growth portfolio discussions.",
+    type: "Academic"
+  },
+  {
+    id: "evt-6",
+    title: "Dashain & Tihar Festive Cultural Program",
+    date: "October 14, 2026",
+    time: "11:00 AM - 3:00 PM",
+    location: "Main Assembly Square",
+    description: "Annual cultural performances, music, and seasonal holiday celebration before term vacation.",
     type: "Ceremony"
   }
 ];
@@ -60,7 +78,12 @@ export default function ToolsSection({ isAdmin = false }: ToolsSectionProps) {
   const [events, setEvents] = useState<SchoolEvent[]>([]);
   const [calendarImage, setCalendarImage] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<"grid" | "poster">("grid");
-  const [currentMonthIndex, setCurrentMonthIndex] = useState<number>(5); // Default to June (index 5)
+  
+  // Auto-detect real-world current month (e.g. July = 6) and current year
+  const [currentMonthIndex, setCurrentMonthIndex] = useState<number>(() => new Date().getMonth());
+  const [currentYear, setCurrentYear] = useState<number>(() => new Date().getFullYear());
+  const [filterMode, setFilterMode] = useState<"month" | "all">("month");
+
   const [selectedDayEvents, setSelectedDayEvents] = useState<SchoolEvent[]>([]);
   const [selectedDayNumber, setSelectedDayNumber] = useState<number | null>(null);
   
@@ -97,13 +120,13 @@ export default function ToolsSection({ isAdmin = false }: ToolsSectionProps) {
     localStorage.setItem("shristi_calendar_events", JSON.stringify(updated));
   };
 
-  // Image Upload handler (Base64)
+  // Image / PDF Upload handler (Base64)
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (file.size > 5 * 1024 * 1024) {
-      alert("Image is too large! Please choose an image smaller than 5MB.");
+    if (file.size > 10 * 1024 * 1024) {
+      alert("File is too large! Please choose a file smaller than 10MB.");
       return;
     }
 
@@ -112,14 +135,18 @@ export default function ToolsSection({ isAdmin = false }: ToolsSectionProps) {
       const base64String = reader.result as string;
       setCalendarImage(base64String);
       localStorage.setItem("shristi_calendar_uploaded_image", base64String);
-      setActiveTab("poster");
+      
+      // Auto-trigger Gemini AI parsing when admin uploads official calendar document
+      handleAIParseCalendar(base64String);
     };
     reader.readAsDataURL(file);
   };
 
   // AI Calendar Parse API Call
-  const handleAIParseCalendar = async () => {
-    if (!calendarImage) return;
+  const handleAIParseCalendar = async (overrideBase64?: string) => {
+    const targetImage = overrideBase64 || calendarImage;
+    if (!targetImage) return;
+
     setIsParsing(true);
     try {
       const res = await fetch("/api/parse-calendar", {
@@ -127,7 +154,7 @@ export default function ToolsSection({ isAdmin = false }: ToolsSectionProps) {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ imageBase64: calendarImage }),
+        body: JSON.stringify({ imageBase64: targetImage }),
       });
 
       if (!res.ok) {
@@ -141,22 +168,26 @@ export default function ToolsSection({ isAdmin = false }: ToolsSectionProps) {
         const parsedEvents: SchoolEvent[] = data.events.map((evt: any, idx: number) => ({
           id: `ai-${Date.now()}-${idx}`,
           title: evt.title || "Unnamed Event",
-          date: evt.date || "June 25, 2026",
+          date: evt.date || `July 15, ${currentYear}`,
           time: evt.time || "All Day",
           location: evt.location || "School Premises",
-          description: evt.description || "Parsed via Shristi AI Assistant.",
+          description: evt.description || "Auto-parsed from uploaded official academic calendar document via Gemini AI.",
           type: (["Sports", "Academic", "Excursion", "Ceremony"].includes(evt.type) ? evt.type : "Academic") as any
         }));
 
-        // Merge and update
-        const merged = [...parsedEvents, ...events];
-        saveEvents(merged);
-        alert(`🎉 성공! AI가 업로드된 학교 일정을 분석하여 ${parsedEvents.length}개의 주요 학사 일정을 자동으로 추출하고 타임라인과 월별 캘린더에 연동했습니다!`);
+        if (parsedEvents.length > 0) {
+          // Merge dynamic events without overwriting
+          const merged = [...parsedEvents, ...events];
+          saveEvents(merged);
+          alert(`🎉 AI Sync Successful! Successfully extracted ${parsedEvents.length} academic calendar events from your uploaded document!\n\nThe extracted events have been dynamically linked to the monthly calendar and event list.`);
+        } else {
+          alert("No parseable events were detected in the uploaded document. Please ensure the document is clear and readable.");
+        }
         setActiveTab("grid");
       }
     } catch (error: any) {
       console.error(error);
-      alert(`AI 파싱에 실패했습니다: ${error.message}. API 키가 올바르게 구성되어 있는지 확인하세요.`);
+      alert(`AI parsing failed: ${error.message}. Please check if the API configuration is valid.`);
     } finally {
       setIsParsing(false);
     }
@@ -222,10 +253,9 @@ export default function ToolsSection({ isAdmin = false }: ToolsSectionProps) {
     setSelectedDayEvents([]);
   };
 
-  // Calculate 2026 Calendar Grid
-  const year = 2026;
-  const firstDayIndex = new Date(year, currentMonthIndex, 1).getDay();
-  const totalDaysInMonth = new Date(year, currentMonthIndex + 1, 0).getDate();
+  // Calculate Calendar Grid for active month and year
+  const firstDayIndex = new Date(currentYear, currentMonthIndex, 1).getDay();
+  const totalDaysInMonth = new Date(currentYear, currentMonthIndex + 1, 0).getDate();
 
   // Create empty offset days and month days
   const offsetDays = Array(firstDayIndex).fill(null);
@@ -237,7 +267,7 @@ export default function ToolsSection({ isAdmin = false }: ToolsSectionProps) {
     return events.filter(evt => {
       try {
         const d = new Date(evt.date);
-        return d.getFullYear() === year && d.getMonth() === currentMonthIndex && d.getDate() === day;
+        return d.getFullYear() === currentYear && d.getMonth() === currentMonthIndex && d.getDate() === day;
       } catch {
         return false;
       }
@@ -257,6 +287,19 @@ export default function ToolsSection({ isAdmin = false }: ToolsSectionProps) {
     } catch {
       return 0;
     }
+  });
+
+  // Filter events for the right column based on active mode
+  const displayedEvents = sortedEvents.filter(evt => {
+    if (filterMode === "month") {
+      try {
+        const d = new Date(evt.date);
+        return d.getMonth() === currentMonthIndex;
+      } catch {
+        return true;
+      }
+    }
+    return true;
   });
 
   return (
@@ -337,7 +380,7 @@ export default function ToolsSection({ isAdmin = false }: ToolsSectionProps) {
                       <ChevronLeft className="w-5 h-5" />
                     </button>
                     <span className="font-display font-black text-sm sm:text-base text-slate-900">
-                      {MONTHS_2026[currentMonthIndex]} {year}
+                      {MONTHS_2026[currentMonthIndex]} {currentYear}
                     </span>
                     <button
                       onClick={nextMonth}
@@ -414,7 +457,7 @@ export default function ToolsSection({ isAdmin = false }: ToolsSectionProps) {
                       >
                         <div className="flex justify-between items-center border-b border-indigo-50 pb-2">
                           <h4 className="font-display font-black text-xs sm:text-sm text-slate-900">
-                            Schedule on {MONTHS_2026[currentMonthIndex]} {selectedDayNumber}, {year}
+                            Schedule on {MONTHS_2026[currentMonthIndex]} {selectedDayNumber}, {currentYear}
                           </h4>
                           <span className="text-[9px] font-mono font-bold bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded-full">
                             {selectedDayEvents.length} Event(s)
@@ -532,17 +575,17 @@ export default function ToolsSection({ isAdmin = false }: ToolsSectionProps) {
                 <div className="flex items-center space-x-1.5 text-xs text-indigo-800 bg-indigo-50/50 p-3 rounded-xl border border-indigo-100/40">
                   <Info className="w-4 h-4 text-indigo-600 shrink-0" />
                   <p className="font-bold">
-                    You are in <strong className="text-indigo-600">Administrator View</strong>. You can upload or replace the main calendar image immediately below.
+                    You are in <strong className="text-indigo-600">Administrator View</strong>. Uploading an official 1-year calendar poster (JPG/PNG/PDF) will automatically run AI extraction to update both the left calendar grid and right cards.
                   </p>
                 </div>
 
                 <div className="flex flex-wrap gap-2.5">
                   <label className="flex-grow flex items-center justify-center space-x-2 bg-indigo-600 hover:bg-indigo-700 text-white font-mono font-black text-xs px-5 py-3 rounded-xl cursor-pointer shadow-md shadow-indigo-100 transition-all select-none">
                     <Upload className="w-4 h-4 text-pink-300" />
-                    <span>UPLOAD CALENDAR IMAGE</span>
+                    <span>UPLOAD CALENDAR (PDF / IMAGE)</span>
                     <input 
                       type="file" 
-                      accept="image/*" 
+                      accept="image/*,application/pdf" 
                       onChange={handleImageUpload} 
                       className="hidden" 
                     />
@@ -563,7 +606,7 @@ export default function ToolsSection({ isAdmin = false }: ToolsSectionProps) {
             ) : (
               <div className="border-t border-slate-100 pt-5 text-center sm:text-left mt-5">
                 <p className="text-[11px] text-slate-400 font-bold leading-relaxed">
-                  * Note: School administrators can log into the Secretariat cabinet to upload an official printed school calendar image.
+                  * Note: School administrators can log into the Secretariat cabinet to upload an official printed school calendar poster (Image/PDF). AI will automatically process and register the events.
                 </p>
               </div>
             )}
@@ -574,22 +617,46 @@ export default function ToolsSection({ isAdmin = false }: ToolsSectionProps) {
           <div className="lg:col-span-5 bg-white border border-indigo-100 p-6 md:p-8 rounded-[32px] shadow-xl shadow-indigo-100/5 space-y-6 text-left flex flex-col justify-between relative overflow-hidden">
             
             <div className="space-y-4">
-              <div className="flex items-center justify-between border-b border-indigo-50/70 pb-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-indigo-50/70 pb-4">
                 <div className="flex items-center space-x-2.5">
                   <div className="p-2.5 bg-purple-50 text-purple-600 border border-purple-100 rounded-xl">
                     <Clock className="w-5 h-5" />
                   </div>
                   <div>
                     <h3 className="font-display font-black text-lg text-slate-900 leading-tight">Key Events Timeline</h3>
-                    <p className="text-[10px] text-slate-400 font-mono font-bold uppercase">Academic & Co-Curricular (Chronological)</p>
+                    <p className="text-[10px] text-slate-400 font-mono font-bold uppercase">Academic & Co-Curricular</p>
                   </div>
+                </div>
+
+                {/* Filter toggle */}
+                <div className="flex bg-indigo-50 p-1 rounded-xl border border-indigo-100/40 select-none text-[11px] font-bold">
+                  <button
+                    onClick={() => setFilterMode("month")}
+                    className={`px-2.5 py-1 rounded-lg transition-all cursor-pointer ${
+                      filterMode === "month"
+                        ? "bg-white text-indigo-700 shadow-sm"
+                        : "text-slate-500 hover:text-slate-800"
+                    }`}
+                  >
+                    {MONTHS_2026[currentMonthIndex]}
+                  </button>
+                  <button
+                    onClick={() => setFilterMode("all")}
+                    className={`px-2.5 py-1 rounded-lg transition-all cursor-pointer ${
+                      filterMode === "all"
+                        ? "bg-white text-indigo-700 shadow-sm"
+                        : "text-slate-500 hover:text-slate-800"
+                    }`}
+                  >
+                    All ({sortedEvents.length})
+                  </button>
                 </div>
               </div>
 
               {/* Event Lists with scroll */}
               <div className="space-y-3.5 max-h-[380px] overflow-y-auto pr-1">
-                {sortedEvents.length > 0 ? (
-                  sortedEvents.map((evt) => (
+                {displayedEvents.length > 0 ? (
+                  displayedEvents.map((evt) => (
                     <div 
                       key={evt.id}
                       className="bg-[#FAF9F6] border border-indigo-50/80 p-4 rounded-2xl space-y-2 hover:border-indigo-150 transition-all duration-300 relative group"

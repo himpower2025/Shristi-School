@@ -16,21 +16,21 @@ interface HeroProps {
 const CAMPUS_MOMENTS = [
   {
     image: learningImg,
-    title: "Kindergarten Foundations",
-    description: "Building strong initial literacy and coordination in a warm, standalone prep class.",
-    tag: "Primary Life"
+    title: "Kindergarten Classes",
+    description: "Building basic reading, counting, and social confidence in a warm, friendly environment.",
+    tag: "Kindergarten"
   },
   {
     image: labImg,
-    title: "Science & Technology",
-    description: "Hands-on projects and modern digital literacy for secondary scholars.",
+    title: "Science & Computers",
+    description: "Fun science experiments and practical computer skills for growing minds.",
     tag: "Academics"
   },
   {
     image: playImg,
-    title: "Vibrant Campus Life",
-    description: "Fostering physical health, character building, and creative team play.",
-    tag: "Activity Profile"
+    title: "Vibrant School Life",
+    description: "Sports, teamwork, creative arts, and healthy outdoor activities.",
+    tag: "School Life"
   }
 ];
 
@@ -86,9 +86,15 @@ export default function Hero({ onExplorePrograms, onApplyNow, onViewNotices, las
 
           {/* Heading */}
           <div className="space-y-4">
-            <span className="text-xs font-mono font-extrabold uppercase tracking-widest text-indigo-600 bg-indigo-50 px-3 py-1.5 rounded-lg inline-block border border-indigo-150">
-              🏫 Shristi Academy Secondary School
-            </span>
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-xs font-mono font-extrabold uppercase tracking-widest text-indigo-600 bg-indigo-50 px-3 py-1.5 rounded-lg inline-block border border-indigo-150">
+                🏫 Shristi Academy Secondary School
+              </span>
+              <span className="text-xs font-mono font-extrabold uppercase tracking-widest text-amber-800 bg-amber-100 px-3 py-1.5 rounded-lg inline-flex items-center gap-1 border border-amber-300 shadow-sm">
+                <Sparkles className="w-3.5 h-3.5 text-amber-600" />
+                Category 'A' Certified
+              </span>
+            </div>
             <h1 className="font-display font-black text-5xl sm:text-6xl md:text-7xl tracking-tight leading-[1.05] text-slate-900">
               Where Young Minds <br />
               <span className="bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-500">
@@ -96,10 +102,10 @@ export default function Hero({ onExplorePrograms, onApplyNow, onViewNotices, las
               </span>
             </h1>
             <p className="text-indigo-700 text-lg sm:text-xl font-black italic border-l-4 border-pink-500 pl-4 py-1 bg-pink-50/30 rounded-r-lg max-w-lg">
-              "I Care, So I Teach" — Our Sacred Academic Motto
+              "I Care, So I Teach" — Our School Motto
             </p>
             <p className="text-slate-700 text-lg sm:text-xl font-bold leading-relaxed max-w-2xl">
-              Nurturing students in Mid-Baneshwor, Kathmandu from Kindergarten to Class 10 (SEE). We deliver a safe, family-like school environment blending high academic quality with robust holistic care.
+              Welcoming students in Mid-Baneshwor, Kathmandu from Kindergarten to Class 10 (SEE). We offer a safe, caring, and friendly school environment with quality education and supportive teachers.
             </p>
           </div>
 
@@ -110,7 +116,7 @@ export default function Hero({ onExplorePrograms, onApplyNow, onViewNotices, las
               className="px-8 py-4 bg-gradient-to-r from-pink-400 via-pink-300 to-pink-500 hover:from-pink-500 hover:to-pink-600 hover:scale-105 active:scale-95 text-slate-950 font-black rounded-2xl shadow-xl shadow-pink-200/60 flex items-center justify-center space-x-2.5 cursor-pointer transition-all duration-300 border-b-4 border-pink-600"
             >
               <GraduationCap className="w-6 h-6 text-slate-950" />
-              <span className="text-sm sm:text-base tracking-tight">Apply Online Admission</span>
+              <span className="text-sm sm:text-base tracking-tight">Apply for Admission</span>
               <ArrowRight className="w-5 h-5" />
             </button>
 
@@ -118,7 +124,7 @@ export default function Hero({ onExplorePrograms, onApplyNow, onViewNotices, las
               onClick={onExplorePrograms}
               className="px-8 py-4 bg-white hover:bg-indigo-50 hover:scale-105 active:scale-95 text-indigo-700 font-black rounded-2xl border-2 border-indigo-500 flex items-center justify-center space-x-2 cursor-pointer shadow-md transition-all duration-300"
             >
-              <span className="text-sm sm:text-base">Explore Curriculum Outlets</span>
+              <span className="text-sm sm:text-base">Explore Our Classes</span>
             </button>
           </div>
 
@@ -141,28 +147,28 @@ export default function Hero({ onExplorePrograms, onApplyNow, onViewNotices, las
             {/* Visual Backframe Glow - Beautiful neon purple orange palette */}
             <div className="absolute inset-0 bg-gradient-to-tr from-indigo-400/30 via-purple-400/20 to-pink-400/30 rounded-[36px] blur-3xl transform rotate-6 pointer-events-none" />
 
-            {/* Playful Floating Badges - Super Bouncy, Energetic School Vibe */}
+            {/* Playful Floating Badges */}
             <div className="absolute -left-4 sm:-left-10 top-16 bg-white/95 border-2 border-indigo-500 p-3 rounded-2xl shadow-xl z-20 flex items-center space-x-2 animate-bounce cursor-pointer select-none" style={{ animationDuration: "3s" }}>
               <span className="text-xl">📚</span>
               <div className="text-left leading-none">
                 <span className="text-[10px] text-slate-500 font-mono font-black block">CURRICULUM</span>
-                <span className="text-xs font-black text-indigo-950">CDC Approved</span>
+                <span className="text-xs font-black text-indigo-950">Govt. Approved</span>
               </div>
             </div>
 
             <div className="absolute -right-4 sm:-right-8 top-1/3 bg-white/95 border-2 border-pink-500 p-3 rounded-2xl shadow-xl z-20 flex items-center space-x-2 animate-pulse cursor-pointer select-none" style={{ animationDuration: "2.5s" }}>
               <span className="text-xl">🚌</span>
               <div className="text-left leading-none">
-                <span className="text-[10px] text-slate-500 font-mono font-black block">BUS SYSTEM</span>
-                <span className="text-xs font-black text-pink-950">Safe Transit</span>
+                <span className="text-[10px] text-slate-500 font-mono font-black block">SCHOOL BUS</span>
+                <span className="text-xs font-black text-pink-950">Safe Transport</span>
               </div>
             </div>
 
             <div className="absolute -left-6 bottom-32 bg-white/95 border-2 border-purple-500 p-3 rounded-2xl shadow-xl z-20 flex items-center space-x-2 animate-bounce cursor-pointer select-none hidden sm:flex" style={{ animationDuration: "4.5s" }}>
               <span className="text-xl">🍲</span>
               <div className="text-left leading-none">
-                <span className="text-[10px] text-slate-500 font-mono font-black block">WELLNESS</span>
-                <span className="text-xs font-black text-purple-950">Organic Meal</span>
+                <span className="text-[10px] text-slate-500 font-mono font-black block">NUTRITION</span>
+                <span className="text-xs font-black text-purple-950">Healthy Lunch</span>
               </div>
             </div>
 
@@ -265,8 +271,8 @@ export default function Hero({ onExplorePrograms, onApplyNow, onViewNotices, las
                     <GraduationCap className="w-6 h-6" />
                   </div>
                   <div className="text-left">
-                    <h3 className="font-black text-sm text-indigo-950">Kindergarten to SEE Level</h3>
-                    <p className="text-xs text-slate-600 font-bold">Outstanding focus from Kindergarten to Class 10</p>
+                    <h3 className="font-black text-sm text-indigo-950">Kindergarten to Grade 10</h3>
+                    <p className="text-xs text-slate-600 font-bold">Complete care and quality education for all ages</p>
                   </div>
                 </div>
 
@@ -276,16 +282,16 @@ export default function Hero({ onExplorePrograms, onApplyNow, onViewNotices, las
                     <Users className="w-6 h-6" />
                   </div>
                   <div className="text-left">
-                    <h3 className="font-black text-sm text-purple-950">Modern Digital Pedagogy</h3>
-                    <p className="text-xs text-slate-600 font-bold">Audio-Visual multimedia setups & tech labs</p>
+                    <h3 className="font-black text-sm text-purple-950">Modern Classrooms & Tech Labs</h3>
+                    <p className="text-xs text-slate-600 font-bold">Smart boards, computers, and science labs</p>
                   </div>
                 </div>
 
                 {/* Academic certified progress bar */}
                 <div className="pt-2">
                   <div className="flex justify-between text-[11px] text-slate-600 mb-1.5 font-mono font-black">
-                    <span>Academic Quality Standard</span>
-                    <span className="text-indigo-700 font-black">Grade A+ Board Standard</span>
+                    <span>Academic Quality Rating</span>
+                    <span className="text-indigo-700 font-black">Top Grade A Standard</span>
                   </div>
                   <div className="w-full bg-slate-100 h-3 rounded-full overflow-hidden border border-slate-200/50">
                     <div className="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 h-full w-[96%]" />
@@ -296,7 +302,7 @@ export default function Hero({ onExplorePrograms, onApplyNow, onViewNotices, las
                 <div className="p-4 bg-pink-50 border border-pink-100 rounded-xl flex items-start space-x-3 text-left shadow-sm">
                   <AlertCircle className="w-4 h-4 text-pink-600 shrink-0 mt-0.5 animate-pulse" />
                   <p className="text-xs text-slate-700 leading-relaxed font-bold">
-                    Accredited under the National Examinations Board (NEB) of Nepal, recognized for cultivating scholars of high competence and character.
+                    Official Category 'A' School approved by Nepal's National Examinations Board (NEB), recognized for academic excellence and student success.
                   </p>
                 </div>
 
@@ -306,7 +312,7 @@ export default function Hero({ onExplorePrograms, onApplyNow, onViewNotices, las
 
             {/* Tiny Floating decorative tag */}
             <div className="absolute -bottom-4 right-4 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-500 text-white font-mono text-[10px] font-black uppercase tracking-widest py-2 px-5 rounded-full shadow-lg">
-              #ModernNepalPedagogy
+              #QualityEducationNepal
             </div>
 
           </div>
