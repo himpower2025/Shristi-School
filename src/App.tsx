@@ -265,10 +265,27 @@ export default function App() {
 
     if (cachedReviews) {
       try {
-        const parsed = JSON.parse(cachedReviews);
-        setParentReviews(Array.isArray(parsed) ? parsed : DEFAULT_PARENT_REVIEWS);
+        let parsed: ParentReview[] = JSON.parse(cachedReviews);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          // Fix spelling typo "Christi" -> "Shristi" in any existing cached reviews
+          parsed = parsed.map(rev => {
+            if (rev.reviewerName === "Krishna Joshi" && rev.comment.includes("Christi Academy")) {
+              return {
+                ...rev,
+                comment: rev.comment.replace("Christi Academy", "Shristi Academy")
+              };
+            }
+            return rev;
+          });
+          setParentReviews(parsed);
+          localStorage.setItem("shristi_parent_reviews_cache", JSON.stringify(parsed));
+        } else {
+          setParentReviews(DEFAULT_PARENT_REVIEWS);
+          localStorage.setItem("shristi_parent_reviews_cache", JSON.stringify(DEFAULT_PARENT_REVIEWS));
+        }
       } catch (err) {
         setParentReviews(DEFAULT_PARENT_REVIEWS);
+        localStorage.setItem("shristi_parent_reviews_cache", JSON.stringify(DEFAULT_PARENT_REVIEWS));
       }
     } else {
       setParentReviews(DEFAULT_PARENT_REVIEWS);

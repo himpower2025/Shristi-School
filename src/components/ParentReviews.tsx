@@ -7,12 +7,12 @@ export const DEFAULT_PARENT_REVIEWS: ParentReview[] = [
   {
     id: "rev-1",
     reviewerName: "Shantivani Pradhan",
-    role: "Parent of Class 4 Student",
+    role: "Verified Parent • Google Review",
     rating: 5,
-    title: "Child-centered school with passionate teachers",
-    comment: "Child centered school with passionate teachers. My daughter loves going to school every morning and has grown so confident in her reading and speaking.",
+    title: "Child centered school with passionate teachers.",
+    comment: "Child centered school with passionate teachers.",
     tags: ["Passionate Teachers", "Child-Centered"],
-    date: "2 months ago",
+    date: "1 year ago",
     isVerified: true,
     isApproved: true,
     avatarColor: "bg-emerald-500"
@@ -20,12 +20,12 @@ export const DEFAULT_PARENT_REVIEWS: ParentReview[] = [
   {
     id: "rev-2",
     reviewerName: "Aashish Lal",
-    role: "Parent of Kindergarten Student",
+    role: "Verified Parent • Google Review",
     rating: 5,
-    title: "Best school ever, thank you!",
-    comment: "Best school ever! Thank you for taking care of my daughter with so much patience and love. The teachers treat every child like family.",
+    title: "Best school ever, Thank you for taking care of my daughter.",
+    comment: "Best school ever, Thank you for taking care of my daughter.",
     tags: ["Kindergarten Care", "Family Atmosphere"],
-    date: "3 months ago",
+    date: "1 year ago",
     isVerified: true,
     isApproved: true,
     avatarColor: "bg-indigo-500"
@@ -33,12 +33,12 @@ export const DEFAULT_PARENT_REVIEWS: ParentReview[] = [
   {
     id: "rev-3",
     reviewerName: "Krishna Joshi",
-    role: "Parent of Class 8 Student",
+    role: "Verified Parent • Google Review",
     rating: 5,
     title: "Where young minds grow, explore, and excel!",
-    comment: "Shristi Academy – Where young minds grow, explore, and excel! A premier destination for holistic development, nurturing students with strong values and practical science skills.",
-    tags: ["Holistic Growth", "Science & Labs"],
-    date: "4 months ago",
+    comment: "Shristi Academy – Where young minds grow, explore, and excel! A premier destination for holistic development, nurturing students with academic excellence, creativity, character, and excellent extracurricular activities.",
+    tags: ["Holistic Growth", "Academic Excellence"],
+    date: "1 year ago",
     isVerified: true,
     isApproved: true,
     avatarColor: "bg-purple-500"
@@ -46,12 +46,12 @@ export const DEFAULT_PARENT_REVIEWS: ParentReview[] = [
   {
     id: "rev-4",
     reviewerName: "Ranju Upreti",
-    role: "Parent of Class 2 Student",
+    role: "Verified Parent • Google Review",
     rating: 5,
-    title: "Great school for exponential learning!",
-    comment: "Great school for exponential learning! The combination of smart classrooms, healthy school meals, and sports activities keeps our children active and motivated.",
-    tags: ["Smart Classrooms", "Healthy Lunch"],
-    date: "5 months ago",
+    title: "Great School for exponential learning!",
+    comment: "Great School for exponential learning!",
+    tags: ["Exponential Learning", "Academic Quality"],
+    date: "2 years ago",
     isVerified: true,
     isApproved: true,
     avatarColor: "bg-pink-500"
@@ -59,12 +59,12 @@ export const DEFAULT_PARENT_REVIEWS: ParentReview[] = [
   {
     id: "rev-5",
     reviewerName: "Anzir Rana",
-    role: "Parent of Class 6 Student",
+    role: "Verified Parent • Google Review",
     rating: 5,
-    title: "Outstanding school and safe environment",
-    comment: "One of the finest schools in Kathmandu. Clean facilities, safe bus transportation, and very responsive school management.",
-    tags: ["Safe Transport", "Clean Campus"],
-    date: "6 months ago",
+    title: "Best school",
+    comment: "Best school",
+    tags: ["Best School", "Verified Review"],
+    date: "2 years ago",
     isVerified: true,
     isApproved: true,
     avatarColor: "bg-amber-500"
@@ -72,12 +72,12 @@ export const DEFAULT_PARENT_REVIEWS: ParentReview[] = [
   {
     id: "rev-6",
     reviewerName: "Tara Bhattarai",
-    role: "Parent of Class 10 (SEE) Student",
+    role: "Verified Parent • Google Review",
     rating: 5,
-    title: "Highly recommend for SEE Board prep!",
-    comment: "One of the best schools in town! The Category A academic standards and teacher guidance for Class 10 SEE preparation are exceptional. Highly recommended!",
-    tags: ["Category A Quality", "SEE Exam Prep"],
-    date: "7 months ago",
+    title: "One of the best school in town ...highly recommend 😊",
+    comment: "One of the best school in town ...highly recommend 😊",
+    tags: ["Highly Recommend", "Best School"],
+    date: "2 years ago",
     isVerified: true,
     isApproved: true,
     avatarColor: "bg-blue-500"
@@ -320,24 +320,21 @@ export default function ParentReviews({ reviews, onAddReview }: ParentReviewsPro
                 className="bg-white p-6 sm:p-7 rounded-[28px] border border-indigo-100 shadow-sm hover:shadow-md transition-all space-y-4 flex flex-col justify-between relative group text-left"
               >
                 <div className="space-y-3">
-                  {/* Header: Avatar, Name, Rating, Verified Badge */}
-                  <div className="flex items-start justify-between">
+                  {/* Header: Avatar, Name, Verified Badge */}
+                  <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-3">
                       <div className={`w-11 h-11 rounded-2xl ${rev.avatarColor || "bg-indigo-500"} text-white font-black text-lg flex items-center justify-center shadow-sm shrink-0 uppercase`}>
                         {rev.reviewerName.charAt(0)}
                       </div>
                       <div>
-                        <h4 className="font-extrabold text-sm text-slate-900 leading-snug flex items-center space-x-1.5">
+                        <h4 className="font-extrabold text-base text-slate-900 leading-snug flex items-center space-x-1.5">
                           <span>{rev.reviewerName}</span>
                           {rev.isVerified && (
                             <CheckCircle className="w-4 h-4 text-blue-500 fill-blue-50 shrink-0" title="Verified Parent" />
                           )}
                         </h4>
-                        <p className="text-[11px] text-slate-500 font-bold">{rev.role}</p>
                       </div>
                     </div>
-                    
-                    <span className="text-[10px] text-slate-400 font-semibold">{rev.date}</span>
                   </div>
 
                   {/* Rating Stars */}
@@ -517,20 +514,6 @@ export default function ParentReviews({ reviews, onAddReview }: ParentReviewsPro
                       placeholder="e.g. Krishna Joshi / Shantivani Pradhan"
                       value={reviewerName}
                       onChange={(e) => setReviewerName(e.target.value)}
-                      className="w-full bg-slate-50 border border-indigo-100 p-3 rounded-xl text-xs font-semibold text-slate-900 focus:outline-none focus:border-indigo-600"
-                    />
-                  </div>
-
-                  {/* Relationship / Role */}
-                  <div className="space-y-1">
-                    <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
-                      RELATIONSHIP / CHILD'S GRADE
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="e.g. Parent of Class 3 Student / Kindergarten Parent"
-                      value={role}
-                      onChange={(e) => setRole(e.target.value)}
                       className="w-full bg-slate-50 border border-indigo-100 p-3 rounded-xl text-xs font-semibold text-slate-900 focus:outline-none focus:border-indigo-600"
                     />
                   </div>
