@@ -85,13 +85,13 @@ export default function AdmissionForm({ onSubmitQuery }: AdmissionFormProps) {
         
         {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto space-y-4">
-          <span className="text-xs font-mono font-bold uppercase tracking-wider text-indigo-600 bg-indigo-50 px-3.5 py-1.5 rounded-full inline-block">
+          <span className="text-xs font-semibold uppercase tracking-wider text-indigo-700 bg-indigo-50 px-3.5 py-1.5 rounded-full inline-block border border-indigo-100">
             Admissions Hub
           </span>
           <h2 className="font-display font-black text-3xl sm:text-4xl text-slate-900 tracking-tight leading-tight">
             Begin Your Academic Journey Today
           </h2>
-          <p className="text-slate-500 font-medium text-sm sm:text-base leading-relaxed">
+          <p className="text-slate-600 font-normal text-sm sm:text-base leading-relaxed">
             Fill out our digital query wizard to reserve slots, request syllabus schedules, or schedule individual counseling sessions with Shristi Academy academic registrar office.
           </p>
         </div>
@@ -111,14 +111,14 @@ export default function AdmissionForm({ onSubmitQuery }: AdmissionFormProps) {
                 {/* Step indicator header */}
                 <div className="flex items-center justify-between pb-4 border-b border-indigo-50/50">
                   <div className="flex items-center space-x-3">
-                    <span className="w-8 h-8 rounded-lg bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center font-mono font-bold text-xs text-indigo-600">
+                    <span className="w-8 h-8 rounded-lg bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center font-bold text-xs text-indigo-700">
                       0{step}
                     </span>
-                    <span className="text-sm font-black text-slate-900 uppercase tracking-widest font-mono">
+                    <span className="text-sm font-bold text-slate-900 uppercase tracking-wide">
                       {step === 1 ? "Student Demographics" : "Academic Grades & Core Studies"}
                     </span>
                   </div>
-                  <span className="text-xs text-slate-400 font-mono font-bold">Step {step} of 2</span>
+                  <span className="text-xs text-slate-500 font-semibold">Step {step} of 2</span>
                 </div>
 
                 {/* Progress bar */}
@@ -135,7 +135,7 @@ export default function AdmissionForm({ onSubmitQuery }: AdmissionFormProps) {
                     
                     {/* Student Name */}
                     <div className="space-y-1.5">
-                      <label className="block text-xs font-mono font-bold text-slate-500 uppercase tracking-wider">STUDENT FULL NAME *</label>
+                      <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">STUDENT FULL NAME *</label>
                       <div className="relative">
                         <User className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
                         <input
@@ -144,14 +144,14 @@ export default function AdmissionForm({ onSubmitQuery }: AdmissionFormProps) {
                           placeholder="e.g. Aayush Sapkota"
                           value={studentName}
                           onChange={(e) => setStudentName(e.target.value)}
-                          className="w-full bg-white border border-indigo-100 pl-11 pr-4 py-3 rounded-xl text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-600/20 focus:border-indigo-600 font-bold shadow-inner"
+                          className="w-full bg-white border border-indigo-100 pl-11 pr-4 py-3 rounded-xl text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-600/20 focus:border-indigo-600 font-semibold shadow-inner"
                         />
                       </div>
                     </div>
 
                     {/* Parent Name */}
                     <div className="space-y-1.5">
-                      <label className="block text-xs font-mono font-bold text-slate-500 uppercase tracking-wider">GUARDIAN / PARENT FULL NAME *</label>
+                      <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">GUARDIAN / PARENT FULL NAME *</label>
                       <div className="relative">
                         <User className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
                         <input
@@ -160,7 +160,7 @@ export default function AdmissionForm({ onSubmitQuery }: AdmissionFormProps) {
                           placeholder="e.g. Ram Bahadur Sapkota"
                           value={parentName}
                           onChange={(e) => setParentName(e.target.value)}
-                          className="w-full bg-white border border-indigo-100 pl-11 pr-4 py-3 rounded-xl text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-600/20 focus:border-indigo-600 font-bold shadow-inner"
+                          className="w-full bg-white border border-indigo-100 pl-11 pr-4 py-3 rounded-xl text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-600/20 focus:border-indigo-600 font-semibold shadow-inner"
                         />
                       </div>
                     </div>
@@ -168,7 +168,7 @@ export default function AdmissionForm({ onSubmitQuery }: AdmissionFormProps) {
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       {/* Mobile Contact */}
                       <div className="space-y-1.5">
-                        <label className="block text-xs font-mono font-bold text-slate-500 uppercase tracking-wider">MOBILE CONTACT NUMBER *</label>
+                        <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">MOBILE CONTACT NUMBER *</label>
                         <div className="relative">
                           <Phone className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
                           <input
@@ -177,14 +177,14 @@ export default function AdmissionForm({ onSubmitQuery }: AdmissionFormProps) {
                             placeholder="e.g. 98510XXXXX"
                             value={mobileNo}
                             onChange={(e) => setMobileNo(e.target.value)}
-                            className="w-full bg-white border border-indigo-100 pl-11 pr-4 py-3 rounded-xl text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-600/20 focus:border-indigo-600 font-mono font-bold shadow-inner"
+                            className="w-full bg-white border border-indigo-100 pl-11 pr-4 py-3 rounded-xl text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-600/20 focus:border-indigo-600 font-semibold shadow-inner"
                           />
                         </div>
                       </div>
 
                       {/* Email Address */}
                       <div className="space-y-1.5">
-                        <label className="block text-xs font-mono font-bold text-slate-500 uppercase tracking-wider">EMAIL ADDRESS (OPTIONAL)</label>
+                        <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">EMAIL ADDRESS (OPTIONAL)</label>
                         <div className="relative">
                           <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
                           <input
@@ -192,7 +192,7 @@ export default function AdmissionForm({ onSubmitQuery }: AdmissionFormProps) {
                             placeholder="aayush@gmail.com"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
-                            className="w-full bg-white border border-indigo-100 pl-11 pr-4 py-3 rounded-xl text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-600/20 focus:border-indigo-600 font-mono font-bold shadow-inner"
+                            className="w-full bg-white border border-indigo-100 pl-11 pr-4 py-3 rounded-xl text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-600/20 focus:border-indigo-600 font-semibold shadow-inner"
                           />
                         </div>
                       </div>
@@ -218,11 +218,11 @@ export default function AdmissionForm({ onSubmitQuery }: AdmissionFormProps) {
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       {/* Grade seeking list */}
                       <div className="space-y-1.5">
-                        <label className="block text-xs font-mono font-bold text-slate-500 uppercase tracking-wider">STREAM / GRADE SEEKING *</label>
+                        <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">STREAM / GRADE SEEKING *</label>
                         <select
                           value={gradeOfInterest}
                           onChange={(e) => setGradeOfInterest(e.target.value)}
-                          className="w-full bg-white border border-indigo-100 p-3.5 rounded-xl text-xs text-slate-800 font-bold focus:outline-none focus:ring-2 focus:ring-indigo-600/20 focus:border-indigo-600"
+                          className="w-full bg-white border border-indigo-100 p-3.5 rounded-xl text-xs text-slate-800 font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-600/20 focus:border-indigo-600"
                         >
                           <option value="Kindergarten Foundation Class">Kindergarten Foundation Class</option>
                           <option value="Primary School (Class 1 - 5)">Primary School (Class 1 - 5)</option>
@@ -233,11 +233,11 @@ export default function AdmissionForm({ onSubmitQuery }: AdmissionFormProps) {
 
                       {/* District of origin */}
                       <div className="space-y-1.5">
-                        <label className="block text-xs font-mono font-bold text-slate-500 uppercase tracking-wider">DISTRICT OF ORIGIN</label>
+                        <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">DISTRICT OF ORIGIN</label>
                         <select
                           value={district}
                           onChange={(e) => setDistrict(e.target.value)}
-                          className="w-full bg-white border border-indigo-100 p-3.5 rounded-xl text-xs text-slate-800 font-bold focus:outline-none focus:ring-2 focus:ring-indigo-600/20 focus:border-indigo-600"
+                          className="w-full bg-white border border-indigo-100 p-3.5 rounded-xl text-xs text-slate-800 font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-600/20 focus:border-indigo-600"
                         >
                           <option value="Kathmandu">Kathmandu</option>
                           <option value="Bhaktapur">Bhaktapur</option>
@@ -251,7 +251,7 @@ export default function AdmissionForm({ onSubmitQuery }: AdmissionFormProps) {
 
                     {/* Previous Academic School */}
                     <div className="space-y-1.5">
-                      <label className="block text-xs font-mono font-bold text-slate-500 uppercase tracking-wider">LAST BOARDED SCHOOL / COLLEGE</label>
+                      <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">LAST BOARDED SCHOOL / COLLEGE</label>
                       <div className="relative">
                         <School className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
                         <input
@@ -259,14 +259,14 @@ export default function AdmissionForm({ onSubmitQuery }: AdmissionFormProps) {
                           placeholder="e.g. Sagarmatha School, Kathmandu"
                           value={previousSchool}
                           onChange={(e) => setPreviousSchool(e.target.value)}
-                          className="w-full bg-white border border-indigo-100 pl-11 pr-4 py-3 rounded-xl text-xs text-slate-800 font-bold focus:outline-none focus:ring-2 focus:ring-indigo-600/20 focus:border-indigo-600 shadow-inner"
+                          className="w-full bg-white border border-indigo-100 pl-11 pr-4 py-3 rounded-xl text-xs text-slate-800 font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-600/20 focus:border-indigo-600 shadow-inner"
                         />
                       </div>
                     </div>
 
                     <div className="p-3.5 bg-indigo-50/50 border border-indigo-100 rounded-2xl flex items-start space-x-2.5">
-                      <ShieldCheck className="w-4.5 h-4.5 text-indigo-550 shrink-0 mt-0.5" />
-                      <p className="text-[11px] text-slate-500 leading-normal font-medium">
+                      <ShieldCheck className="w-4.5 h-4.5 text-indigo-600 shrink-0 mt-0.5" />
+                      <p className="text-[11px] text-slate-600 leading-normal font-medium">
                         Your data is safe under school policies. It will directly propagate into Principal Vani Pradhan's CMS review dashboard securely.
                       </p>
                     </div>
@@ -275,14 +275,14 @@ export default function AdmissionForm({ onSubmitQuery }: AdmissionFormProps) {
                       <button
                         type="button"
                         onClick={() => setStep(1)}
-                        className="px-5 py-3.5 bg-slate-150 hover:bg-slate-200 text-slate-600 rounded-xl text-xs font-mono font-bold cursor-pointer border border-indigo-50"
+                        className="px-5 py-3.5 bg-slate-150 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold cursor-pointer border border-indigo-50"
                       >
                         BACK TO STEP 1
                       </button>
 
                       <button
                         type="submit"
-                        className="px-6 py-3.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:opacity-95 text-white font-mono font-bold rounded-2xl text-xs uppercase cursor-pointer flex items-center space-x-2 transition-all shadow-md shadow-indigo-100"
+                        className="px-6 py-3.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:opacity-95 text-white font-bold rounded-2xl text-xs uppercase cursor-pointer flex items-center space-x-2 transition-all shadow-md shadow-indigo-100"
                       >
                         <FileCheck2 className="w-4 h-4 text-purple-200" />
                         <span>SUBMIT REGISTRATION QUERY</span>
@@ -307,17 +307,17 @@ export default function AdmissionForm({ onSubmitQuery }: AdmissionFormProps) {
 
                 <div className="space-y-2">
                   <h3 className="font-display font-black text-2xl text-slate-900 tracking-tight">Query Successfully Filed!</h3>
-                  <p className="text-slate-500 text-sm max-w-md mx-auto font-semibold">
+                  <p className="text-slate-600 text-sm max-w-md mx-auto font-medium leading-relaxed">
                     Namaste <strong>{studentName}</strong>, your query regarding <strong>{gradeOfInterest}</strong> has been securely logged into the school admissions directory.
                   </p>
                 </div>
 
-                <div className="bg-[#FAF9F6] p-5 rounded-2xl border border-indigo-100 max-w-md mx-auto text-left space-y-2 font-bold text-slate-500 text-xs shadow-inner">
-                  <p className="font-mono text-indigo-600 font-bold text-[10px] uppercase">Next Steps & Information:</p>
+                <div className="bg-[#FAF9F6] p-5 rounded-2xl border border-indigo-100 max-w-md mx-auto text-left space-y-2 font-medium text-slate-600 text-xs shadow-inner">
+                  <p className="font-bold text-indigo-700 text-xs uppercase tracking-wider">Next Steps & Information:</p>
                   <p>1. This query has been registered in the live school directory database.</p>
-                  <p>2. Our academic staff will audit your previous school listings: <strong className="text-slate-700">{previousSchool || "N/A"}</strong>.</p>
-                  <p>3. A counselor will dial your mobile contacts: <strong className="text-slate-700">{mobileNo}</strong> shortly.</p>
-                  <p className="text-emerald-700 pt-1 text-[10px]">✓ Prepared for secure verification at: <strong className="text-emerald-800">info@shristiacademy.edu.np</strong></p>
+                  <p>2. Our academic staff will audit your previous school listings: <strong className="text-slate-800">{previousSchool || "N/A"}</strong>.</p>
+                  <p>3. A counselor will dial your mobile contacts: <strong className="text-slate-800">{mobileNo}</strong> shortly.</p>
+                  <p className="text-emerald-700 pt-1 text-xs font-semibold">✓ Prepared for secure verification at: <strong className="text-emerald-800">info@shristiacademy.edu.np</strong></p>
                 </div>
 
                 <div className="pt-2 flex flex-col sm:flex-row gap-3 justify-center items-center">
@@ -327,7 +327,7 @@ export default function AdmissionForm({ onSubmitQuery }: AdmissionFormProps) {
                     )}&body=${encodeURIComponent(
                       `Dear Administrator,\n\nI am submitting an official registration query for Shristi Academy (Mid-Baneshwor, Kathmandu).\n\nDetails:\n- Student: ${studentName}\n- Parent Name: ${parentName}\n- Group/Grade: ${gradeOfInterest}\n- Contact Number: ${mobileNo}\n- Contact Email: ${email || "None"}\n- Previous Institution: ${previousSchool || "N/A"}\n- District: ${district}\n\nPlease help us complete formal verification.\n\nWarm regards,\n${parentName}`
                     )}`}
-                    className="w-full sm:w-auto px-5 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-mono font-black rounded-xl text-xs flex items-center justify-center space-x-2 transition-all shadow-md cursor-pointer hover:translate-y-[-1.5px]"
+                    className="w-full sm:w-auto px-5 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-xs flex items-center justify-center space-x-2 transition-all shadow-md cursor-pointer hover:translate-y-[-1.5px]"
                   >
                     <Mail className="w-3.5 h-3.5 text-indigo-200" />
                     <span>EMATCH DISPATCH EMAIL</span>
@@ -335,7 +335,7 @@ export default function AdmissionForm({ onSubmitQuery }: AdmissionFormProps) {
 
                   <button
                     onClick={handleResetForm}
-                    className="w-full sm:w-auto px-5 py-3 bg-white text-slate-600 border border-indigo-150 hover:bg-[#FAF9F6] font-mono font-bold rounded-xl text-xs transition-colors cursor-pointer shadow-sm"
+                    className="w-full sm:w-auto px-5 py-3 bg-white text-slate-700 border border-indigo-150 hover:bg-[#FAF9F6] font-bold rounded-xl text-xs transition-colors cursor-pointer shadow-sm"
                   >
                     SUBMIT ANOTHER QUERY
                   </button>

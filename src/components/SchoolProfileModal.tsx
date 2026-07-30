@@ -43,7 +43,7 @@ export default function SchoolProfileModal({
         >
           {/* Admin Preview Header Tag */}
           {isAdminPreview && (
-            <div className="bg-amber-500 text-slate-950 text-center text-[11px] font-mono font-black py-1 px-3 uppercase tracking-widest flex items-center justify-center space-x-1 shrink-0">
+            <div className="bg-amber-500 text-slate-950 text-center text-[11px] font-bold py-1 px-3 uppercase tracking-widest flex items-center justify-center space-x-1 shrink-0">
               <Sparkles className="w-3.5 h-3.5" />
               <span>ADMIN PREVIEW MODE • OFFICIAL SCHOOL PROFILE (PDF)</span>
             </div>
@@ -64,7 +64,7 @@ export default function SchoolProfileModal({
                   <h3 className="font-display font-black text-base sm:text-lg text-slate-900 leading-tight">
                     {config.title || "Shristi Academy • School Profile & Prospectus"}
                   </h3>
-                  <span className="hidden sm:inline-block bg-indigo-100 text-indigo-800 text-[10px] font-mono font-bold px-2.5 py-0.5 rounded-full border border-indigo-200 uppercase">
+                  <span className="hidden sm:inline-block bg-indigo-100 text-indigo-800 text-[10px] font-bold px-2.5 py-0.5 rounded-full border border-indigo-200 uppercase tracking-wider">
                     OFFICIAL PDF
                   </span>
                 </div>
@@ -79,7 +79,7 @@ export default function SchoolProfileModal({
             {/* Controls: Zoom, Fullscreen, Download, Close */}
             <div className="flex items-center space-x-2 shrink-0">
               {/* Zoom Controls */}
-              <div className="hidden md:flex items-center bg-slate-100/80 rounded-xl p-1 border border-slate-200/80 text-xs font-mono font-bold">
+              <div className="hidden md:flex items-center bg-slate-100/80 rounded-xl p-1 border border-slate-200/80 text-xs font-semibold">
                 <button
                   onClick={handleZoomOut}
                   className="p-1.5 hover:bg-white text-slate-700 rounded-lg transition-all cursor-pointer"
@@ -89,7 +89,7 @@ export default function SchoolProfileModal({
                 </button>
                 <button
                   onClick={handleResetZoom}
-                  className="px-2 py-1 hover:bg-white text-indigo-700 rounded-lg transition-all cursor-pointer"
+                  className="px-2 py-1 hover:bg-white text-indigo-700 rounded-lg transition-all cursor-pointer font-bold"
                   title="Reset Zoom"
                 >
                   {zoomLevel}%
@@ -117,7 +117,7 @@ export default function SchoolProfileModal({
                 <a
                   href={config.pdfUrl}
                   download={config.fileName || "Shristi_Academy_School_Profile.pdf"}
-                  className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-mono font-bold rounded-xl flex items-center space-x-1.5 shadow-sm transition-all"
+                  className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl flex items-center space-x-1.5 shadow-sm transition-all"
                   title="Download PDF Copy"
                 >
                   <Download className="w-3.5 h-3.5 text-pink-300" />

@@ -132,15 +132,15 @@ export default function SuggestionsSection({
         
         {/* SECTION HEADER */}
         <div className="text-center space-y-4 max-w-2xl mx-auto">
-          <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-indigo-700 bg-indigo-50 border border-indigo-100 px-3.5 py-1.5 rounded-full inline-block">
+          <span className="text-xs font-semibold uppercase tracking-wider text-indigo-700 bg-indigo-50 border border-indigo-100 px-3.5 py-1.5 rounded-full inline-block">
             👪 Community Voice Board
           </span>
           <h2 className="font-display font-black text-3xl sm:text-4xl text-slate-900 tracking-tight">
             Parents' Shared Suggestion Desk
           </h2>
-          <p className="text-slate-500 text-xs sm:text-sm font-medium leading-relaxed">
+          <p className="text-slate-600 text-xs sm:text-sm font-normal leading-relaxed">
             We value your voice! Parents can submit general inquiries, complaints, suggestions, or nutritional tips. 
-            Specify a <strong className="text-indigo-650">4-digit lock code</strong> so that the details remain private between you and academic heads.
+            Specify a <strong className="text-indigo-700 font-semibold">4-digit lock code</strong> so that the details remain private between you and academic heads.
           </p>
         </div>
 
@@ -167,7 +167,7 @@ export default function SuggestionsSection({
           </div>
           <button
             onClick={() => setShowForm(!showForm)}
-            className="w-full sm:w-auto px-5 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 hover:opacity-95 text-white font-mono font-black rounded-2xl text-xs transition-all shadow-md cursor-pointer tracking-wider"
+            className="w-full sm:w-auto px-5 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 hover:opacity-95 text-white font-bold rounded-2xl text-xs transition-all shadow-md cursor-pointer tracking-wider uppercase"
           >
             {showForm ? "✕ CLOSE WRITING DESK" : "✍ Write an Inquiry / Suggestion"}
           </button>
@@ -192,13 +192,13 @@ export default function SuggestionsSection({
                   </div>
                   <div>
                     <h4 className="font-bold text-slate-900 text-sm">Write Anonymous or Signed Suggestion</h4>
-                    <p className="text-[10px] text-slate-400 font-mono">Real-time submission ledger for Shristi council</p>
+                    <p className="text-[10px] text-slate-500 font-medium">Real-time submission ledger for Shristi council</p>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                   <div className="space-y-1.5">
-                    <label className="block text-xs font-mono font-bold text-slate-700 uppercase">
+                    <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
                       PARENT / GUARDIAN NAME <span className="text-pink-600">*REQUIRED</span>
                     </label>
                     <input
@@ -207,18 +207,18 @@ export default function SuggestionsSection({
                       placeholder="e.g. Ram Bahadur Thapa"
                       value={formName}
                       onChange={(e) => setFormName(e.target.value)}
-                      className="w-full bg-[#FAF9F6] border border-indigo-50 p-3 rounded-xl text-xs text-slate-800 focus:outline-none focus:border-indigo-600 font-bold shadow-inner"
+                      className="w-full bg-[#FAF9F6] border border-indigo-50 p-3 rounded-xl text-xs text-slate-800 focus:outline-none focus:border-indigo-600 font-semibold shadow-inner"
                     />
                   </div>
 
                   <div className="space-y-1.5">
-                    <label className="block text-xs font-mono font-bold text-slate-700 uppercase">
+                    <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
                       CATEGORY AREA
                     </label>
                     <select
                       value={formCategory}
                       onChange={(e) => setFormCategory(e.target.value)}
-                      className="w-full bg-[#FAF9F6] border border-indigo-50 p-3 rounded-xl text-xs text-slate-800 focus:outline-none focus:border-indigo-600 font-bold shadow-none"
+                      className="w-full bg-[#FAF9F6] border border-indigo-50 p-3 rounded-xl text-xs text-slate-800 focus:outline-none focus:border-indigo-600 font-semibold shadow-none"
                     >
                       {categories.map((cat, i) => (
                         <option key={i} value={cat}>{cat}</option>
@@ -227,7 +227,7 @@ export default function SuggestionsSection({
                   </div>
 
                   <div className="space-y-1.5">
-                    <label className="block text-xs font-mono font-bold text-slate-700 uppercase">
+                    <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
                       EMAIL ADDRESS <span className="text-pink-600">*REQUIRED</span>
                     </label>
                     <input
@@ -236,12 +236,12 @@ export default function SuggestionsSection({
                       placeholder="e.g. parent.name@gmail.com"
                       value={formEmail}
                       onChange={(e) => setFormEmail(e.target.value)}
-                      className="w-full bg-[#FAF9F6] border border-indigo-50 p-3 rounded-xl text-xs text-slate-800 focus:outline-none focus:border-indigo-600 font-bold shadow-inner"
+                      className="w-full bg-[#FAF9F6] border border-indigo-50 p-3 rounded-xl text-xs text-slate-800 focus:outline-none focus:border-indigo-600 font-semibold shadow-inner"
                     />
                   </div>
 
                   <div className="space-y-1.5">
-                    <label className="block text-xs font-mono font-bold text-slate-700 uppercase">
+                    <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
                       MOBILE / PHONE NO <span className="text-pink-600">*REQUIRED</span>
                     </label>
                     <input
@@ -250,12 +250,12 @@ export default function SuggestionsSection({
                       placeholder="e.g. +977-9841234567"
                       value={formMobile}
                       onChange={(e) => setFormMobile(e.target.value)}
-                      className="w-full bg-[#FAF9F6] border border-indigo-50 p-3 rounded-xl text-xs text-slate-800 focus:outline-none focus:border-indigo-600 font-bold shadow-inner"
+                      className="w-full bg-[#FAF9F6] border border-indigo-50 p-3 rounded-xl text-xs text-slate-800 focus:outline-none focus:border-indigo-600 font-semibold shadow-inner"
                     />
                   </div>
 
                   <div className="space-y-1.5 md:col-span-2">
-                    <label className="block text-xs font-mono font-bold text-slate-700 uppercase">
+                    <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
                       INQUIRY SUBJECT / TITLE <span className="text-pink-600">*REQUIRED</span>
                     </label>
                     <input
@@ -264,12 +264,12 @@ export default function SuggestionsSection({
                       placeholder="Brief title summarizing your request or feedback..."
                       value={formTitle}
                       onChange={(e) => setFormTitle(e.target.value)}
-                      className="w-full bg-[#FAF9F6] border border-indigo-50 p-3 rounded-xl text-xs text-slate-800 focus:outline-none focus:border-indigo-600 font-bold shadow-inner"
+                      className="w-full bg-[#FAF9F6] border border-indigo-50 p-3 rounded-xl text-xs text-slate-800 focus:outline-none focus:border-indigo-600 font-semibold shadow-inner"
                     />
                   </div>
 
                   <div className="space-y-1.5 md:col-span-2">
-                    <label className="block text-xs font-mono font-bold text-slate-700 uppercase">
+                    <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
                       YOUR MESSAGE / EXPLANATION <span className="text-pink-600">*REQUIRED</span>
                     </label>
                     <textarea
@@ -278,7 +278,7 @@ export default function SuggestionsSection({
                       placeholder="Provide precise details so the Academic Lead and Vani Pradhan (Principal) can take appropriate action and write back to you directly..."
                       value={formContent}
                       onChange={(e) => setFormContent(e.target.value)}
-                      className="w-full bg-[#FAF9F6] border border-indigo-50 p-3 rounded-xl text-xs text-slate-800 focus:outline-none focus:border-indigo-600 font-bold shadow-inner"
+                      className="w-full bg-[#FAF9F6] border border-indigo-50 p-3 rounded-xl text-xs text-slate-800 focus:outline-none focus:border-indigo-600 font-medium shadow-inner"
                     />
                   </div>
 

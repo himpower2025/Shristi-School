@@ -54,7 +54,7 @@ export default function PopupModal({
         >
           {/* Admin Preview Header Tag */}
           {isPreviewMode && (
-            <div className="bg-amber-500 text-slate-950 text-center text-[11px] font-mono font-black py-1 px-3 uppercase tracking-widest flex items-center justify-center space-x-1">
+            <div className="bg-amber-500 text-slate-950 text-center text-[11px] font-bold py-1 px-3 uppercase tracking-widest flex items-center justify-center space-x-1">
               <Sparkles className="w-3.5 h-3.5" />
               <span>LIVE ADMIN PREVIEW MODE • VISITOR WILL SEE THIS POPUP</span>
             </div>
@@ -70,10 +70,10 @@ export default function PopupModal({
                 <SchoolLogo className="w-8 h-8" />
               </div>
               <div>
-                <span className="text-[10px] font-mono font-black uppercase text-indigo-600 tracking-wider block">
+                <span className="text-[10px] font-bold uppercase text-indigo-600 tracking-wider block">
                   Shristi Academy Board • Notice
                 </span>
-                <span className="inline-block bg-pink-100 text-pink-700 border border-pink-200/80 px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold tracking-wide mt-0.5">
+                <span className="inline-block bg-pink-100 text-pink-700 border border-pink-200/80 px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-wide mt-0.5">
                   {config.badge || "SPECIAL ANNOUNCEMENT"}
                 </span>
               </div>
@@ -174,7 +174,7 @@ export default function PopupModal({
                         <Calendar className="w-4 h-4" />
                       </div>
                       <div>
-                        <span className="text-[10px] font-mono font-black text-indigo-700 uppercase block">
+                        <span className="text-[10px] font-bold text-indigo-700 uppercase tracking-wider block">
                           Date & Schedule
                         </span>
                         <span className="text-xs font-bold text-slate-800 leading-snug block mt-0.5">
@@ -190,7 +190,7 @@ export default function PopupModal({
                         <MapPin className="w-4 h-4" />
                       </div>
                       <div>
-                        <span className="text-[10px] font-mono font-black text-purple-700 uppercase block">
+                        <span className="text-[10px] font-bold text-purple-700 uppercase tracking-wider block">
                           Venue / Location
                         </span>
                         <span className="text-xs font-bold text-slate-800 leading-snug block mt-0.5">

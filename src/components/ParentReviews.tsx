@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Star, CheckCircle, QrCode, Plus, Sparkles, MessageSquare, X, Send, Award, Heart, ThumbsUp, Printer, ShieldCheck, Mail, Clock } from "lucide-react";
+import { Star, CheckCircle, QrCode, Plus, Sparkles, MessageSquare, X, Send, Award, Heart, ThumbsUp, Printer, ShieldCheck, Mail, Clock, ChevronLeft, ChevronRight } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { ParentReview } from "../types";
 
@@ -129,7 +129,30 @@ export default function ParentReviews({ reviews, onAddReview }: ParentReviewsPro
     }
   }, []);
 
+  const [currentPage, setCurrentPage] = useState(0);
+  const itemsPerPage = 3; // Displays 1 row of 3 cards on desktop
+
   const approvedReviews = reviews.filter((r) => r.isApproved !== false);
+  const totalPages = Math.ceil(approvedReviews.length / itemsPerPage) || 1;
+
+  useEffect(() => {
+    if (currentPage >= totalPages) {
+      setCurrentPage(Math.max(0, totalPages - 1));
+    }
+  }, [approvedReviews.length, totalPages, currentPage]);
+
+  const nextPage = () => {
+    setCurrentPage((prev) => (prev + 1) % totalPages);
+  };
+
+  const prevPage = () => {
+    setCurrentPage((prev) => (prev - 1 + totalPages) % totalPages);
+  };
+
+  const visibleReviews = approvedReviews.slice(
+    currentPage * itemsPerPage,
+    (currentPage + 1) * itemsPerPage
+  );
 
   const toggleTag = (tag: string) => {
     if (selectedTags.includes(tag)) {
@@ -201,7 +224,7 @@ export default function ParentReviews({ reviews, onAddReview }: ParentReviewsPro
         {/* Section Header */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
           <div className="space-y-4 text-left max-w-2xl">
-            <div className="inline-flex items-center space-x-2 bg-amber-100 text-amber-900 border border-amber-300 px-3.5 py-1.5 rounded-full text-xs font-mono font-black uppercase tracking-wider shadow-sm">
+            <div className="inline-flex items-center space-x-2 bg-amber-100 text-amber-900 border border-amber-300 px-3.5 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider shadow-sm">
               <Award className="w-4 h-4 text-amber-600" />
               <span>Verified Parent Feedback</span>
             </div>
@@ -210,7 +233,7 @@ export default function ParentReviews({ reviews, onAddReview }: ParentReviewsPro
               Parent Reviews & Testimonials
             </h2>
             
-            <p className="text-slate-600 font-bold text-base sm:text-lg leading-relaxed">
+            <p className="text-slate-600 font-medium text-base sm:text-lg leading-relaxed">
               Read authentic experiences shared by parents and guardians. At Shristi Academy, our greatest reward is seeing every student thrive in a safe, caring, and encouraging school environment.
             </p>
           </div>
@@ -221,7 +244,7 @@ export default function ParentReviews({ reviews, onAddReview }: ParentReviewsPro
             <div className="bg-white p-4 rounded-2xl border border-indigo-100 shadow-md flex items-center space-x-3">
               <div className="text-center border-r border-slate-100 pr-3">
                 <span className="text-2xl font-black text-slate-900 leading-none block">4.9</span>
-                <span className="text-[10px] text-slate-500 font-mono font-bold">out of 5.0</span>
+                <span className="text-[10px] text-slate-500 font-semibold">out of 5.0</span>
               </div>
               <div className="space-y-1">
                 <div className="flex text-amber-400 space-x-0.5">
@@ -236,14 +259,14 @@ export default function ParentReviews({ reviews, onAddReview }: ParentReviewsPro
               </div>
             </div>
 
-            {/* Buttons */}
+            {/* Buttons & Navigation Arrows */}
             <div className="flex items-center gap-2">
               <button
                 onClick={() => {
                   setSubmittedSuccess(false);
                   setIsFormOpen(true);
                 }}
-                className="px-5 py-3.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white rounded-2xl text-xs font-mono font-black tracking-wider shadow-lg shadow-indigo-200 flex items-center justify-center space-x-2 transition-all hover:scale-105 cursor-pointer"
+                className="px-5 py-3.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white rounded-2xl text-xs font-bold uppercase tracking-wider shadow-lg shadow-indigo-200 flex items-center justify-center space-x-2 transition-all hover:scale-105 cursor-pointer"
               >
                 <Plus className="w-4 h-4" />
                 <span>WRITE A REVIEW</span>
@@ -251,89 +274,160 @@ export default function ParentReviews({ reviews, onAddReview }: ParentReviewsPro
 
               <button
                 onClick={() => setIsQrModalOpen(true)}
-                className="px-4 py-3.5 bg-white hover:bg-slate-50 text-slate-800 rounded-2xl border-2 border-slate-200 text-xs font-mono font-black flex items-center justify-center space-x-2 shadow-sm transition-all hover:scale-105 cursor-pointer"
+                className="px-4 py-3.5 bg-white hover:bg-slate-50 text-slate-800 rounded-2xl border-2 border-slate-200 text-xs font-bold uppercase tracking-wider flex items-center justify-center space-x-2 shadow-sm transition-all hover:scale-105 cursor-pointer"
                 title="Scan QR Code to submit review on mobile"
               >
                 <QrCode className="w-4 h-4 text-indigo-600" />
-                <span>QR CODE</span>
+                <span className="hidden sm:inline">QR CODE</span>
               </button>
+
+              {/* Slider Quick Controls (< >) */}
+              {totalPages > 1 && (
+                <div className="flex items-center space-x-1.5 ml-1">
+                  <button
+                    onClick={prevPage}
+                    className="p-3 bg-white hover:bg-indigo-50 active:scale-95 text-slate-800 rounded-2xl border-2 border-slate-200 shadow-sm transition-all cursor-pointer hover:border-indigo-300"
+                    title="Previous Reviews"
+                  >
+                    <ChevronLeft className="w-4.5 h-4.5 text-indigo-700" />
+                  </button>
+                  <button
+                    onClick={nextPage}
+                    className="p-3 bg-white hover:bg-indigo-50 active:scale-95 text-slate-800 rounded-2xl border-2 border-slate-200 shadow-sm transition-all cursor-pointer hover:border-indigo-300"
+                    title="Next Reviews"
+                  >
+                    <ChevronRight className="w-4.5 h-4.5 text-indigo-700" />
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </div>
 
-        {/* Reviews Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {approvedReviews.map((rev) => (
-            <motion.div
-              key={rev.id}
-              initial={{ opacity: 0, y: 15 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3 }}
-              className="bg-white p-6 sm:p-7 rounded-[28px] border border-indigo-100 shadow-sm hover:shadow-md transition-all space-y-4 flex flex-col justify-between relative group text-left"
-            >
-              <div className="space-y-3">
-                {/* Header: Avatar, Name, Rating, Verified Badge */}
-                <div className="flex items-start justify-between">
-                  <div className="flex items-center space-x-3">
-                    <div className={`w-11 h-11 rounded-2xl ${rev.avatarColor || "bg-indigo-500"} text-white font-black text-lg flex items-center justify-center shadow-sm shrink-0 uppercase`}>
-                      {rev.reviewerName.charAt(0)}
+        {/* Single Row Reviews Grid with Smooth Animation */}
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={currentPage}
+            initial={{ opacity: 0, x: 15 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -15 }}
+            transition={{ duration: 0.25 }}
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+          >
+            {visibleReviews.map((rev) => (
+              <div
+                key={rev.id}
+                className="bg-white p-6 sm:p-7 rounded-[28px] border border-indigo-100 shadow-sm hover:shadow-md transition-all space-y-4 flex flex-col justify-between relative group text-left"
+              >
+                <div className="space-y-3">
+                  {/* Header: Avatar, Name, Rating, Verified Badge */}
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-center space-x-3">
+                      <div className={`w-11 h-11 rounded-2xl ${rev.avatarColor || "bg-indigo-500"} text-white font-black text-lg flex items-center justify-center shadow-sm shrink-0 uppercase`}>
+                        {rev.reviewerName.charAt(0)}
+                      </div>
+                      <div>
+                        <h4 className="font-extrabold text-sm text-slate-900 leading-snug flex items-center space-x-1.5">
+                          <span>{rev.reviewerName}</span>
+                          {rev.isVerified && (
+                            <CheckCircle className="w-4 h-4 text-blue-500 fill-blue-50 shrink-0" title="Verified Parent" />
+                          )}
+                        </h4>
+                        <p className="text-[11px] text-slate-500 font-bold">{rev.role}</p>
+                      </div>
                     </div>
-                    <div>
-                      <h4 className="font-extrabold text-sm text-slate-900 leading-snug flex items-center space-x-1.5">
-                        <span>{rev.reviewerName}</span>
-                        {rev.isVerified && (
-                          <CheckCircle className="w-4 h-4 text-blue-500 fill-blue-50 shrink-0" title="Verified Parent" />
-                        )}
-                      </h4>
-                      <p className="text-[11px] text-slate-500 font-bold">{rev.role}</p>
-                    </div>
+                    
+                    <span className="text-[10px] text-slate-400 font-semibold">{rev.date}</span>
                   </div>
-                  
-                  <span className="text-[10px] font-mono text-slate-400 font-bold">{rev.date}</span>
+
+                  {/* Rating Stars */}
+                  <div className="flex items-center space-x-1 pt-1">
+                    {[...Array(5)].map((_, i) => (
+                      <Star
+                        key={i}
+                        className={`w-4 h-4 ${
+                          i < rev.rating
+                            ? "fill-amber-400 text-amber-400"
+                            : "fill-slate-100 text-slate-200"
+                        }`}
+                      />
+                    ))}
+                    <span className="text-xs font-bold text-slate-700 ml-1.5">{rev.rating}.0</span>
+                  </div>
+
+                  {/* Review Title & Comment */}
+                  <div className="space-y-1.5 pt-1">
+                    <h5 className="font-extrabold text-sm text-indigo-950 leading-snug">
+                      "{rev.title}"
+                    </h5>
+                    <p className="text-xs sm:text-sm text-slate-600 font-medium leading-relaxed italic">
+                      {rev.comment}
+                    </p>
+                  </div>
                 </div>
 
-                {/* Rating Stars */}
-                <div className="flex items-center space-x-1 pt-1">
-                  {[...Array(5)].map((_, i) => (
-                    <Star
-                      key={i}
-                      className={`w-4 h-4 ${
-                        i < rev.rating
-                          ? "fill-amber-400 text-amber-400"
-                          : "fill-slate-100 text-slate-200"
-                      }`}
-                    />
-                  ))}
-                  <span className="text-xs font-mono font-bold text-slate-600 ml-1.5">{rev.rating}.0</span>
-                </div>
+                {/* Tags / Strengths */}
+                {rev.tags && rev.tags.length > 0 && (
+                  <div className="pt-3 border-t border-slate-100 flex flex-wrap gap-1.5">
+                    {rev.tags.map((tag, idx) => (
+                      <span
+                        key={idx}
+                        className="text-[10px] font-bold text-indigo-700 bg-indigo-50/80 border border-indigo-100 px-2.5 py-1 rounded-lg"
+                      >
+                        ✓ {tag}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))}
+          </motion.div>
+        </AnimatePresence>
 
-                {/* Review Title & Comment */}
-                <div className="space-y-1.5 pt-1">
-                  <h5 className="font-extrabold text-sm text-indigo-950 leading-snug">
-                    "{rev.title}"
-                  </h5>
-                  <p className="text-xs sm:text-sm text-slate-600 font-medium leading-relaxed italic">
-                    {rev.comment}
-                  </p>
-                </div>
+        {/* Carousel Pagination & Indicator Controls Bar */}
+        {totalPages > 1 && (
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-indigo-50/80">
+            <div className="text-xs font-semibold text-slate-500">
+              Showing <span className="font-bold text-slate-800">{currentPage * itemsPerPage + 1}–{Math.min((currentPage + 1) * itemsPerPage, approvedReviews.length)}</span> of <span className="font-bold text-slate-800">{approvedReviews.length}</span> verified parent reviews
+            </div>
+
+            <div className="flex items-center space-x-3">
+              {/* Prev Button */}
+              <button
+                onClick={prevPage}
+                className="px-3 py-2 bg-white hover:bg-indigo-50 text-indigo-900 border border-indigo-150 rounded-xl shadow-sm transition-all cursor-pointer flex items-center space-x-1.5 hover:border-indigo-300"
+              >
+                <ChevronLeft className="w-4 h-4 text-indigo-600" />
+                <span className="text-xs font-bold">Previous</span>
+              </button>
+
+              {/* Dots Indicator */}
+              <div className="flex items-center space-x-1.5 px-2">
+                {Array.from({ length: totalPages }).map((_, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => setCurrentPage(idx)}
+                    className={`h-2.5 rounded-full transition-all cursor-pointer ${
+                      currentPage === idx
+                        ? "w-7 bg-indigo-600 shadow-sm"
+                        : "w-2.5 bg-slate-200 hover:bg-slate-300"
+                    }`}
+                    title={`Go to slide ${idx + 1}`}
+                  />
+                ))}
               </div>
 
-              {/* Tags / Strengths */}
-              {rev.tags && rev.tags.length > 0 && (
-                <div className="pt-3 border-t border-slate-100 flex flex-wrap gap-1.5">
-                  {rev.tags.map((tag, idx) => (
-                    <span
-                      key={idx}
-                      className="text-[10px] font-mono font-bold text-indigo-700 bg-indigo-50/80 border border-indigo-100 px-2.5 py-1 rounded-lg"
-                    >
-                      ✓ {tag}
-                    </span>
-                  ))}
-                </div>
-              )}
-            </motion.div>
-          ))}
-        </div>
+              {/* Next Button */}
+              <button
+                onClick={nextPage}
+                className="px-3 py-2 bg-white hover:bg-indigo-50 text-indigo-900 border border-indigo-150 rounded-xl shadow-sm transition-all cursor-pointer flex items-center space-x-1.5 hover:border-indigo-300"
+              >
+                <span className="text-xs font-bold">Next</span>
+                <ChevronRight className="w-4 h-4 text-indigo-600" />
+              </button>
+            </div>
+          </div>
+        )}
 
       </div>
 
@@ -357,7 +451,7 @@ export default function ParentReviews({ reviews, onAddReview }: ParentReviewsPro
 
               {/* Modal Title */}
               <div className="space-y-1">
-                <div className="inline-flex items-center space-x-2 bg-indigo-50 text-indigo-700 px-3 py-1 rounded-full text-xs font-mono font-bold">
+                <div className="inline-flex items-center space-x-2 bg-indigo-50 text-indigo-700 px-3 py-1 rounded-full text-xs font-bold">
                   <MessageSquare className="w-3.5 h-3.5" />
                   <span>Parent Feedback Form</span>
                 </div>
@@ -405,7 +499,7 @@ export default function ParentReviews({ reviews, onAddReview }: ParentReviewsPro
                       setTitle("");
                       setComment("");
                     }}
-                    className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-mono font-bold cursor-pointer transition-colors"
+                    className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold cursor-pointer transition-colors"
                   >
                     CLOSE WINDOW
                   </button>
@@ -414,7 +508,7 @@ export default function ParentReviews({ reviews, onAddReview }: ParentReviewsPro
                 <form onSubmit={handleSubmit} className="space-y-4">
                   {/* Reviewer Name */}
                   <div className="space-y-1">
-                    <label className="block text-xs font-mono font-bold text-slate-700 uppercase">
+                    <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
                       YOUR FULL NAME *
                     </label>
                     <input
@@ -423,13 +517,13 @@ export default function ParentReviews({ reviews, onAddReview }: ParentReviewsPro
                       placeholder="e.g. Krishna Joshi / Shantivani Pradhan"
                       value={reviewerName}
                       onChange={(e) => setReviewerName(e.target.value)}
-                      className="w-full bg-slate-50 border border-indigo-100 p-3 rounded-xl text-xs font-bold text-slate-900 focus:outline-none focus:border-indigo-600"
+                      className="w-full bg-slate-50 border border-indigo-100 p-3 rounded-xl text-xs font-semibold text-slate-900 focus:outline-none focus:border-indigo-600"
                     />
                   </div>
 
                   {/* Relationship / Role */}
                   <div className="space-y-1">
-                    <label className="block text-xs font-mono font-bold text-slate-700 uppercase">
+                    <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
                       RELATIONSHIP / CHILD'S GRADE
                     </label>
                     <input
@@ -437,13 +531,13 @@ export default function ParentReviews({ reviews, onAddReview }: ParentReviewsPro
                       placeholder="e.g. Parent of Class 3 Student / Kindergarten Parent"
                       value={role}
                       onChange={(e) => setRole(e.target.value)}
-                      className="w-full bg-slate-50 border border-indigo-100 p-3 rounded-xl text-xs font-bold text-slate-900 focus:outline-none focus:border-indigo-600"
+                      className="w-full bg-slate-50 border border-indigo-100 p-3 rounded-xl text-xs font-semibold text-slate-900 focus:outline-none focus:border-indigo-600"
                     />
                   </div>
 
                   {/* Rating selection */}
                   <div className="space-y-1.5">
-                    <label className="block text-xs font-mono font-bold text-slate-700 uppercase">
+                    <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
                       STAR RATING *
                     </label>
                     <div className="flex items-center space-x-2 bg-slate-50 p-3 rounded-xl border border-indigo-100">
@@ -463,7 +557,7 @@ export default function ParentReviews({ reviews, onAddReview }: ParentReviewsPro
                           />
                         </button>
                       ))}
-                      <span className="text-xs font-mono font-black text-amber-600 ml-2">
+                      <span className="text-xs font-black text-amber-600 ml-2">
                         {rating} / 5 Stars
                       </span>
                     </div>
@@ -471,7 +565,7 @@ export default function ParentReviews({ reviews, onAddReview }: ParentReviewsPro
 
                   {/* Review Title */}
                   <div className="space-y-1">
-                    <label className="block text-xs font-mono font-bold text-slate-700 uppercase">
+                    <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
                       SHORT SUMMARY / TITLE
                     </label>
                     <input
@@ -479,13 +573,13 @@ export default function ParentReviews({ reviews, onAddReview }: ParentReviewsPro
                       placeholder="e.g. Child-centered school with passionate teachers!"
                       value={title}
                       onChange={(e) => setTitle(e.target.value)}
-                      className="w-full bg-slate-50 border border-indigo-100 p-3 rounded-xl text-xs font-bold text-slate-900 focus:outline-none focus:border-indigo-600"
+                      className="w-full bg-slate-50 border border-indigo-100 p-3 rounded-xl text-xs font-semibold text-slate-900 focus:outline-none focus:border-indigo-600"
                     />
                   </div>
 
                   {/* Review Content */}
                   <div className="space-y-1">
-                    <label className="block text-xs font-mono font-bold text-slate-700 uppercase">
+                    <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
                       DETAILED COMMENT / FEEDBACK *
                     </label>
                     <textarea
