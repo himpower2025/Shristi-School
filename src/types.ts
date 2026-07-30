@@ -98,3 +98,17 @@ export interface GalleryItem {
   uploadedAt?: string;
 }
 
+export interface ParentReview {
+  id: string;
+  reviewerName: string;
+  role: string; // e.g., "Parent of Class 3", "Kindergarten Parent", "Alumni Parent"
+  rating: number; // 1 to 5
+  title: string; // Short headline
+  comment: string;
+  tags?: string[]; // e.g. ["Passionate Teachers", "Safe Environment"]
+  date: string;
+  isVerified: boolean;
+  isApproved: boolean;
+  avatarColor?: string;
+}
+

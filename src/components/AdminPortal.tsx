@@ -5,7 +5,7 @@ import {
   BellRing, Image as ImageIcon, LayoutTemplate, Eye, Upload, Check, Power, Download, FileText
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
-import { Notice, NoticeCategory, AdmissionQuery, SuggestionInquiry, PopupNoticeConfig, SchoolProfileConfig, GalleryItem } from "../types";
+import { Notice, NoticeCategory, AdmissionQuery, SuggestionInquiry, PopupNoticeConfig, SchoolProfileConfig, GalleryItem, ParentReview } from "../types";
 import PopupModal from "./PopupModal";
 import SchoolProfileModal from "./SchoolProfileModal";
 
@@ -28,6 +28,8 @@ interface AdminPortalProps {
   onUpdateSchoolProfileConfig: (config: SchoolProfileConfig) => void;
   galleryItems?: GalleryItem[];
   onUpdateGalleryItems?: (items: GalleryItem[]) => void;
+  reviews?: ParentReview[];
+  onUpdateReviews?: (reviews: ParentReview[]) => void;
 }
 
 export default function AdminPortal({ 
@@ -48,7 +50,9 @@ export default function AdminPortal({
   schoolProfileConfig,
   onUpdateSchoolProfileConfig,
   galleryItems = [],
-  onUpdateGalleryItems
+  onUpdateGalleryItems,
+  reviews = [],
+  onUpdateReviews
 }: AdminPortalProps) {
   // Login Gate State variables
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -567,6 +571,18 @@ export default function AdminPortal({
                 >
                   <ImageIcon className="w-3.5 h-3.5 text-pink-300" />
                   <span>🖼️ CAMPUS GALLERY ({galleryItems.length}/10)</span>
+                </button>
+
+                <button
+                  onClick={() => setCmsTab("ParentReviews")}
+                  className={`px-4 py-3 rounded-2xl text-xs font-mono font-black tracking-wider transition-all cursor-pointer flex items-center space-x-1.5 ${
+                    cmsTab === "ParentReviews"
+                      ? "bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-md shadow-indigo-100"
+                      : "text-slate-500 hover:text-indigo-600 hover:bg-slate-100/50"
+                  }`}
+                >
+                  <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+                  <span>⭐ PARENT REVIEWS ({reviews.length})</span>
                 </button>
               </div>
 
@@ -1783,6 +1799,105 @@ export default function AdminPortal({
                                 <Trash2 className="w-3.5 h-3.5" />
                                 <span>Delete Photo</span>
                               </button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* TAB 9: PARENT REVIEWS MANAGER */}
+                {cmsTab === "ParentReviews" && (
+                  <div className="bg-white p-6 sm:p-8 rounded-[32px] border border-indigo-100 shadow-sm space-y-8 animate-fadeIn text-left">
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-indigo-50 pb-6">
+                      <div className="flex items-center space-x-3">
+                        <div className="p-3 bg-amber-50 text-amber-600 border border-amber-100 rounded-2xl">
+                          <Sparkles className="w-6 h-6" />
+                        </div>
+                        <div>
+                          <h3 className="font-display font-black text-xl text-slate-900 leading-tight">
+                            Parent Reviews & Testimonials Manager
+                          </h3>
+                          <p className="text-xs text-slate-500 font-medium mt-0.5">
+                            Manage, approve, or remove parent feedback displayed on the website.
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center space-x-2 bg-indigo-50 px-4 py-2 rounded-2xl border border-indigo-100 font-mono text-xs font-black text-indigo-900 shrink-0">
+                        <span>{reviews.length} Total Reviews Recorded</span>
+                      </div>
+                    </div>
+
+                    <div className="space-y-4">
+                      {reviews.length === 0 ? (
+                        <div className="p-8 text-center text-slate-400 font-bold text-xs bg-slate-50 rounded-2xl border border-dashed border-slate-200">
+                          No parent reviews submitted yet.
+                        </div>
+                      ) : (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          {reviews.map((rev) => (
+                            <div key={rev.id} className="bg-slate-50 p-5 rounded-2xl border border-slate-200 space-y-3 flex flex-col justify-between">
+                              <div className="space-y-2">
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center space-x-2">
+                                    <div className="w-8 h-8 rounded-xl bg-indigo-600 text-white font-extrabold text-xs flex items-center justify-center">
+                                      {rev.reviewerName.charAt(0)}
+                                    </div>
+                                    <div>
+                                      <h5 className="font-extrabold text-xs text-slate-900">{rev.reviewerName}</h5>
+                                      <p className="text-[10px] text-slate-500 font-bold">{rev.role}</p>
+                                    </div>
+                                  </div>
+                                  <span className="text-[10px] font-mono text-slate-400">{rev.date}</span>
+                                </div>
+
+                                <div className="flex items-center space-x-1 text-amber-400">
+                                  {[...Array(5)].map((_, i) => (
+                                    <span key={i} className="text-sm">★</span>
+                                  ))}
+                                  <span className="text-xs font-bold text-slate-700 ml-1">{rev.rating}.0</span>
+                                </div>
+
+                                <div>
+                                  <p className="text-xs font-extrabold text-indigo-950">"{rev.title}"</p>
+                                  <p className="text-xs text-slate-600 mt-0.5">{rev.comment}</p>
+                                </div>
+                              </div>
+
+                              <div className="flex items-center space-x-2 pt-2 border-t border-slate-200">
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    if (!onUpdateReviews) return;
+                                    const updated = reviews.map((r) =>
+                                      r.id === rev.id ? { ...r, isApproved: !r.isApproved } : r
+                                    );
+                                    onUpdateReviews(updated);
+                                  }}
+                                  className={`flex-1 py-2 rounded-xl text-xs font-mono font-bold transition-colors ${
+                                    rev.isApproved
+                                      ? "bg-emerald-100 text-emerald-800 hover:bg-emerald-200"
+                                      : "bg-amber-100 text-amber-800 hover:bg-amber-200"
+                                  }`}
+                                >
+                                  {rev.isApproved ? "✓ LIVE ON WEBSITE" : "⏸ HIDDEN (APPROVE)"}
+                                </button>
+
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    if (!onUpdateReviews) return;
+                                    const updated = reviews.filter((r) => r.id !== rev.id);
+                                    onUpdateReviews(updated);
+                                  }}
+                                  className="px-3 py-2 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-xl text-xs font-mono font-bold flex items-center justify-center space-x-1 transition-colors"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                  <span>DELETE</span>
+                                </button>
+                              </div>
                             </div>
                           ))}
                         </div>

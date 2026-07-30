@@ -21,6 +21,8 @@ import WhyShristi from "./components/WhyShristi";
 import SuggestionsSection from "./components/SuggestionsSection";
 import PopupModal from "./components/PopupModal";
 import SchoolProfileModal from "./components/SchoolProfileModal";
+import ParentReviews, { DEFAULT_PARENT_REVIEWS } from "./components/ParentReviews";
+import { ParentReview } from "./types";
 
 // DEFAULT SCHOOL PROFILE CONFIGURATION
 const DEFAULT_SCHOOL_PROFILE_CONFIG: SchoolProfileConfig = {
@@ -164,6 +166,7 @@ export default function App() {
   const [schoolProfileConfig, setSchoolProfileConfig] = useState<SchoolProfileConfig>(DEFAULT_SCHOOL_PROFILE_CONFIG);
   const [isSchoolProfileOpen, setIsSchoolProfileOpen] = useState(false);
   const [galleryItems, setGalleryItems] = useState<GalleryItem[]>([]);
+  const [parentReviews, setParentReviews] = useState<ParentReview[]>([]);
 
   // Load from local storage or initialize realistic mock templates
   useEffect(() => {
@@ -174,6 +177,7 @@ export default function App() {
     const cachedPopup = localStorage.getItem("shristi_popup_config_cache");
     const cachedProfile = localStorage.getItem("shristi_school_profile_cache");
     const cachedGallery = localStorage.getItem("shristi_gallery_items_cache");
+    const cachedReviews = localStorage.getItem("shristi_parent_reviews_cache");
 
     if (cachedNotices) {
       setNotices(JSON.parse(cachedNotices));
@@ -258,7 +262,32 @@ export default function App() {
       setGalleryItems(DEFAULT_GALLERY_ITEMS);
       localStorage.setItem("shristi_gallery_items_cache", JSON.stringify(DEFAULT_GALLERY_ITEMS));
     }
+
+    if (cachedReviews) {
+      try {
+        const parsed = JSON.parse(cachedReviews);
+        setParentReviews(Array.isArray(parsed) ? parsed : DEFAULT_PARENT_REVIEWS);
+      } catch (err) {
+        setParentReviews(DEFAULT_PARENT_REVIEWS);
+      }
+    } else {
+      setParentReviews(DEFAULT_PARENT_REVIEWS);
+      localStorage.setItem("shristi_parent_reviews_cache", JSON.stringify(DEFAULT_PARENT_REVIEWS));
+    }
   }, []);
+
+  const handleAddParentReview = (newReview: ParentReview) => {
+    const updated = [newReview, ...parentReviews];
+    setParentReviews(updated);
+    localStorage.setItem("shristi_parent_reviews_cache", JSON.stringify(updated));
+    showToast("✓ Thank you! Your review has been recorded.");
+  };
+
+  const handleUpdateParentReviews = (updated: ParentReview[]) => {
+    setParentReviews(updated);
+    localStorage.setItem("shristi_parent_reviews_cache", JSON.stringify(updated));
+    showToast("✓ Parent reviews updated.");
+  };
 
   const handleUpdatePopupConfig = (updated: PopupNoticeConfig) => {
     setPopupConfig(updated);
@@ -513,6 +542,8 @@ export default function App() {
                 onUpdateSchoolProfileConfig={handleUpdateSchoolProfileConfig}
                 galleryItems={galleryItems}
                 onUpdateGalleryItems={handleUpdateGalleryItems}
+                reviews={parentReviews}
+                onUpdateReviews={handleUpdateParentReviews}
               />
             </motion.div>
 
@@ -608,23 +639,14 @@ export default function App() {
                         ))}
                       </div>
 
-                      {/* Micro Call to Action card */}
-                      <div className="bg-gradient-to-r from-indigo-900 via-[#372473] to-purple-900 p-6 sm:p-8 rounded-[28px] border border-indigo-800/40 text-white flex flex-col sm:flex-row items-center justify-between gap-6">
-                        <div className="space-y-1 text-center sm:text-left">
-                          <p className="text-pink-300 font-mono text-[10px] font-black uppercase tracking-wider">Admissions open online</p>
-                          <h4 className="font-display font-extrabold text-base sm:text-lg">Are you ready to enroll your child for Batch 2083?</h4>
-                          <p className="text-indigo-100/80 text-xs font-medium">Slots are highly regulated to preserve small classroom sizes and teacher ratios.</p>
-                        </div>
-                        <button
-                          onClick={() => setCurrentSection("admission")}
-                          className="shrink-0 bg-white hover:bg-pink-50 text-indigo-900 hover:text-indigo-950 font-bold text-[12px] px-6 py-3 rounded-2xl shadow-lg transition-transform hover:-translate-y-0.5 active:translate-y-0"
-                        >
-                          Fill Application Form
-                        </button>
-                      </div>
-
                     </div>
                   </section>
+
+                  {/* Sleek Parent Reviews & QR Code Feedback Section */}
+                  <ParentReviews
+                    reviews={parentReviews}
+                    onAddReview={handleAddParentReview}
+                  />
                 </>
               ) : currentSection === "about" ? (
                 <div className="animate-fade-in">
