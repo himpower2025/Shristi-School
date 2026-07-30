@@ -2,7 +2,7 @@ import { useState, FormEvent, ChangeEvent } from "react";
 import { 
   Lock, Unlock, ShieldAlert, Sparkles, Send, FileEdit, 
   Trash2, Plus, Megaphone, Users, Calendar, ArrowRight, UserCheck, CheckCircle2, Bookmark, Info, CircleAlert, HelpCircle,
-  BellRing, Image as ImageIcon, LayoutTemplate, Eye, Upload, Check, Power, Download, FileText
+  BellRing, Image as ImageIcon, LayoutTemplate, Eye, Upload, Check, Power, Download, FileText, Edit3, X, Star
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { Notice, NoticeCategory, AdmissionQuery, SuggestionInquiry, PopupNoticeConfig, SchoolProfileConfig, GalleryItem, ParentReview } from "../types";
@@ -62,7 +62,19 @@ export default function AdminPortal({
   const [loggedEmail, setLoggedEmail] = useState("");
 
   // CMS Tabs State variables
-  const [cmsTab, setCmsTab] = useState<"ManageNo" | "WritePost" | "Admit" | "Admins" | "ParentsVoice" | "PopupNotice" | "SchoolProfile" | "CampusGallery">("ManageNo");
+  const [cmsTab, setCmsTab] = useState<"ManageNo" | "WritePost" | "Admit" | "Admins" | "ParentsVoice" | "PopupNotice" | "SchoolProfile" | "CampusGallery" | "ParentReviews">("ManageNo");
+
+  // Review Edit & Manual Add States
+  const [editingReview, setEditingReview] = useState<ParentReview | null>(null);
+  const [isAddReviewModalOpen, setIsAddReviewModalOpen] = useState(false);
+  
+  // New Manual Review Form States
+  const [manName, setManName] = useState("");
+  const [manRole, setManRole] = useState("Parent of Current Student");
+  const [manRating, setManRating] = useState(5);
+  const [manTitle, setManTitle] = useState("");
+  const [manComment, setManComment] = useState("");
+  const [manTags, setManTags] = useState("Passionate Teachers, Category A Quality");
 
   // Popup Management Form States
   const [popEnabled, setPopEnabled] = useState<boolean>(popupConfig?.enabled ?? false);
@@ -1820,13 +1832,23 @@ export default function AdminPortal({
                             Parent Reviews & Testimonials Manager
                           </h3>
                           <p className="text-xs text-slate-500 font-medium mt-0.5">
-                            Manage, approve, or remove parent feedback displayed on the website.
+                            Review, edit, publish or reject parent feedback submitted via QR code or sent to info@shristiacademy.edu.np.
                           </p>
                         </div>
                       </div>
 
-                      <div className="flex items-center space-x-2 bg-indigo-50 px-4 py-2 rounded-2xl border border-indigo-100 font-mono text-xs font-black text-indigo-900 shrink-0">
-                        <span>{reviews.length} Total Reviews Recorded</span>
+                      <div className="flex items-center space-x-2 shrink-0">
+                        <div className="px-3 py-2 bg-indigo-50 rounded-xl border border-indigo-100 font-mono text-xs font-black text-indigo-900">
+                          {reviews.filter((r) => !r.isApproved).length} Pending • {reviews.length} Total
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setIsAddReviewModalOpen(true)}
+                          className="px-4 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white rounded-xl font-mono text-xs font-black flex items-center space-x-1.5 shadow-sm transition-all cursor-pointer"
+                        >
+                          <Plus className="w-4 h-4" />
+                          <span>+ ADD REVIEW MANUALLY</span>
+                        </button>
                       </div>
                     </div>
 
@@ -1838,11 +1860,15 @@ export default function AdminPortal({
                       ) : (
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           {reviews.map((rev) => (
-                            <div key={rev.id} className="bg-slate-50 p-5 rounded-2xl border border-slate-200 space-y-3 flex flex-col justify-between">
+                            <div key={rev.id} className={`p-5 rounded-2xl border space-y-3 flex flex-col justify-between transition-all ${
+                              rev.isApproved
+                                ? "bg-slate-50 border-slate-200"
+                                : "bg-amber-50/50 border-amber-200 shadow-sm"
+                            }`}>
                               <div className="space-y-2">
                                 <div className="flex items-center justify-between">
                                   <div className="flex items-center space-x-2">
-                                    <div className="w-8 h-8 rounded-xl bg-indigo-600 text-white font-extrabold text-xs flex items-center justify-center">
+                                    <div className={`w-8 h-8 rounded-xl ${rev.avatarColor || "bg-indigo-600"} text-white font-extrabold text-xs flex items-center justify-center`}>
                                       {rev.reviewerName.charAt(0)}
                                     </div>
                                     <div>
@@ -1850,12 +1876,22 @@ export default function AdminPortal({
                                       <p className="text-[10px] text-slate-500 font-bold">{rev.role}</p>
                                     </div>
                                   </div>
-                                  <span className="text-[10px] font-mono text-slate-400">{rev.date}</span>
+                                  
+                                  <div className="flex items-center space-x-2">
+                                    <span className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold ${
+                                      rev.isApproved
+                                        ? "bg-emerald-100 text-emerald-800"
+                                        : "bg-amber-200 text-amber-900 font-extrabold"
+                                    }`}>
+                                      {rev.isApproved ? "✓ LIVE" : "⏳ PENDING APPROVAL"}
+                                    </span>
+                                    <span className="text-[10px] font-mono text-slate-400">{rev.date}</span>
+                                  </div>
                                 </div>
 
                                 <div className="flex items-center space-x-1 text-amber-400">
                                   {[...Array(5)].map((_, i) => (
-                                    <span key={i} className="text-sm">★</span>
+                                    <span key={i} className={`text-sm ${i < rev.rating ? "text-amber-400" : "text-slate-300"}`}>★</span>
                                   ))}
                                   <span className="text-xs font-bold text-slate-700 ml-1">{rev.rating}.0</span>
                                 </div>
@@ -1864,9 +1900,28 @@ export default function AdminPortal({
                                   <p className="text-xs font-extrabold text-indigo-950">"{rev.title}"</p>
                                   <p className="text-xs text-slate-600 mt-0.5">{rev.comment}</p>
                                 </div>
+
+                                {rev.tags && rev.tags.length > 0 && (
+                                  <div className="flex flex-wrap gap-1 pt-1">
+                                    {rev.tags.map((t, idx) => (
+                                      <span key={idx} className="text-[9px] font-mono font-bold bg-white px-2 py-0.5 rounded border border-slate-200 text-indigo-700">
+                                        ✓ {t}
+                                      </span>
+                                    ))}
+                                  </div>
+                                )}
                               </div>
 
-                              <div className="flex items-center space-x-2 pt-2 border-t border-slate-200">
+                              <div className="flex items-center space-x-2 pt-2 border-t border-slate-200/80">
+                                <button
+                                  type="button"
+                                  onClick={() => setEditingReview(rev)}
+                                  className="px-3 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-xl text-xs font-mono font-bold flex items-center space-x-1 transition-colors cursor-pointer"
+                                >
+                                  <Edit3 className="w-3.5 h-3.5" />
+                                  <span>EDIT</span>
+                                </button>
+
                                 <button
                                   type="button"
                                   onClick={() => {
@@ -1876,23 +1931,25 @@ export default function AdminPortal({
                                     );
                                     onUpdateReviews(updated);
                                   }}
-                                  className={`flex-1 py-2 rounded-xl text-xs font-mono font-bold transition-colors ${
+                                  className={`flex-1 py-2 rounded-xl text-xs font-mono font-bold transition-colors cursor-pointer ${
                                     rev.isApproved
-                                      ? "bg-emerald-100 text-emerald-800 hover:bg-emerald-200"
-                                      : "bg-amber-100 text-amber-800 hover:bg-amber-200"
+                                      ? "bg-slate-200 text-slate-700 hover:bg-slate-300"
+                                      : "bg-emerald-600 text-white hover:bg-emerald-700 shadow-sm"
                                   }`}
                                 >
-                                  {rev.isApproved ? "✓ LIVE ON WEBSITE" : "⏸ HIDDEN (APPROVE)"}
+                                  {rev.isApproved ? "⏸ UNPUBLISH" : "✓ APPROVE & PUBLISH"}
                                 </button>
 
                                 <button
                                   type="button"
                                   onClick={() => {
                                     if (!onUpdateReviews) return;
-                                    const updated = reviews.filter((r) => r.id !== rev.id);
-                                    onUpdateReviews(updated);
+                                    if (confirm(`Are you sure you want to delete the review by ${rev.reviewerName}?`)) {
+                                      const updated = reviews.filter((r) => r.id !== rev.id);
+                                      onUpdateReviews(updated);
+                                    }
                                   }}
-                                  className="px-3 py-2 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-xl text-xs font-mono font-bold flex items-center justify-center space-x-1 transition-colors"
+                                  className="px-3 py-2 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-xl text-xs font-mono font-bold flex items-center justify-center space-x-1 transition-colors cursor-pointer"
                                 >
                                   <Trash2 className="w-3.5 h-3.5" />
                                   <span>DELETE</span>
@@ -1902,6 +1959,249 @@ export default function AdminPortal({
                           ))}
                         </div>
                       )}
+                    </div>
+                  </div>
+                )}
+
+                {/* MODAL: EDIT PARENT REVIEW */}
+                {editingReview && (
+                  <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+                    <div className="bg-white rounded-[32px] max-w-lg w-full p-6 sm:p-8 border border-indigo-100 shadow-2xl space-y-5 text-left relative max-h-[90vh] overflow-y-auto">
+                      <button
+                        onClick={() => setEditingReview(null)}
+                        className="absolute top-6 right-6 p-2 text-slate-400 hover:text-slate-600 bg-slate-100 rounded-full"
+                      >
+                        <X className="w-5 h-5" />
+                      </button>
+
+                      <div className="space-y-1">
+                        <h4 className="font-display font-black text-xl text-slate-900">Edit Parent Review</h4>
+                        <p className="text-xs text-slate-500">Modify review details prior to publishing on the public wall.</p>
+                      </div>
+
+                      <form
+                        onSubmit={(e) => {
+                          e.preventDefault();
+                          if (!onUpdateReviews || !editingReview) return;
+                          const updated = reviews.map((r) => r.id === editingReview.id ? editingReview : r);
+                          onUpdateReviews(updated);
+                          setEditingReview(null);
+                        }}
+                        className="space-y-4"
+                      >
+                        <div className="space-y-1">
+                          <label className="block text-xs font-mono font-bold text-slate-700">REVIEWER NAME</label>
+                          <input
+                            type="text"
+                            required
+                            value={editingReview.reviewerName}
+                            onChange={(e) => setEditingReview({ ...editingReview, reviewerName: e.target.value })}
+                            className="w-full bg-slate-50 border border-indigo-100 p-2.5 rounded-xl text-xs font-bold text-slate-900"
+                          />
+                        </div>
+
+                        <div className="space-y-1">
+                          <label className="block text-xs font-mono font-bold text-slate-700">ROLE / RELATIONSHIP</label>
+                          <input
+                            type="text"
+                            value={editingReview.role}
+                            onChange={(e) => setEditingReview({ ...editingReview, role: e.target.value })}
+                            className="w-full bg-slate-50 border border-indigo-100 p-2.5 rounded-xl text-xs font-bold text-slate-900"
+                          />
+                        </div>
+
+                        <div className="space-y-1">
+                          <label className="block text-xs font-mono font-bold text-slate-700">STAR RATING (1-5)</label>
+                          <select
+                            value={editingReview.rating}
+                            onChange={(e) => setEditingReview({ ...editingReview, rating: Number(e.target.value) })}
+                            className="w-full bg-slate-50 border border-indigo-100 p-2.5 rounded-xl text-xs font-bold text-slate-900"
+                          >
+                            <option value={5}>5 Stars (Excellent)</option>
+                            <option value={4}>4 Stars (Good)</option>
+                            <option value={3}>3 Stars (Average)</option>
+                            <option value={2}>2 Stars (Needs Work)</option>
+                            <option value={1}>1 Star (Poor)</option>
+                          </select>
+                        </div>
+
+                        <div className="space-y-1">
+                          <label className="block text-xs font-mono font-bold text-slate-700">TITLE / SUMMARY</label>
+                          <input
+                            type="text"
+                            value={editingReview.title}
+                            onChange={(e) => setEditingReview({ ...editingReview, title: e.target.value })}
+                            className="w-full bg-slate-50 border border-indigo-100 p-2.5 rounded-xl text-xs font-bold text-slate-900"
+                          />
+                        </div>
+
+                        <div className="space-y-1">
+                          <label className="block text-xs font-mono font-bold text-slate-700">COMMENT BODY</label>
+                          <textarea
+                            rows={3}
+                            required
+                            value={editingReview.comment}
+                            onChange={(e) => setEditingReview({ ...editingReview, comment: e.target.value })}
+                            className="w-full bg-slate-50 border border-indigo-100 p-2.5 rounded-xl text-xs font-medium text-slate-900"
+                          />
+                        </div>
+
+                        <div className="space-y-1">
+                          <label className="block text-xs font-mono font-bold text-slate-700">TAGS (COMMA SEPARATED)</label>
+                          <input
+                            type="text"
+                            value={editingReview.tags ? editingReview.tags.join(", ") : ""}
+                            onChange={(e) => setEditingReview({ ...editingReview, tags: e.target.value.split(",").map((t) => t.trim()).filter(Boolean) })}
+                            className="w-full bg-slate-50 border border-indigo-100 p-2.5 rounded-xl text-xs font-bold text-slate-900"
+                          />
+                        </div>
+
+                        <div className="flex items-center space-x-2 pt-2">
+                          <button
+                            type="submit"
+                            className="flex-1 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-mono font-bold rounded-xl text-xs"
+                          >
+                            SAVE REVIEW CHANGES
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setEditingReview(null)}
+                            className="px-4 py-3 bg-slate-100 text-slate-600 font-mono font-bold rounded-xl text-xs"
+                          >
+                            CANCEL
+                          </button>
+                        </div>
+                      </form>
+                    </div>
+                  </div>
+                )}
+
+                {/* MODAL: ADD MANUAL REVIEW */}
+                {isAddReviewModalOpen && (
+                  <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+                    <div className="bg-white rounded-[32px] max-w-lg w-full p-6 sm:p-8 border border-indigo-100 shadow-2xl space-y-5 text-left relative max-h-[90vh] overflow-y-auto">
+                      <button
+                        onClick={() => setIsAddReviewModalOpen(false)}
+                        className="absolute top-6 right-6 p-2 text-slate-400 hover:text-slate-600 bg-slate-100 rounded-full"
+                      >
+                        <X className="w-5 h-5" />
+                      </button>
+
+                      <div className="space-y-1">
+                        <h4 className="font-display font-black text-xl text-slate-900">Add Review Received via Email / Letter</h4>
+                        <p className="text-xs text-slate-500">Add testimonials forwarded to info@shristiacademy.edu.np or submitted in person.</p>
+                      </div>
+
+                      <form
+                        onSubmit={(e) => {
+                          e.preventDefault();
+                          if (!manName.trim() || !manComment.trim() || !onUpdateReviews) return;
+                          const newRev: ParentReview = {
+                            id: "rev-" + Date.now(),
+                            reviewerName: manName.trim(),
+                            role: manRole.trim() || "Parent of Current Student",
+                            rating: manRating,
+                            title: manTitle.trim() || "Great School Experience",
+                            comment: manComment.trim(),
+                            tags: manTags.split(",").map((t) => t.trim()).filter(Boolean),
+                            date: "Verified Admin Entry",
+                            isVerified: true,
+                            isApproved: true,
+                            avatarColor: "bg-indigo-600"
+                          };
+                          onUpdateReviews([newRev, ...reviews]);
+                          setIsAddReviewModalOpen(false);
+                          setManName("");
+                          setManTitle("");
+                          setManComment("");
+                        }}
+                        className="space-y-4"
+                      >
+                        <div className="space-y-1">
+                          <label className="block text-xs font-mono font-bold text-slate-700">REVIEWER NAME *</label>
+                          <input
+                            type="text"
+                            required
+                            placeholder="e.g. Ramesh Shrestha"
+                            value={manName}
+                            onChange={(e) => setManName(e.target.value)}
+                            className="w-full bg-slate-50 border border-indigo-100 p-2.5 rounded-xl text-xs font-bold text-slate-900"
+                          />
+                        </div>
+
+                        <div className="space-y-1">
+                          <label className="block text-xs font-mono font-bold text-slate-700">ROLE / CHILD GRADE</label>
+                          <input
+                            type="text"
+                            placeholder="e.g. Parent of Class 5 Student"
+                            value={manRole}
+                            onChange={(e) => setManRole(e.target.value)}
+                            className="w-full bg-slate-50 border border-indigo-100 p-2.5 rounded-xl text-xs font-bold text-slate-900"
+                          />
+                        </div>
+
+                        <div className="space-y-1">
+                          <label className="block text-xs font-mono font-bold text-slate-700">STAR RATING</label>
+                          <select
+                            value={manRating}
+                            onChange={(e) => setManRating(Number(e.target.value))}
+                            className="w-full bg-slate-50 border border-indigo-100 p-2.5 rounded-xl text-xs font-bold text-slate-900"
+                          >
+                            <option value={5}>5 Stars (Excellent)</option>
+                            <option value={4}>4 Stars (Good)</option>
+                            <option value={3}>3 Stars (Average)</option>
+                          </select>
+                        </div>
+
+                        <div className="space-y-1">
+                          <label className="block text-xs font-mono font-bold text-slate-700">TITLE / SUMMARY</label>
+                          <input
+                            type="text"
+                            placeholder="e.g. Excellent environment for children"
+                            value={manTitle}
+                            onChange={(e) => setManTitle(e.target.value)}
+                            className="w-full bg-slate-50 border border-indigo-100 p-2.5 rounded-xl text-xs font-bold text-slate-900"
+                          />
+                        </div>
+
+                        <div className="space-y-1">
+                          <label className="block text-xs font-mono font-bold text-slate-700">REVIEW COMMENT *</label>
+                          <textarea
+                            rows={3}
+                            required
+                            placeholder="Paste or write the review content here..."
+                            value={manComment}
+                            onChange={(e) => setManComment(e.target.value)}
+                            className="w-full bg-slate-50 border border-indigo-100 p-2.5 rounded-xl text-xs font-medium text-slate-900"
+                          />
+                        </div>
+
+                        <div className="space-y-1">
+                          <label className="block text-xs font-mono font-bold text-slate-700">TAGS (COMMA SEPARATED)</label>
+                          <input
+                            type="text"
+                            value={manTags}
+                            onChange={(e) => setManTags(e.target.value)}
+                            className="w-full bg-slate-50 border border-indigo-100 p-2.5 rounded-xl text-xs font-bold text-slate-900"
+                          />
+                        </div>
+
+                        <div className="flex items-center space-x-2 pt-2">
+                          <button
+                            type="submit"
+                            className="flex-1 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-mono font-bold rounded-xl text-xs shadow-md"
+                          >
+                            PUBLISH NEW REVIEW NOW
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setIsAddReviewModalOpen(false)}
+                            className="px-4 py-3 bg-slate-100 text-slate-600 font-mono font-bold rounded-xl text-xs"
+                          >
+                            CANCEL
+                          </button>
+                        </div>
+                      </form>
                     </div>
                   </div>
                 )}

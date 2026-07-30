@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { Star, CheckCircle, QrCode, Plus, Sparkles, MessageSquare, X, Send, Award, Heart, ThumbsUp, Printer, ShieldCheck } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { Star, CheckCircle, QrCode, Plus, Sparkles, MessageSquare, X, Send, Award, Heart, ThumbsUp, Printer, ShieldCheck, Mail, Clock } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { ParentReview } from "../types";
 
@@ -113,6 +113,22 @@ export default function ParentReviews({ reviews, onAddReview }: ParentReviewsPro
     "SEE Exam Prep"
   ];
 
+  // Auto-open review modal if URL contains #write-review or ?review=open (QR code trigger)
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const hash = window.location.hash;
+      const search = window.location.search;
+      if (hash === "#write-review" || search.includes("review=open") || hash === "#parent-reviews-write") {
+        setIsFormOpen(true);
+        // Scroll smoothly to section
+        const section = document.getElementById("parent-reviews");
+        if (section) {
+          section.scrollIntoView({ behavior: "smooth" });
+        }
+      }
+    }
+  }, []);
+
   const approvedReviews = reviews.filter((r) => r.isApproved !== false);
 
   const toggleTag = (tag: string) => {
@@ -130,34 +146,49 @@ export default function ParentReviews({ reviews, onAddReview }: ParentReviewsPro
     const colors = ["bg-indigo-500", "bg-purple-500", "bg-pink-500", "bg-emerald-500", "bg-amber-500", "bg-blue-500"];
     const randomColor = colors[Math.floor(Math.random() * colors.length)];
 
+    // Submitted reviews default to isApproved: false (pending admin review)
     const newReview: ParentReview = {
       id: "rev-" + Date.now(),
       reviewerName: reviewerName.trim(),
       role: role.trim() || "Parent of Current Student",
       rating,
-      title: title.trim() || "Excellent Experience at Shristi Academy",
+      title: title.trim() || "Positive Experience at Shristi Academy",
       comment: comment.trim(),
       tags: selectedTags,
-      date: "Just now",
+      date: "Just submitted (Pending Review)",
       isVerified: true,
-      isApproved: true, // Approved by default for instant delight
+      isApproved: false, // Requires Admin/Principal Approval
       avatarColor: randomColor
     };
 
     onAddReview(newReview);
     setSubmittedSuccess(true);
+
+    // Also trigger email dispatch option to info@shristiacademy.edu.np
+    const mailSubject = encodeURIComponent(`[Parent Review] New Feedback from ${reviewerName}`);
+    const mailBody = encodeURIComponent(
+      `Shristi Academy Parent Review Submission:\n\n` +
+      `Reviewer Name: ${reviewerName}\n` +
+      `Role/Grade: ${role}\n` +
+      `Rating: ${rating} / 5 Stars\n` +
+      `Title: ${title}\n` +
+      `Comment: ${comment}\n` +
+      `Tags: ${selectedTags.join(", ")}\n\n` +
+      `Submitted at: ${new Date().toLocaleString()}\n` +
+      `Status: Awaiting Administrator Approval in Admin Portal.`
+    );
+    
+    // Open mail client in background if supported
     setTimeout(() => {
-      setSubmittedSuccess(false);
-      setIsFormOpen(false);
-      // Reset form
-      setReviewerName("");
-      setTitle("");
-      setComment("");
-    }, 1800);
+      window.location.href = `mailto:info@shristiacademy.edu.np?subject=${mailSubject}&body=${mailBody}`;
+    }, 1200);
   };
 
-  // Target Review Submission URL for QR Code
-  const reviewPageUrl = typeof window !== "undefined" ? `${window.location.origin}#parent-reviews` : "https://shristiacademy.edu.np#parent-reviews";
+  // Direct QR code link with trigger hash & parameter so QR scanning instantly opens the Write Review Modal!
+  const reviewPageUrl = typeof window !== "undefined"
+    ? `${window.location.origin}/?review=open#write-review`
+    : "https://shristiacademy.edu.np/?review=open#write-review";
+
   const qrCodeImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(reviewPageUrl)}&color=4f46e5`;
 
   return (
@@ -208,7 +239,10 @@ export default function ParentReviews({ reviews, onAddReview }: ParentReviewsPro
             {/* Buttons */}
             <div className="flex items-center gap-2">
               <button
-                onClick={() => setIsFormOpen(true)}
+                onClick={() => {
+                  setSubmittedSuccess(false);
+                  setIsFormOpen(true);
+                }}
                 className="px-5 py-3.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white rounded-2xl text-xs font-mono font-black tracking-wider shadow-lg shadow-indigo-200 flex items-center justify-center space-x-2 transition-all hover:scale-105 cursor-pointer"
               >
                 <Plus className="w-4 h-4" />
@@ -336,14 +370,45 @@ export default function ParentReviews({ reviews, onAddReview }: ParentReviewsPro
               </div>
 
               {submittedSuccess ? (
-                <div className="p-8 text-center space-y-3 bg-emerald-50 border border-emerald-200 rounded-2xl">
-                  <div className="w-12 h-12 bg-emerald-500 text-white rounded-full flex items-center justify-center mx-auto shadow-md">
-                    <CheckCircle className="w-7 h-7" />
+                <div className="p-6 text-center space-y-4 bg-emerald-50/90 border border-emerald-200 rounded-2xl">
+                  <div className="w-14 h-14 bg-emerald-500 text-white rounded-full flex items-center justify-center mx-auto shadow-md">
+                    <CheckCircle className="w-8 h-8" />
                   </div>
-                  <h4 className="font-black text-lg text-emerald-950">Thank You for Your Review!</h4>
-                  <p className="text-xs font-bold text-emerald-800">
-                    Your valuable review has been recorded and added to our school feedback wall.
-                  </p>
+                  
+                  <div className="space-y-1">
+                    <h4 className="font-black text-lg text-emerald-950">Thank You for Your Review!</h4>
+                    <p className="text-xs font-bold text-emerald-800 leading-relaxed">
+                      Your review has been successfully submitted and dispatched to school management.
+                    </p>
+                  </div>
+
+                  <div className="p-3.5 bg-white rounded-xl border border-emerald-200 text-left space-y-2">
+                    <div className="flex items-center space-x-2 text-xs font-extrabold text-indigo-950">
+                      <Mail className="w-4 h-4 text-indigo-600" />
+                      <span>Sent to: info@shristiacademy.edu.np</span>
+                    </div>
+                    <div className="flex items-center space-x-2 text-[11px] font-bold text-slate-600">
+                      <Clock className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                      <span>Status: Pending Principal/Administrator Approval</span>
+                    </div>
+                    <p className="text-[11px] text-slate-500 leading-normal pt-1 border-t border-slate-100">
+                      Once reviewed by school management, your testimonial will appear live on our school review wall.
+                    </p>
+                  </div>
+
+                  <button
+                    onClick={() => {
+                      setSubmittedSuccess(false);
+                      setIsFormOpen(false);
+                      // Reset form
+                      setReviewerName("");
+                      setTitle("");
+                      setComment("");
+                    }}
+                    className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-mono font-bold cursor-pointer transition-colors"
+                  >
+                    CLOSE WINDOW
+                  </button>
                 </div>
               ) : (
                 <form onSubmit={handleSubmit} className="space-y-4">
@@ -459,6 +524,10 @@ export default function ParentReviews({ reviews, onAddReview }: ParentReviewsPro
                     </div>
                   </div>
 
+                  <p className="text-[11px] text-slate-500 font-medium italic">
+                    ℹ️ Note: Submitted reviews are sent to <strong>info@shristiacademy.edu.np</strong> and will appear on the website after Principal/Admin review.
+                  </p>
+
                   {/* Submit Button */}
                   <button
                     type="submit"
@@ -496,13 +565,13 @@ export default function ParentReviews({ reviews, onAddReview }: ParentReviewsPro
               <div className="space-y-2">
                 <div className="inline-flex items-center space-x-2 bg-pink-100 text-pink-900 px-3.5 py-1.5 rounded-full text-xs font-mono font-bold">
                   <QrCode className="w-4 h-4 text-pink-600" />
-                  <span>Mobile Review Access</span>
+                  <span>Instant Mobile Review Access</span>
                 </div>
                 <h3 className="font-display font-black text-2xl text-slate-900">
-                  Scan to Leave a Review
+                  Scan to Write a Review
                 </h3>
                 <p className="text-xs text-slate-500 font-medium">
-                  Parents and visitors can scan this QR code using any smartphone camera to open the review form directly.
+                  Scanning this QR code opens the <strong>Review Form</strong> directly on smartphones so parents can leave feedback in 1 minute!
                 </p>
               </div>
 
@@ -521,7 +590,7 @@ export default function ParentReviews({ reviews, onAddReview }: ParentReviewsPro
                     🏫 SHRISTI ACADEMY PARENT FEEDBACK
                   </span>
                   <p className="text-[11px] text-slate-500 font-bold">
-                    Scan with camera • Takes only 1 minute
+                    Direct Link: info@shristiacademy.edu.np
                   </p>
                 </div>
               </div>
@@ -530,7 +599,7 @@ export default function ParentReviews({ reviews, onAddReview }: ParentReviewsPro
               <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-left text-amber-900 text-xs font-bold flex items-start space-x-2">
                 <Sparkles className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
                 <span>
-                  <strong>School Desk Tip:</strong> Print this QR code and display it on the reception counter or principal's office stand so visiting parents can share feedback easily!
+                  <strong>School Desk Stand:</strong> Display this QR stand at the front reception counter or principal's office. Parents scan, write feedback, and it goes directly to management!
                 </span>
               </div>
 
