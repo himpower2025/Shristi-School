@@ -127,8 +127,8 @@ export default function SuggestionsSection({
   };
 
   return (
-    <section className="py-20 px-4 bg-[#FAF9F6] font-sans">
-      <div className="max-w-4xl mx-auto space-y-12">
+    <section className="py-20 px-4 sm:px-8 lg:px-12 xl:px-16 2xl:px-20 bg-[#FAF9F6] font-sans">
+      <div className="max-w-[1600px] xl:max-w-[1720px] 2xl:max-w-[1800px] mx-auto space-y-12">
         
         {/* SECTION HEADER */}
         <div className="text-center space-y-4 max-w-2xl mx-auto">

@@ -219,7 +219,7 @@ export default function ParentReviews({ reviews, onAddReview }: ParentReviewsPro
       {/* Decorative background glow */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-gradient-to-r from-amber-200/20 via-pink-200/20 to-indigo-200/20 rounded-full blur-3xl pointer-events-none" />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 space-y-12">
+      <div className="max-w-[1720px] 2xl:max-w-[1800px] mx-auto px-4 sm:px-8 lg:px-12 xl:px-16 2xl:px-20 relative z-10 space-y-12">
         
         {/* Section Header */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
@@ -312,12 +312,12 @@ export default function ParentReviews({ reviews, onAddReview }: ParentReviewsPro
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -15 }}
             transition={{ duration: 0.25 }}
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8 xl:gap-10"
           >
             {visibleReviews.map((rev) => (
               <div
                 key={rev.id}
-                className="bg-white p-6 sm:p-7 rounded-[28px] border border-indigo-100 shadow-sm hover:shadow-md transition-all space-y-4 flex flex-col justify-between relative group text-left"
+                className="bg-white p-7 sm:p-8 xl:p-9 rounded-[28px] border border-indigo-100 shadow-sm hover:shadow-md transition-all space-y-4 flex flex-col justify-between relative group text-left"
               >
                 <div className="space-y-3">
                   {/* Header: Avatar, Name, Verified Badge */}

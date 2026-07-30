@@ -307,12 +307,12 @@ export default function ToolsSection({ isAdmin = false }: ToolsSectionProps) {
   });
 
   return (
-    <section className="py-20 px-4 bg-white relative overflow-hidden" id="portal-tools">
+    <section className="py-20 px-4 sm:px-8 lg:px-12 xl:px-16 2xl:px-20 bg-white relative overflow-hidden" id="portal-tools">
       {/* Ambient background blur circles */}
       <div className="absolute top-[20%] left-[-10%] w-[350px] h-[350px] rounded-full bg-indigo-100/40 blur-[100px] pointer-events-none" />
       <div className="absolute bottom-[10%] right-[-10%] w-[350px] h-[350px] rounded-full bg-pink-100/30 blur-[100px] pointer-events-none" />
 
-      <div className="max-w-7xl mx-auto space-y-12 relative z-10">
+      <div className="max-w-[1720px] 2xl:max-w-[1800px] mx-auto space-y-12 relative z-10">
         
         {/* Header Title block */}
         <div className="text-center max-w-3xl mx-auto space-y-4">

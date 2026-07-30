@@ -589,8 +589,8 @@ export default function App() {
                   <WhyShristi />
 
                   {/* Latest Notices & Live Communication Hub Widget */}
-                  <section className="py-20 px-4 bg-white font-sans" id="home-community-hub">
-                    <div className="max-w-5xl mx-auto space-y-12">
+                  <section className="py-20 px-4 sm:px-8 lg:px-12 xl:px-16 2xl:px-20 bg-white font-sans" id="home-community-hub">
+                    <div className="max-w-[1720px] 2xl:max-w-[1800px] mx-auto space-y-12">
                       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-slate-100 pb-8">
                         <div className="space-y-2">
                           <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-pink-600 bg-pink-50 border border-pink-100 px-3 py-1 rounded-md inline-block">

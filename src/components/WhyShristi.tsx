@@ -71,7 +71,7 @@ export default function WhyShristi() {
       <div className="absolute top-1/4 -left-12 w-80 h-80 bg-indigo-200/30 rounded-full blur-3xl pointer-events-none animate-pulse" style={{ animationDuration: "6s" }} />
       <div className="absolute bottom-1/4 -right-12 w-96 h-96 bg-pink-200/30 rounded-full blur-3xl pointer-events-none animate-pulse" style={{ animationDuration: "8s" }} />
       
-      <div className="max-w-7xl mx-auto space-y-16 relative z-10">
+      <div className="max-w-[1720px] 2xl:max-w-[1800px] mx-auto px-4 sm:px-8 lg:px-12 xl:px-16 2xl:px-20 space-y-16 relative z-10">
         
         {/* Section Title */}
         <div className="text-center max-w-3xl mx-auto space-y-4">
@@ -86,8 +86,8 @@ export default function WhyShristi() {
           </p>
         </div>
 
-        {/* Pillars Responsive Grid (Cards Format - highly visible, clean offset colors) */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 sm:gap-10">
+        {/* Pillars Responsive Grid (Cards Format - optimized airy card proportions) */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8 xl:gap-10 2xl:gap-12">
           {pillars.map((pillar, index) => {
             const Icon = pillar.icon;
             return (
@@ -98,7 +98,7 @@ export default function WhyShristi() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: "-100px" }}
                 transition={{ duration: 0.4, delay: index * 0.08 }}
-                className={`group bg-white p-8 sm:p-10 rounded-[32px] border-2 border-slate-200/85 shadow-md hover:shadow-2xl hover:-translate-y-2 flex flex-col justify-between transition-all duration-300 ${pillar.accentBg}`}
+                className={`group bg-white p-7 sm:p-8 lg:p-9 xl:p-10 rounded-[32px] border-2 border-slate-200/85 shadow-md hover:shadow-2xl hover:-translate-y-2 flex flex-col justify-between transition-all duration-300 ${pillar.accentBg}`}
               >
                 <div className="space-y-6">
                   {/* Icon Bag */}

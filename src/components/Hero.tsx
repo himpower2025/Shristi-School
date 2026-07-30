@@ -56,12 +56,12 @@ export default function Hero({ onExplorePrograms, onApplyNow, onViewNotices, las
   };
 
   return (
-    <section className="relative overflow-hidden bg-[#FAF9F6] bg-dot-grid text-slate-800 min-h-[92vh] flex flex-col justify-center py-20 px-4">
+    <section className="relative overflow-hidden bg-[#FAF9F6] bg-dot-grid text-slate-800 min-h-[92vh] flex flex-col justify-center py-16 sm:py-20 lg:py-24 px-4 sm:px-8 lg:px-12 xl:px-16 2xl:px-20">
       {/* Background Ambience Glares - Soft & Elegant Sass colors */}
       <div className="absolute top-[-10%] left-[-10%] w-[600px] h-[600px] rounded-full bg-indigo-200/40 blur-[130px] pointer-events-none animate-pulse" />
       <div className="absolute bottom-[-10%] right-[-10%] w-[600px] h-[600px] rounded-full bg-pink-200/30 blur-[130px] pointer-events-none animate-pulse" />
 
-      <div className="max-w-7xl mx-auto w-full relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+      <div className="max-w-[1720px] 2xl:max-w-[1800px] mx-auto w-full relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 xl:gap-20 2xl:gap-24 items-center">
         
         {/* Text Messaging Column */}
         <div className="lg:col-span-6 space-y-6 text-left">

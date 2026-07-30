@@ -64,20 +64,33 @@ export default function Header({
   return (
     <>
       {/* Top Professional Utility Info Bar */}
-      <div className="bg-gradient-to-r from-indigo-600 via-indigo-700 to-pink-600 text-white text-[11px] py-2.5 px-4 shadow-sm hidden sm:block">
-        <div className="max-w-7xl mx-auto flex justify-between items-center font-mono">
+      <div className="bg-gradient-to-r from-indigo-600 via-indigo-700 to-pink-600 text-white text-[11px] py-2.5 px-4 sm:px-8 lg:px-12 xl:px-16 2xl:px-20 shadow-sm hidden sm:block">
+        <div className="max-w-[1720px] 2xl:max-w-[1800px] mx-auto flex justify-between items-center font-mono">
           <div className="flex items-center space-x-4">
-            <span className="flex items-center text-white font-extrabold">
-              <MapPin className="w-3.5 h-3.5 mr-1 text-pink-300" />
+            <a 
+              href="https://maps.app.goo.gl/VS93CdswsCWZXCC5A" 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="flex items-center text-white hover:text-pink-200 font-extrabold transition-colors group"
+              title="Open location on Google Maps"
+            >
+              <MapPin className="w-3.5 h-3.5 mr-1 text-pink-300 group-hover:scale-110 transition-transform" />
               Mid-Baneshwor, Kathmandu, Nepal
-            </span>
+            </a>
             <span className="text-white/40">|</span>
             <span className="text-pink-100 font-black uppercase tracking-widest">Shristi Academy (Established 2016 AD)</span>
           </div>
           <div className="flex items-center space-x-4">
             <span className="text-white font-black">Call: <strong className="text-pink-200">01-4496573</strong></span>
             <span>•</span>
-            <span className="text-white font-black">info@shristiacademy.edu.np</span>
+            <a 
+              href="mailto:info@shristiacademy.edu.np"
+              className="text-white hover:text-pink-200 font-black transition-colors flex items-center gap-1 group"
+              title="Send email to info@shristiacademy.edu.np"
+            >
+              <Mail className="w-3.5 h-3.5 text-pink-300 group-hover:scale-110 transition-transform" />
+              info@shristiacademy.edu.np
+            </a>
           </div>
         </div>
       </div>
@@ -88,7 +101,7 @@ export default function Header({
           ? "bg-white/95 backdrop-blur-md border-b-2 border-indigo-200 py-3 shadow-lg" 
           : "bg-white border-b-2 border-slate-100 py-5"
       }`}>
-        <div className="max-w-7xl mx-auto px-4 flex justify-between items-center">
+        <div className="max-w-[1720px] 2xl:max-w-[1800px] mx-auto px-4 sm:px-8 lg:px-12 xl:px-16 2xl:px-20 flex justify-between items-center">
           
           {/* Left: School Logo & Title */}
           <div 
