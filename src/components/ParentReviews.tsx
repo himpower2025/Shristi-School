@@ -345,7 +345,7 @@ export default function ParentReviews({ reviews, onAddReview }: ParentReviewsPro
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-white rounded-[32px] max-w-lg w-full p-6 sm:p-8 border border-indigo-100 shadow-2xl space-y-6 relative max-h-[90vh] overflow-y-auto text-left"
+              className="bg-white rounded-[32px] max-w-lg w-full p-4 sm:p-8 border border-indigo-100 shadow-2xl space-y-6 relative max-h-[90vh] overflow-y-auto text-left"
             >
               {/* Close Button */}
               <button
@@ -551,7 +551,7 @@ export default function ParentReviews({ reviews, onAddReview }: ParentReviewsPro
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-white rounded-[32px] max-w-md w-full p-6 sm:p-8 border border-indigo-100 shadow-2xl space-y-6 relative text-center"
+              className="bg-white rounded-[32px] max-w-md w-full p-4 sm:p-8 border border-indigo-100 shadow-2xl space-y-6 relative text-center max-h-[90vh] overflow-y-auto"
             >
               {/* Close Button */}
               <button

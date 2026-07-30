@@ -331,7 +331,7 @@ export default function ToolsSection({ isAdmin = false }: ToolsSectionProps) {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-stretch">
           
           {/* LEFT COLUMN: School Calendar & Tabbed Display */}
-          <div className="lg:col-span-7 bg-[#FAF9F6] border border-indigo-50/70 p-6 md:p-8 rounded-[32px] shadow-xl shadow-indigo-100/5 space-y-6 text-left flex flex-col justify-between">
+          <div className="lg:col-span-7 bg-[#FAF9F6] border border-indigo-50/70 p-4 sm:p-6 md:p-8 rounded-[32px] shadow-xl shadow-indigo-100/5 space-y-6 text-left flex flex-col justify-between">
             
             <div className="space-y-5">
               
@@ -618,7 +618,7 @@ export default function ToolsSection({ isAdmin = false }: ToolsSectionProps) {
           </div>
 
           {/* RIGHT COLUMN: Upcoming School Events and Lists */}
-          <div className="lg:col-span-5 bg-white border border-indigo-100 p-6 md:p-8 rounded-[32px] shadow-xl shadow-indigo-100/5 space-y-6 text-left flex flex-col justify-between relative overflow-hidden">
+          <div className="lg:col-span-5 bg-white border border-indigo-100 p-4 sm:p-6 md:p-8 rounded-[32px] shadow-xl shadow-indigo-100/5 space-y-6 text-left flex flex-col justify-between relative overflow-hidden">
             
             <div className="space-y-4">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-indigo-50/70 pb-4">

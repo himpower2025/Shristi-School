@@ -148,27 +148,27 @@ export default function Hero({ onExplorePrograms, onApplyNow, onViewNotices, las
             <div className="absolute inset-0 bg-gradient-to-tr from-indigo-400/30 via-purple-400/20 to-pink-400/30 rounded-[36px] blur-3xl transform rotate-6 pointer-events-none" />
 
             {/* Playful Floating Badges */}
-            <div className="absolute -left-4 sm:-left-10 top-16 bg-white/95 border-2 border-indigo-500 p-3 rounded-2xl shadow-xl z-20 flex items-center space-x-2 animate-bounce cursor-pointer select-none" style={{ animationDuration: "3s" }}>
-              <span className="text-xl">📚</span>
+            <div className="absolute left-1 sm:-left-10 top-16 bg-white/95 border-2 border-indigo-500 p-2.5 sm:p-3 rounded-2xl shadow-xl z-20 flex items-center space-x-2 animate-bounce cursor-pointer select-none" style={{ animationDuration: "3s" }}>
+              <span className="text-lg sm:text-xl">📚</span>
               <div className="text-left leading-none">
-                <span className="text-[10px] text-slate-500 font-mono font-black block">CURRICULUM</span>
-                <span className="text-xs font-black text-indigo-950">Govt. Approved</span>
+                <span className="text-[9px] sm:text-[10px] text-slate-500 font-mono font-black block">CURRICULUM</span>
+                <span className="text-[11px] sm:text-xs font-black text-indigo-950">Govt. Approved</span>
               </div>
             </div>
 
-            <div className="absolute -right-4 sm:-right-8 top-1/3 bg-white/95 border-2 border-pink-500 p-3 rounded-2xl shadow-xl z-20 flex items-center space-x-2 animate-pulse cursor-pointer select-none" style={{ animationDuration: "2.5s" }}>
-              <span className="text-xl">🚌</span>
+            <div className="absolute right-1 sm:-right-8 top-1/3 bg-white/95 border-2 border-pink-500 p-2.5 sm:p-3 rounded-2xl shadow-xl z-20 flex items-center space-x-2 animate-pulse cursor-pointer select-none" style={{ animationDuration: "2.5s" }}>
+              <span className="text-lg sm:text-xl">🚌</span>
               <div className="text-left leading-none">
-                <span className="text-[10px] text-slate-500 font-mono font-black block">SCHOOL BUS</span>
-                <span className="text-xs font-black text-pink-950">Safe Transport</span>
+                <span className="text-[9px] sm:text-[10px] text-slate-500 font-mono font-black block">SCHOOL BUS</span>
+                <span className="text-[11px] sm:text-xs font-black text-pink-950">Safe Transport</span>
               </div>
             </div>
 
-            <div className="absolute -left-6 bottom-32 bg-white/95 border-2 border-purple-500 p-3 rounded-2xl shadow-xl z-20 flex items-center space-x-2 animate-bounce cursor-pointer select-none hidden sm:flex" style={{ animationDuration: "4.5s" }}>
-              <span className="text-xl">🍲</span>
+            <div className="absolute left-1 sm:-left-6 bottom-32 bg-white/95 border-2 border-purple-500 p-2.5 sm:p-3 rounded-2xl shadow-xl z-20 items-center space-x-2 animate-bounce cursor-pointer select-none hidden sm:flex" style={{ animationDuration: "4.5s" }}>
+              <span className="text-lg sm:text-xl">🍲</span>
               <div className="text-left leading-none">
-                <span className="text-[10px] text-slate-500 font-mono font-black block">NUTRITION</span>
-                <span className="text-xs font-black text-purple-950">Healthy Lunch</span>
+                <span className="text-[9px] sm:text-[10px] text-slate-500 font-mono font-black block">NUTRITION</span>
+                <span className="text-[11px] sm:text-xs font-black text-purple-950">Healthy Lunch</span>
               </div>
             </div>
 
