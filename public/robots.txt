@@ -1,0 +1,5 @@
+# Robots.txt for Shristi Academy (Mid-Baneshwor, Kathmandu)
+User-agent: *
+Allow: /
+
+Sitemap: https://shristiacademy.edu.np/sitemap.xml
