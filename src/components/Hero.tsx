@@ -6,6 +6,12 @@ import learningImg from "../assets/images/montessori_learning_1782145030889.jpg"
 import labImg from "../assets/images/science_lab_1782145047179.jpg";
 import playImg from "../assets/images/school_activities_1782145063241.jpg";
 
+import outdoorExcursionImg from "../assets/images/outdoor_excursion_1785494441208.jpg";
+import munAssemblyImg from "../assets/images/mun_assembly_1785494464389.jpg";
+import sportsDayRelayImg from "../assets/images/sports_day_relay_1785494481636.jpg";
+import taekwondoClassImg from "../assets/images/taekwondo_class_1785494497659.jpg";
+import tableTennisTournamentImg from "../assets/images/table_tennis_tournament_1785494515181.jpg";
+
 interface HeroProps {
   onExplorePrograms: () => void;
   onApplyNow: () => void;
@@ -15,22 +21,39 @@ interface HeroProps {
 
 const CAMPUS_MOMENTS = [
   {
-    image: learningImg,
-    title: "Kindergarten Classes",
-    description: "Building basic reading, counting, and social confidence in a warm, friendly environment.",
-    tag: "Kindergarten"
+    image: outdoorExcursionImg,
+    fallback: learningImg,
+    title: "Nature Excursion & Field Trips",
+    description: "Joyful outdoor experiential learning and nature exploration under the vibrant Bougainvillea tree.",
+    tag: "Excursion & Nature"
   },
   {
-    image: labImg,
-    title: "Science & Computers",
-    description: "Fun science experiments and practical computer skills for growing minds.",
-    tag: "Academics"
+    image: munAssemblyImg,
+    fallback: labImg,
+    title: "Model United Nations (MUN) Assembly",
+    description: "Students participating in Model United Nations (MUN) leadership, diplomacy, and global debate assembly.",
+    tag: "MUN & Leadership"
   },
   {
-    image: playImg,
-    title: "Vibrant School Life",
-    description: "Sports, teamwork, creative arts, and healthy outdoor activities.",
-    tag: "School Life"
+    image: sportsDayRelayImg,
+    fallback: playImg,
+    title: "Annual Sports Day Relay Race",
+    description: "Building athleticism, team coordination, and competitive spirit in annual sports track events.",
+    tag: "Sports Day"
+  },
+  {
+    image: taekwondoClassImg,
+    fallback: playImg,
+    title: "Taekwondo & Physical Martial Arts",
+    description: "Fostering physical discipline, self-defense skills, and mental focus through Taekwondo training.",
+    tag: "Taekwondo & Fitness"
+  },
+  {
+    image: tableTennisTournamentImg,
+    fallback: labImg,
+    title: "U-14 Table Tennis Champions 2025",
+    description: "Proud achievements in the Bagmati Province Selection Match for U-14 School Games Table Tennis.",
+    tag: "Sports Achievement"
   }
 ];
 
@@ -205,6 +228,9 @@ export default function Hero({ onExplorePrograms, onApplyNow, onViewNotices, las
                       alt={CAMPUS_MOMENTS[currentSlide].title}
                       className="w-full h-full object-cover select-none"
                       referrerPolicy="no-referrer"
+                      onError={(e) => {
+                        e.currentTarget.src = CAMPUS_MOMENTS[currentSlide].fallback;
+                      }}
                     />
                     
                     {/* Shadow overlay gradient */}

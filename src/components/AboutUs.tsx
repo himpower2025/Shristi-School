@@ -9,27 +9,52 @@ import montessoriImg from "../assets/images/montessori_learning_1782145030889.jp
 import scienceLabImg from "../assets/images/science_lab_1782145047179.jpg";
 import schoolActivitiesImg from "../assets/images/school_activities_1782145063241.jpg";
 
-export const DEFAULT_GALLERY_ITEMS: GalleryItem[] = [
+import outdoorExcursionImg from "../assets/images/outdoor_excursion_1785494441208.jpg";
+import munAssemblyImg from "../assets/images/mun_assembly_1785494464389.jpg";
+import sportsDayRelayImg from "../assets/images/sports_day_relay_1785494481636.jpg";
+import taekwondoClassImg from "../assets/images/taekwondo_class_1785494497659.jpg";
+import tableTennisTournamentImg from "../assets/images/table_tennis_tournament_1785494515181.jpg";
+
+export const DEFAULT_GALLERY_ITEMS: (GalleryItem & { fallbackImage?: string })[] = [
   {
     id: "gal-1",
-    image: montessoriImg,
-    category: "Kindergarten Foundations",
-    title: "Learning Through Joyful Play",
-    description: "Young children building foundational motor skills and social confidence in our standalone preparation class."
+    image: outdoorExcursionImg,
+    fallbackImage: montessoriImg,
+    category: "Outdoor Excursion",
+    title: "Nature & Bougainvillea Field Trip",
+    description: "Young kindergarten students exploring nature and outdoors under the blooming Bougainvillea tree."
   },
   {
     id: "gal-2",
-    image: scienceLabImg,
-    category: "Secondary Academy",
-    title: "Preparing Scholars for SEE Success",
-    description: "Equipped science, technology, and computer reference infrastructures guiding exemplary board results."
+    image: munAssemblyImg,
+    fallbackImage: scienceLabImg,
+    category: "MUN & Global Leadership",
+    title: "Model United Nations (MUN) Assembly",
+    description: "Shristi Academy students engaging in Model United Nations (MUN) diplomatic debate and public speaking."
   },
   {
     id: "gal-3",
-    image: schoolActivitiesImg,
-    category: "Co-Curricular Activities",
-    title: "Vibrant Teamwork & Character Play",
-    description: "Nurturing balanced athletic teamwork, confidence, and mutual cooperation through school activities."
+    image: sportsDayRelayImg,
+    fallbackImage: schoolActivitiesImg,
+    category: "Annual Sports Day",
+    title: "Annual Sports Day Relay Race",
+    description: "Primary school students competing in high-energy track events and baton relay races."
+  },
+  {
+    id: "gal-4",
+    image: taekwondoClassImg,
+    fallbackImage: schoolActivitiesImg,
+    category: "Taekwondo & Fitness",
+    title: "Taekwondo Martial Arts Class",
+    description: "Building physical endurance, coordination, and martial arts self-defense discipline."
+  },
+  {
+    id: "gal-5",
+    image: tableTennisTournamentImg,
+    fallbackImage: scienceLabImg,
+    category: "State Sports Achievement",
+    title: "U-14 Table Tennis Champions 2025",
+    description: "Proud student athletes receiving honors in the Bagmati Province Selection Match."
   }
 ];
 
@@ -323,6 +348,9 @@ export default function AboutUs({ onOpenSchoolProfile, schoolProfileConfig, gall
                     alt={item.title}
                     className="w-full h-full object-cover group-hover:scale-105 transition-all duration-500"
                     referrerPolicy="no-referrer"
+                    onError={(e) => {
+                      e.currentTarget.src = (item as any).fallbackImage || montessoriImg;
+                    }}
                   />
                   {/* Floating category */}
                   <div className="absolute top-3 left-3 bg-[#1e1b4b]/95 backdrop-blur-sm text-white text-[10px] font-mono font-black uppercase px-3 py-1.5 rounded-xl shadow-md">
@@ -432,6 +460,9 @@ export default function AboutUs({ onOpenSchoolProfile, schoolProfileConfig, gall
                   alt={selectedImage.title}
                   className="w-full h-full object-contain"
                   referrerPolicy="no-referrer"
+                  onError={(e) => {
+                    e.currentTarget.src = (selectedImage as any).fallbackImage || montessoriImg;
+                  }}
                 />
                 <div className="absolute top-4 left-4 bg-indigo-600 text-white text-xs font-mono font-bold uppercase py-1 px-3 rounded-lg shadow">
                   {selectedImage.category}

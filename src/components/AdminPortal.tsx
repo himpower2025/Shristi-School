@@ -266,21 +266,15 @@ export default function AdminPortal({
     e.preventDefault();
     const cleanEmail = email.trim().toLowerCase();
     const isAuthorized = authorizedAdmins.some(adminEmail => adminEmail.trim().toLowerCase() === cleanEmail);
-    if (isAuthorized && password.trim().length >= 4) {
+    if (isAuthorized && password.trim() === "Nmo#2009") {
       setIsLoggedIn(true);
       setLoggedEmail(cleanEmail);
       setLoginError("");
     } else if (!isAuthorized) {
       setLoginError("Access denied. Email is not in the authorized administrator list.");
     } else {
-      setLoginError("Access denied. Please enter a valid password.");
+      setLoginError("Access denied. Incorrect password.");
     }
-  };
-
-  const autofillDemo = () => {
-    setEmail("info@shristiacademy.edu.np");
-    setPassword("");
-    setLoginError("");
   };
 
   const handleCreateOrUpdateNotice = (e: FormEvent) => {
@@ -441,20 +435,6 @@ export default function AdminPortal({
                     <span>VERIFY ACCESS PASS</span>
                   </button>
                 </form>
-
-                <div className="h-[1px] bg-indigo-50 my-2" />
-
-                {/* Autofill helper for demo convenience */}
-                <div className="text-center">
-                  <p className="text-[11px] text-slate-400 mb-2 font-semibold">Want to simulate a Principal's workspace?</p>
-                  <button
-                    type="button"
-                    onClick={autofillDemo}
-                    className="px-4 py-2 bg-indigo-50 hover:bg-indigo-100/50 text-indigo-700 text-xs font-extrabold rounded-xl border border-indigo-100/40 cursor-pointer transition-all"
-                  >
-                    ⚡ Fast-Fill Principal Account (Vani Pradhan)
-                  </button>
-                </div>
 
               </div>
             </motion.div>
