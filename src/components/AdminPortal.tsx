@@ -153,11 +153,18 @@ export default function AdminPortal({
       return;
     }
     try {
+      setCalSaveNotice("⏳ Processing file & running AI extraction...");
       const base64 = await compressCalendarImage(file);
       setAdminCalImage(base64);
-      localStorage.setItem("shristi_calendar_uploaded_image", base64);
+      try {
+        localStorage.setItem("shristi_calendar_uploaded_image", base64);
+      } catch (e) {
+        console.warn("Storage quota hit, storing in memory state");
+      }
       window.dispatchEvent(new Event("shristi_calendar_updated"));
-      setCalSaveNotice("📁 Poster selected & saved to browser memory! Click 'SAVE CALENDAR POSTER TO LIVE WEBSITE' or run 'AI SYNC' below.");
+      setCalSaveNotice("📁 Poster uploaded! Automatically running AI Sync to extract calendar dates...");
+      // Auto trigger AI extraction
+      handleAIParseInAdmin(base64);
     } catch (err) {
       alert("Failed to process uploaded file. Please try again with a valid JPG/PNG or PDF.");
     }

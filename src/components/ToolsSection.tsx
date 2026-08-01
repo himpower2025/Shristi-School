@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { 
   Calendar, Clock, MapPin, Upload, Trash2, Plus, 
-  FileText, CalendarDays, Eye, RefreshCw, AlertCircle, Info, Download, Trash, Sparkles, ChevronLeft, ChevronRight
+  FileText, CalendarDays, Eye, RefreshCw, AlertCircle, Info, Download, Trash, Sparkles, ChevronLeft, ChevronRight, X
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { SchoolEvent } from "../types";
@@ -78,6 +78,7 @@ export default function ToolsSection({ isAdmin = false }: ToolsSectionProps) {
   const [events, setEvents] = useState<SchoolEvent[]>([]);
   const [calendarImage, setCalendarImage] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<"grid" | "poster">("grid");
+  const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
   
   // Auto-detect real-world current month (e.g. July = 6) and current year
   const [currentMonthIndex, setCurrentMonthIndex] = useState<number>(() => new Date().getMonth());
@@ -142,26 +143,87 @@ export default function ToolsSection({ isAdmin = false }: ToolsSectionProps) {
     }
   };
 
+  // Helper to compress image before saving to localStorage to prevent quota errors
+  const compressCalendarImage = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      if (file.type === "application/pdf" || file.size < 400 * 1024) {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const img = new Image();
+        img.onload = () => {
+          let width = img.width;
+          let height = img.height;
+          const maxDim = 1600;
+          if (width > maxDim || height > maxDim) {
+            if (width > height) {
+              height = Math.round((height * maxDim) / width);
+              width = maxDim;
+            } else {
+              width = Math.round((width * maxDim) / height);
+              height = maxDim;
+            }
+          }
+          const canvas = document.createElement("canvas");
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext("2d");
+          if (ctx) {
+            ctx.drawImage(img, 0, 0, width, height);
+            resolve(canvas.toDataURL("image/jpeg", 0.85));
+          } else {
+            resolve(event.target?.result as string);
+          }
+        };
+        img.onerror = () => resolve(event.target?.result as string);
+        img.src = event.target?.result as string;
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const handleDownloadCalendarPoster = () => {
+    if (!calendarImage) {
+      alert("No official calendar poster has been uploaded yet.");
+      return;
+    }
+    const a = document.createElement("a");
+    a.href = calendarImage;
+    a.download = "Shristi_Academy_Official_Academic_Calendar_2026.png";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  };
+
   // Image / PDF Upload handler (Base64)
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (file.size > 10 * 1024 * 1024) {
-      alert("File is too large! Please choose a file smaller than 10MB.");
+    if (file.size > 15 * 1024 * 1024) {
+      alert("File is too large! Please choose a file smaller than 15MB.");
       return;
     }
 
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      const base64String = reader.result as string;
+    try {
+      const base64String = await compressCalendarImage(file);
       setCalendarImage(base64String);
-      localStorage.setItem("shristi_calendar_uploaded_image", base64String);
+      try {
+        localStorage.setItem("shristi_calendar_uploaded_image", base64String);
+      } catch (_) {}
+      window.dispatchEvent(new Event("shristi_calendar_updated"));
       
       // Auto-trigger Gemini AI parsing when admin uploads official calendar document
       handleAIParseCalendar(base64String);
-    };
-    reader.readAsDataURL(file);
+    } catch (err) {
+      alert("Failed to process uploaded file. Please select a valid JPG, PNG or PDF.");
+    }
   };
 
   // AI Calendar Parse API Call
@@ -357,7 +419,7 @@ export default function ToolsSection({ isAdmin = false }: ToolsSectionProps) {
             
             <div className="space-y-5">
               
-              {/* Header section with Tabs */}
+              {/* Header section with Action Buttons */}
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-indigo-50/70 pb-4">
                 <div className="flex items-center space-x-3">
                   <div className="p-2.5 bg-indigo-50 text-indigo-600 border border-indigo-100/50 rounded-xl">
@@ -369,206 +431,171 @@ export default function ToolsSection({ isAdmin = false }: ToolsSectionProps) {
                   </div>
                 </div>
 
-                {/* Tab buttons */}
-                <div className="flex bg-indigo-50 p-1 rounded-xl border border-indigo-100/40 select-none">
-                  <button
-                    onClick={() => setActiveTab("grid")}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                      activeTab === "grid" 
-                        ? "bg-white text-indigo-700 shadow-sm" 
-                        : "text-slate-500 hover:text-slate-800"
-                    }`}
-                  >
-                    Interactive Monthly
-                  </button>
-                  <button
-                    onClick={() => setActiveTab("poster")}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                      activeTab === "poster" 
-                        ? "bg-white text-indigo-700 shadow-sm" 
-                        : "text-slate-500 hover:text-slate-800"
-                    }`}
-                  >
-                    Calendar Poster
-                  </button>
+                {/* Header Action Buttons for Official Poster */}
+                <div className="flex flex-wrap items-center gap-2">
+                  {calendarImage && (
+                    <>
+                      <button
+                        onClick={handleDownloadCalendarPoster}
+                        className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-mono text-xs font-black rounded-xl flex items-center space-x-1.5 transition-all shadow-sm cursor-pointer"
+                        title="Download official school calendar poster"
+                      >
+                        <Download className="w-4 h-4 text-emerald-200" />
+                        <span>DOWNLOAD CALENDAR POSTER</span>
+                      </button>
+
+                      <button
+                        onClick={() => setIsPreviewModalOpen(true)}
+                        className="px-3 py-2 bg-white hover:bg-slate-50 text-slate-700 font-mono text-xs font-bold rounded-xl border border-slate-200 flex items-center space-x-1.5 transition-all shadow-sm cursor-pointer"
+                        title="Preview official print poster"
+                      >
+                        <Eye className="w-4 h-4 text-indigo-600" />
+                        <span>VIEW POSTER</span>
+                      </button>
+                    </>
+                  )}
                 </div>
               </div>
 
-              {/* TAB 1: Interactive Monthly Grid View */}
-              {activeTab === "grid" && (
-                <div className="space-y-4">
-                  {/* Calendar Navigation */}
-                  <div className="flex items-center justify-between bg-white px-4 py-3 rounded-2xl border border-indigo-100/40 shadow-sm">
-                    <button
-                      onClick={prevMonth}
-                      className="p-1.5 hover:bg-slate-50 text-slate-600 rounded-lg transition-colors cursor-pointer"
-                    >
-                      <ChevronLeft className="w-5 h-5" />
-                    </button>
-                    <span className="font-display font-black text-sm sm:text-base text-slate-900">
-                      {MONTHS_2026[currentMonthIndex]} {currentYear}
-                    </span>
-                    <button
-                      onClick={nextMonth}
-                      className="p-1.5 hover:bg-slate-50 text-slate-600 rounded-lg transition-colors cursor-pointer"
-                    >
-                      <ChevronRight className="w-5 h-5" />
-                    </button>
+              {/* Status Banner when Official Poster is uploaded */}
+              {calendarImage && (
+                <div className="p-3 bg-indigo-50/80 border border-indigo-100/70 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-indigo-900 font-medium">
+                  <div className="flex items-center space-x-2">
+                    <Sparkles className="w-4 h-4 text-pink-500 shrink-0 animate-pulse" />
+                    <span>Official Academic Calendar poster uploaded & synchronized with calendar grid below!</span>
                   </div>
+                  <button
+                    onClick={handleDownloadCalendarPoster}
+                    className="text-[11px] font-mono font-bold text-emerald-700 hover:text-emerald-800 underline flex items-center space-x-1 cursor-pointer shrink-0"
+                  >
+                    <Download className="w-3 h-3" />
+                    <span>Download Poster File</span>
+                  </button>
+                </div>
+              )}
 
-                  {/* Grid Days Header */}
-                  <div className="grid grid-cols-7 gap-1.5 text-center">
-                    {DAYS_OF_WEEK.map((day) => (
-                      <div key={day} className="text-[10px] font-mono font-black uppercase text-slate-400 py-1">
-                        {day}
-                      </div>
-                    ))}
-                  </div>
+              {/* Interactive Monthly Grid View */}
+              <div className="space-y-4">
+                {/* Calendar Navigation */}
+                <div className="flex items-center justify-between bg-white px-4 py-3 rounded-2xl border border-indigo-100/40 shadow-sm">
+                  <button
+                    onClick={prevMonth}
+                    className="p-1.5 hover:bg-slate-50 text-slate-600 rounded-lg transition-colors cursor-pointer"
+                  >
+                    <ChevronLeft className="w-5 h-5" />
+                  </button>
+                  <span className="font-display font-black text-sm sm:text-base text-slate-900">
+                    {MONTHS_2026[currentMonthIndex]} {currentYear}
+                  </span>
+                  <button
+                    onClick={nextMonth}
+                    className="p-1.5 hover:bg-slate-50 text-slate-600 rounded-lg transition-colors cursor-pointer"
+                  >
+                    <ChevronRight className="w-5 h-5" />
+                  </button>
+                </div>
 
-                  {/* Grid cells */}
-                  <div className="grid grid-cols-7 gap-1.5">
-                    {calendarCells.map((dayNum, cellIdx) => {
-                      if (dayNum === null) {
-                        return <div key={`empty-${cellIdx}`} className="aspect-square bg-slate-100/30 rounded-xl" />;
-                      }
+                {/* Grid Days Header */}
+                <div className="grid grid-cols-7 gap-1.5 text-center">
+                  {DAYS_OF_WEEK.map((day) => (
+                    <div key={day} className="text-[10px] font-mono font-black uppercase text-slate-400 py-1">
+                      {day}
+                    </div>
+                  ))}
+                </div>
 
-                      const dayEvents = getEventsOnDay(dayNum);
-                      const isSelected = selectedDayNumber === dayNum;
-                      const hasEvents = dayEvents.length > 0;
+                {/* Grid cells */}
+                <div className="grid grid-cols-7 gap-1.5">
+                  {calendarCells.map((dayNum, cellIdx) => {
+                    if (dayNum === null) {
+                      return <div key={`empty-${cellIdx}`} className="aspect-square bg-slate-100/30 rounded-xl" />;
+                    }
 
-                      return (
-                        <button
-                          key={`day-${dayNum}`}
-                          onClick={() => handleSelectDay(dayNum)}
-                          className={`aspect-square rounded-xl border flex flex-col items-center justify-center relative p-1 transition-all cursor-pointer ${
-                            isSelected 
-                              ? "bg-indigo-600 border-indigo-700 text-white shadow-md scale-105" 
-                              : hasEvents 
-                              ? "bg-white border-indigo-100 hover:border-indigo-300 text-slate-850 shadow-sm font-black"
-                              : "bg-white/60 border-slate-100 hover:border-slate-300 text-slate-600 font-semibold"
-                          }`}
-                        >
-                          <span className="text-xs">{dayNum}</span>
-                          
-                          {/* Event Markers / Indicator Dots */}
-                          {hasEvents && (
-                            <div className="flex gap-0.5 mt-1">
-                              {dayEvents.map((evt) => {
-                                let dotColor = "bg-indigo-500";
-                                if (evt.type === "Sports") dotColor = "bg-green-500";
-                                if (evt.type === "Excursion") dotColor = "bg-amber-500";
-                                if (evt.type === "Ceremony") dotColor = "bg-red-500";
-                                return (
-                                  <span 
-                                    key={evt.id} 
-                                    className={`w-1 h-1 rounded-full ${isSelected ? "bg-white" : dotColor}`} 
-                                  />
-                                );
-                              })}
-                            </div>
-                          )}
-                        </button>
-                      );
-                    })}
-                  </div>
+                    const dayEvents = getEventsOnDay(dayNum);
+                    const isSelected = selectedDayNumber === dayNum;
+                    const hasEvents = dayEvents.length > 0;
 
-                  {/* Selected Day Event List Detail Card */}
-                  <AnimatePresence mode="wait">
-                    {selectedDayNumber && (
-                      <motion.div
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: 10 }}
-                        className="bg-white border border-indigo-100/70 p-4 rounded-2xl shadow-sm space-y-3"
+                    return (
+                      <button
+                        key={`day-${dayNum}`}
+                        onClick={() => handleSelectDay(dayNum)}
+                        className={`aspect-square rounded-xl border flex flex-col items-center justify-center relative p-1 transition-all cursor-pointer ${
+                          isSelected 
+                            ? "bg-indigo-600 border-indigo-700 text-white shadow-md scale-105" 
+                            : hasEvents 
+                            ? "bg-white border-indigo-100 hover:border-indigo-300 text-slate-850 shadow-sm font-black"
+                            : "bg-white/60 border-slate-100 hover:border-slate-300 text-slate-600 font-semibold"
+                        }`}
                       >
-                        <div className="flex justify-between items-center border-b border-indigo-50 pb-2">
-                          <h4 className="font-display font-black text-xs sm:text-sm text-slate-900">
-                            Schedule on {MONTHS_2026[currentMonthIndex]} {selectedDayNumber}, {currentYear}
-                          </h4>
-                          <span className="text-[9px] font-mono font-bold bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded-full">
-                            {selectedDayEvents.length} Event(s)
-                          </span>
-                        </div>
-
-                        {selectedDayEvents.length > 0 ? (
-                          <div className="space-y-3">
-                            {selectedDayEvents.map((evt) => (
-                              <div key={evt.id} className="text-xs space-y-1 bg-[#FAF9F6] p-3 rounded-xl border border-indigo-50/50">
-                                <div className="flex justify-between items-start">
-                                  <h5 className="font-black text-slate-800">{evt.title}</h5>
-                                  <span className="text-[8.5px] font-mono text-indigo-700 font-black bg-indigo-50 border border-indigo-100/50 py-0.2 px-1.5 rounded uppercase tracking-wider shrink-0">
-                                    {evt.type}
-                                  </span>
-                                </div>
-                                <p className="text-slate-500 font-semibold">{evt.description}</p>
-                                <div className="flex flex-wrap gap-x-4 gap-y-1 text-[9.5px] text-slate-400 font-mono font-bold pt-1 border-t border-slate-100">
-                                  <span className="flex items-center gap-1"><Clock className="w-3 h-3 text-indigo-500" />{evt.time}</span>
-                                  <span className="flex items-center gap-1"><MapPin className="w-3 h-3 text-pink-500" />{evt.location}</span>
-                                </div>
-                              </div>
-                            ))}
+                        <span className="text-xs">{dayNum}</span>
+                        
+                        {/* Event Markers / Indicator Dots */}
+                        {hasEvents && (
+                          <div className="flex gap-0.5 mt-1">
+                            {dayEvents.map((evt) => {
+                              let dotColor = "bg-indigo-500";
+                              if (evt.type === "Sports") dotColor = "bg-green-500";
+                              if (evt.type === "Excursion") dotColor = "bg-amber-500";
+                              if (evt.type === "Ceremony") dotColor = "bg-red-500";
+                              return (
+                                <span 
+                                  key={evt.id} 
+                                  className={`w-1 h-1 rounded-full ${isSelected ? "bg-white" : dotColor}`} 
+                                />
+                              );
+                            })}
                           </div>
-                        ) : (
-                          <p className="text-xs text-slate-400 font-semibold italic py-2">
-                            No special academic events or recesses registered on this date.
-                          </p>
                         )}
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
+                      </button>
+                    );
+                  })}
                 </div>
-              )}
 
-              {/* TAB 2: Official Calendar Poster / Upload Box */}
-              {activeTab === "poster" && (
-                <div className="bg-white border border-indigo-100/50 rounded-2xl p-4 shadow-inner min-h-[300px] flex flex-col items-center justify-center relative overflow-hidden">
-                  {calendarImage ? (
-                    <div className="space-y-4 w-full text-center">
-                      <img 
-                        src={calendarImage} 
-                        alt="Official School Academic Calendar" 
-                        className="max-h-[360px] w-auto mx-auto rounded-xl object-contain border border-indigo-50 shadow-sm"
-                      />
-                      <p className="text-[11px] text-slate-400 font-semibold italic">
-                        ✓ Custom school calendar image is live on the community board.
-                      </p>
-                    </div>
-                  ) : (
-                    <div className="text-center p-8 space-y-5 max-w-md mx-auto">
-                      <div className="w-16 h-16 bg-indigo-50 text-indigo-600 rounded-full flex items-center justify-center mx-auto border border-indigo-100">
-                        <FileText className="w-8 h-8" />
-                      </div>
-                      <div className="space-y-1.5">
-                        <h4 className="font-extrabold text-slate-900 text-sm">No Custom Calendar Uploaded</h4>
-                        <p className="text-xs text-slate-500 leading-relaxed font-medium">
-                          Standard calendar routines and seasonal events are currently rendering on the sidebar timetable. Admins may upload an official calendar poster anytime.
-                        </p>
-                      </div>
-
-                      {/* Quick Default CSS Informational view when no image */}
-                      <div className="bg-[#FAF9F6] border border-indigo-50 p-4 rounded-xl text-left space-y-2">
-                        <span className="text-[9px] font-mono font-black text-indigo-600 uppercase bg-indigo-50 border border-indigo-100 px-2 py-0.5 rounded">
-                          2083 Calendar Highlights
+                {/* Selected Day Event List Detail Card */}
+                <AnimatePresence mode="wait">
+                  {selectedDayNumber && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: 10 }}
+                      className="bg-white border border-indigo-100/70 p-4 rounded-2xl shadow-sm space-y-3"
+                    >
+                      <div className="flex justify-between items-center border-b border-indigo-50 pb-2">
+                        <h4 className="font-display font-black text-xs sm:text-sm text-slate-900">
+                          Schedule on {MONTHS_2026[currentMonthIndex]} {selectedDayNumber}, {currentYear}
+                        </h4>
+                        <span className="text-[9px] font-mono font-bold bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded-full">
+                          {selectedDayEvents.length} Event(s)
                         </span>
-                        <ul className="text-[10.5px] text-slate-600 space-y-1.5 font-semibold">
-                          <li className="flex items-center space-x-2">
-                            <span className="w-1.5 h-1.5 bg-pink-400 rounded-full" />
-                            <span>Baishakh: New Admission Intake Cycles</span>
-                          </li>
-                          <li className="flex items-center space-x-2">
-                            <span className="w-1.5 h-1.5 bg-pink-400 rounded-full" />
-                            <span>Ashadh: Mid-Term Assessments</span>
-                          </li>
-                          <li className="flex items-center space-x-2">
-                            <span className="w-1.5 h-1.5 bg-pink-400 rounded-full" />
-                            <span>Dashain & Tihar holiday recesses</span>
-                          </li>
-                        </ul>
                       </div>
-                    </div>
+
+                      {selectedDayEvents.length > 0 ? (
+                        <div className="space-y-3">
+                          {selectedDayEvents.map((evt) => (
+                            <div key={evt.id} className="text-xs space-y-1 bg-[#FAF9F6] p-3 rounded-xl border border-indigo-50/50">
+                              <div className="flex justify-between items-start">
+                                <h5 className="font-black text-slate-800">{evt.title}</h5>
+                                <span className="text-[8.5px] font-mono text-indigo-700 font-black bg-indigo-50 border border-indigo-100/50 py-0.2 px-1.5 rounded uppercase tracking-wider shrink-0">
+                                  {evt.type}
+                                </span>
+                              </div>
+                              <p className="text-slate-500 font-semibold">{evt.description}</p>
+                              <div className="flex flex-wrap gap-x-4 gap-y-1 text-[9.5px] text-slate-400 font-mono font-bold pt-1 border-t border-slate-100">
+                                <span className="flex items-center gap-1"><Clock className="w-3 h-3 text-indigo-500" />{evt.time}</span>
+                                <span className="flex items-center gap-1"><MapPin className="w-3 h-3 text-pink-500" />{evt.location}</span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-xs text-slate-400 font-semibold italic py-2">
+                          No special academic events or recesses registered on this date.
+                        </p>
+                      )}
+                    </motion.div>
                   )}
-                </div>
-              )}
+                </AnimatePresence>
+              </div>
 
               {/* AI Parsing Dynamic UI Bar (Available when calendarImage is uploaded) */}
               {calendarImage && (
@@ -584,7 +611,7 @@ export default function ToolsSection({ isAdmin = false }: ToolsSectionProps) {
                   </div>
                   <button
                     type="button"
-                    onClick={handleAIParseCalendar}
+                    onClick={() => handleAIParseCalendar()}
                     disabled={isParsing}
                     className="shrink-0 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-mono font-black text-[10.5px] px-4.5 py-2.5 rounded-xl transition-all hover:scale-[1.03] active:scale-95 disabled:opacity-50 disabled:pointer-events-none cursor-pointer shadow-md select-none"
                   >
@@ -808,6 +835,46 @@ export default function ToolsSection({ isAdmin = false }: ToolsSectionProps) {
         </div>
 
       </div>
+
+      {/* Official Calendar Poster Lightbox Modal */}
+      <AnimatePresence>
+        {isPreviewModalOpen && calendarImage && (
+          <div className="fixed inset-0 z-50 bg-slate-900/80 backdrop-blur-md flex items-center justify-center p-4 sm:p-6 animate-fadeIn">
+            <div className="bg-white rounded-3xl max-w-4xl w-full max-h-[90vh] flex flex-col overflow-hidden shadow-2xl border border-slate-200">
+              <div className="p-4 sm:p-5 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+                <div className="flex items-center space-x-2">
+                  <FileText className="w-5 h-5 text-indigo-600" />
+                  <h3 className="font-display font-black text-slate-900 text-sm sm:text-base">
+                    Official Printed School Academic Calendar
+                  </h3>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <button
+                    onClick={handleDownloadCalendarPoster}
+                    className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-mono text-xs font-black rounded-xl flex items-center space-x-1.5 transition-colors cursor-pointer shadow-sm"
+                  >
+                    <Download className="w-3.5 h-3.5 text-emerald-200" />
+                    <span>DOWNLOAD FILE</span>
+                  </button>
+                  <button
+                    onClick={() => setIsPreviewModalOpen(false)}
+                    className="p-1.5 hover:bg-slate-200 text-slate-500 hover:text-slate-800 rounded-xl transition-colors cursor-pointer"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+              </div>
+              <div className="p-4 flex-1 overflow-auto bg-slate-900/5 flex items-center justify-center">
+                <img
+                  src={calendarImage}
+                  alt="Official School Academic Calendar Document"
+                  className="max-h-[72vh] object-contain rounded-2xl shadow-md border border-slate-200"
+                />
+              </div>
+            </div>
+          </div>
+        )}
+      </AnimatePresence>
     </section>
   );
 }
