@@ -16,6 +16,7 @@ interface AdminPortalProps {
   onDeleteNotice: (id: string) => void;
   admissions: AdmissionQuery[];
   onUpdateAdmissionStatus: (id: string, state: "Pending" | "Contacted" | "Approved") => void;
+  onDeleteAdmission?: (id: string) => void;
   authorizedAdmins: string[];
   onAddAuthorizedAdmin: (email: string) => void;
   onDeleteAuthorizedAdmin: (email: string) => void;
@@ -39,6 +40,7 @@ export default function AdminPortal({
   onDeleteNotice,
   admissions,
   onUpdateAdmissionStatus,
+  onDeleteAdmission,
   authorizedAdmins,
   onAddAuthorizedAdmin,
   onDeleteAuthorizedAdmin,
@@ -1088,15 +1090,31 @@ export default function AdminPortal({
                               <div className="flex justify-between items-center text-[10px] font-mono font-bold text-slate-400">
                                 <span>{admit.submittedAt}</span>
                                 
-                                <span className={`px-2.5 py-0.5 rounded-lg border font-black uppercase text-[9px] tracking-wider ${
-                                  admit.status === "Approved" 
-                                    ? "bg-indigo-50 border-indigo-150 text-indigo-600" 
-                                    : admit.status === "Contacted"
-                                      ? "bg-purple-50 border-purple-150 text-purple-600"
-                                      : "bg-amber-50 border-amber-150 text-amber-600"
-                                }`}>
-                                  {admit.status}
-                                </span>
+                                <div className="flex items-center space-x-2">
+                                  <span className={`px-2.5 py-0.5 rounded-lg border font-black uppercase text-[9px] tracking-wider ${
+                                    admit.status === "Approved" 
+                                      ? "bg-indigo-50 border-indigo-150 text-indigo-600" 
+                                      : admit.status === "Contacted"
+                                        ? "bg-purple-50 border-purple-150 text-purple-600"
+                                        : "bg-amber-50 border-amber-150 text-amber-600"
+                                  }`}>
+                                    {admit.status}
+                                  </span>
+                                  {onDeleteAdmission && (
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        if (confirm(`Are you sure you want to delete the admission data for student '${admit.studentName}'?`)) {
+                                          onDeleteAdmission(admit.id);
+                                        }
+                                      }}
+                                      className="p-1 hover:bg-red-50 text-slate-400 hover:text-red-600 rounded-lg transition-colors cursor-pointer"
+                                      title="Delete student admission record"
+                                    >
+                                      <Trash2 className="w-3.5 h-3.5 text-red-500" />
+                                    </button>
+                                  )}
+                                </div>
                               </div>
 
                               {/* Student Details */}
@@ -1153,6 +1171,21 @@ export default function AdminPortal({
                                 >
                                   APPROVE
                                 </button>
+                                {onDeleteAdmission && (
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      if (confirm(`Are you sure you want to delete the admission data for student '${admit.studentName}'?`)) {
+                                        onDeleteAdmission(admit.id);
+                                      }
+                                    }}
+                                    className="px-2.5 py-1 rounded-lg bg-red-50 hover:bg-red-600 text-red-600 hover:text-white border border-red-200/80 transition-all cursor-pointer flex items-center space-x-1"
+                                    title="Delete student admission record"
+                                  >
+                                    <Trash2 className="w-3 h-3" />
+                                    <span>DELETE</span>
+                                  </button>
+                                )}
                               </div>
                             </div>
 

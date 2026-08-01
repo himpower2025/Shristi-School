@@ -93,33 +93,8 @@ const INITIAL_NOTICES: Notice[] = [
   }
 ];
 
-// DEFAULT MOCK APPLICANTS FOR CONVENIENCE REVIEW
-const INITIAL_ADMISSIONS: AdmissionQuery[] = [
-  {
-    id: "admit-101",
-    studentName: "Aashish Giri",
-    parentName: "Hari Prasad Giri",
-    email: "aashish.giri@gmail.com",
-    mobileNo: "+977-9851088741",
-    gradeOfInterest: "Secondary School (Grade 6 - 10)",
-    previousSchool: "Sagarmatha Secondary School, Bhaktapur",
-    district: "Bhaktapur",
-    submittedAt: "June 16, 2026, 04:30 PM",
-    status: "Pending"
-  },
-  {
-    id: "admit-102",
-    studentName: "Susmita Dahal",
-    parentName: "Badri Dahal",
-    email: "susmita.d@outlook.com",
-    mobileNo: "+977-9841334415",
-    gradeOfInterest: "Primary School (Grade 1 - 5)",
-    previousSchool: "Apex High Boarding, Kathmandu",
-    district: "Kathmandu",
-    submittedAt: "June 15, 2026, 02:15 PM",
-    status: "Contacted"
-  }
-];
+// DEFAULT INITIAL ADMISSIONS LIST
+const INITIAL_ADMISSIONS: AdmissionQuery[] = [];
 
 // DEFAULT MOCK SUGGESTIONS & FAQS FOR COMMUNICATIVE PARENT DIALOGS
 const INITIAL_SUGGESTIONS: SuggestionInquiry[] = [
@@ -187,10 +162,17 @@ export default function App() {
     }
 
     if (cachedAdmissions) {
-      setAdmissions(JSON.parse(cachedAdmissions));
+      try {
+        const parsed: AdmissionQuery[] = JSON.parse(cachedAdmissions);
+        const filtered = parsed.filter(a => a.id !== "admit-101" && a.id !== "admit-102");
+        setAdmissions(filtered);
+        localStorage.setItem("shristi_admissions_cache", JSON.stringify(filtered));
+      } catch (_) {
+        setAdmissions([]);
+      }
     } else {
-      setAdmissions(INITIAL_ADMISSIONS);
-      localStorage.setItem("shristi_admissions_cache", JSON.stringify(INITIAL_ADMISSIONS));
+      setAdmissions([]);
+      localStorage.setItem("shristi_admissions_cache", JSON.stringify([]));
     }
 
     if (cachedAdmins) {
@@ -413,6 +395,12 @@ export default function App() {
     showToast(`💼 Applicant status updated to: ${newState}`);
   };
 
+  const handleDeleteAdmission = (id: string) => {
+    const updated = admissions.filter(ad => ad.id !== id);
+    saveAdmissionsToStorage(updated);
+    showToast("🗑️ Admission inquiry record deleted!");
+  };
+
   const handleAddAuthorizedAdmin = (email: string) => {
     const cleaned = email.trim().toLowerCase();
     if (!authorizedAdmins.includes(cleaned)) {
@@ -547,6 +535,7 @@ export default function App() {
                 onDeleteNotice={handleDeleteNotice}
                 admissions={admissions}
                 onUpdateAdmissionStatus={handleUpdateAdmissionStatus}
+                onDeleteAdmission={handleDeleteAdmission}
                 authorizedAdmins={authorizedAdmins}
                 onAddAuthorizedAdmin={handleAddAuthorizedAdmin}
                 onDeleteAuthorizedAdmin={handleDeleteAuthorizedAdmin}
