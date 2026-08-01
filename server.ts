@@ -53,11 +53,12 @@ app.post("/api/parse-calendar", async (req, res) => {
     const currentYear = new Date().getFullYear();
 
     const prompt = `You are an expert academic registrar. Analyze this uploaded school academic calendar document (image or PDF).
-Extract all key events, holidays, examinations, sports days, cultural festivals, parent meetings, and other important calendar items for the entire academic year across all months.
+Extract all key events, holidays, vacation periods, recess breaks, examinations, sports days, cultural festivals, parent meetings, and other important calendar items for the entire academic year across all months.
 
 Parse each event into the following structure:
-- title: string (clear, descriptive name of the event, e.g., "First Terminal Examinations", "Science & Robotics Exhibition")
-- date: string (format strictly as "Month Day, Year", e.g., "July 28, 2026" or "August 15, 2026". Use full English month names: January, February, March, April, May, June, July, August, September, October, November, December. Default year to ${currentYear} if not specified)
+- title: string (clear, descriptive name of the event, e.g., "First Terminal Examinations", "Dashain Vacation Recess")
+- date: string (Start date format strictly as "Month Day, Year", e.g., "July 28, 2026" or "August 15, 2026". Use full English month names: January, February, March, April, May, June, July, August, September, October, November, December. Default year to ${currentYear} if not specified)
+- endDate: string (Optional. If the event or vacation/exam/recess spans multiple days, specify the end date in "Month Day, Year" format e.g. "August 28, 2026". Leave empty if single-day)
 - time: string (e.g. "10:00 AM - 1:00 PM" or "All Day" or "9:30 AM onwards")
 - location: string (e.g., "School Premises", "Auditorium", "Sports Ground". Default to "School Premises" if not mentioned)
 - description: string (brief description of what happens, max 120 chars)
@@ -82,6 +83,7 @@ Return the extracted list as a JSON array of events. Do not write any markdown w
             properties: {
               title: { type: Type.STRING },
               date: { type: Type.STRING },
+              endDate: { type: Type.STRING, description: "Optional end date if multi-day vacation or exam period" },
               time: { type: Type.STRING },
               location: { type: Type.STRING },
               description: { type: Type.STRING },

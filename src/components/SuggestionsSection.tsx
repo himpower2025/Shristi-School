@@ -54,18 +54,21 @@ export default function SuggestionsSection({
   const handleFormSubmit = (e: FormEvent) => {
     e.preventDefault();
 
-    if (!formName.trim() || !formEmail.trim() || !formMobile.trim() || !formTitle.trim() || !formContent.trim()) {
-      alert("Please fill in all required details, including Parent Name, Email Address, Mobile Number, Subject, and Message.");
+    const hasEmail = formEmail.trim().length > 0;
+    const hasMobile = formMobile.trim().length > 0;
+
+    if (!formName.trim() || (!hasEmail && !hasMobile) || !formTitle.trim() || !formContent.trim()) {
+      alert("Please fill in Parent Name, at least one contact method (Email OR Mobile Phone Number), Subject, and Message.");
       return;
     }
 
-    if (!formEmail.includes("@") || !formEmail.includes(".")) {
-      alert("Please specify a valid email address so the administration can respond to you directly.");
+    if (hasEmail && (!formEmail.includes("@") || !formEmail.includes("."))) {
+      alert("Please specify a valid email address (e.g. parent@gmail.com).");
       return;
     }
 
-    if (formMobile.trim().length < 7) {
-      alert("Please specify a valid mobile/phone number so the administration can contact you if needed.");
+    if (hasMobile && formMobile.trim().length < 7) {
+      alert("Please specify a valid mobile/phone number (e.g. +977-9841234567).");
       return;
     }
 
@@ -228,10 +231,9 @@ export default function SuggestionsSection({
 
                   <div className="space-y-1.5">
                     <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
-                      EMAIL ADDRESS <span className="text-pink-600">*REQUIRED</span>
+                      EMAIL ADDRESS <span className="text-indigo-600 font-extrabold">*EMAIL OR PHONE REQUIRED</span>
                     </label>
                     <input
-                      required
                       type="email"
                       placeholder="e.g. parent.name@gmail.com"
                       value={formEmail}
@@ -242,10 +244,9 @@ export default function SuggestionsSection({
 
                   <div className="space-y-1.5">
                     <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
-                      MOBILE / PHONE NO <span className="text-pink-600">*REQUIRED</span>
+                      MOBILE / PHONE NO <span className="text-indigo-600 font-extrabold">*EMAIL OR PHONE REQUIRED</span>
                     </label>
                     <input
-                      required
                       type="tel"
                       placeholder="e.g. +977-9841234567"
                       value={formMobile}

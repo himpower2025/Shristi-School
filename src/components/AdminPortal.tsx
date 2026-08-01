@@ -73,6 +73,7 @@ export default function AdminPortal({
   });
   const [calEventTitle, setCalEventTitle] = useState("");
   const [calEventDate, setCalEventDate] = useState("");
+  const [calEventEndDate, setCalEventEndDate] = useState("");
   const [calEventTime, setCalEventTime] = useState("All Day");
   const [calEventLocation, setCalEventLocation] = useState("School Premises");
   const [calEventType, setCalEventType] = useState<"Sports" | "Academic" | "Excursion" | "Ceremony">("Academic");
@@ -209,6 +210,7 @@ export default function AdminPortal({
           id: `ai-${Date.now()}-${idx}`,
           title: evt.title || "Unnamed Event",
           date: evt.date || `July 15, ${new Date().getFullYear()}`,
+          endDate: evt.endDate || undefined,
           time: evt.time || "All Day",
           location: evt.location || "School Premises",
           description: evt.description || "Auto-parsed from uploaded official academic calendar document via Gemini AI.",
@@ -256,6 +258,7 @@ export default function AdminPortal({
       id: "evt-" + Date.now(),
       title: calEventTitle.trim(),
       date: calEventDate.trim(),
+      endDate: calEventEndDate.trim() || undefined,
       time: calEventTime.trim() || "All Day",
       location: calEventLocation.trim() || "School Premises",
       description: calEventDesc.trim() || "Official Shristi Academy scheduled academic event.",
@@ -267,6 +270,7 @@ export default function AdminPortal({
     window.dispatchEvent(new Event("shristi_calendar_updated"));
     setCalEventTitle("");
     setCalEventDate("");
+    setCalEventEndDate("");
     setCalEventDesc("");
     setCalSaveNotice("✅ Academic Calendar event added & published!");
     alert("✅ Academic Calendar event added successfully!");
@@ -2355,13 +2359,24 @@ export default function AdminPortal({
                         </div>
 
                         <div className="space-y-1">
-                          <label className="text-[11px] font-mono font-bold text-slate-500 uppercase">Date (e.g. August 20, 2026)</label>
+                          <label className="text-[11px] font-mono font-bold text-slate-500 uppercase">Start Date *</label>
                           <input
                             type="text"
                             required
                             placeholder="e.g. August 20, 2026"
                             value={calEventDate}
                             onChange={(e) => setCalEventDate(e.target.value)}
+                            className="w-full px-3 py-2 bg-white rounded-xl border border-slate-200 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                          />
+                        </div>
+
+                        <div className="space-y-1">
+                          <label className="text-[11px] font-mono font-bold text-slate-500 uppercase">End Date (Optional for Vacation)</label>
+                          <input
+                            type="text"
+                            placeholder="e.g. August 28, 2026"
+                            value={calEventEndDate}
+                            onChange={(e) => setCalEventEndDate(e.target.value)}
                             className="w-full px-3 py-2 bg-white rounded-xl border border-slate-200 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500"
                           />
                         </div>
@@ -2437,7 +2452,14 @@ export default function AdminPortal({
                                   }`}>
                                     {evt.type}
                                   </span>
-                                  <span className="text-[10px] font-mono font-bold text-slate-500">{evt.date}</span>
+                                  <span className="text-[10px] font-mono font-bold text-slate-500">
+                                    {evt.endDate ? `${evt.date} ~ ${evt.endDate}` : evt.date}
+                                  </span>
+                                  {evt.endDate && (
+                                    <span className="px-1.5 py-0.5 text-[8px] font-mono font-black uppercase rounded bg-amber-100 text-amber-800">
+                                      Vacation / Multi-day
+                                    </span>
+                                  )}
                                 </div>
                                 <h5 className="font-extrabold text-xs text-slate-900">{evt.title}</h5>
                                 <p className="text-[11px] text-slate-500 line-clamp-1">{evt.description}</p>

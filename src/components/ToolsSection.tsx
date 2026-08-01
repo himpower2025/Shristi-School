@@ -94,6 +94,7 @@ export default function ToolsSection({ isAdmin = false }: ToolsSectionProps) {
   // Admin Event Creator state
   const [newEventTitle, setNewEventTitle] = useState("");
   const [newEventDate, setNewEventDate] = useState("");
+  const [newEventEndDate, setNewEventEndDate] = useState("");
   const [newEventTime, setNewEventTime] = useState("");
   const [newEventLocation, setNewEventLocation] = useState("");
   const [newEventDesc, setNewEventDesc] = useState("");
@@ -257,6 +258,7 @@ export default function ToolsSection({ isAdmin = false }: ToolsSectionProps) {
           id: `ai-${Date.now()}-${idx}`,
           title: evt.title || "Unnamed Event",
           date: evt.date || `July 15, ${currentYear}`,
+          endDate: evt.endDate || undefined,
           time: evt.time || "All Day",
           location: evt.location || "School Premises",
           description: evt.description || "Auto-parsed from uploaded official academic calendar document via Gemini AI.",
@@ -302,6 +304,7 @@ export default function ToolsSection({ isAdmin = false }: ToolsSectionProps) {
       id: "evt-" + Date.now(),
       title: newEventTitle.trim(),
       date: newEventDate.trim(),
+      endDate: newEventEndDate.trim() || undefined,
       time: newEventTime.trim() || "All Day",
       location: newEventLocation.trim() || "School Premises",
       description: newEventDesc.trim() || "No additional details provided.",
@@ -314,6 +317,7 @@ export default function ToolsSection({ isAdmin = false }: ToolsSectionProps) {
     // reset fields
     setNewEventTitle("");
     setNewEventDate("");
+    setNewEventEndDate("");
     setNewEventTime("");
     setNewEventLocation("");
     setNewEventDesc("");
@@ -350,16 +354,55 @@ export default function ToolsSection({ isAdmin = false }: ToolsSectionProps) {
   const monthDays = Array.from({ length: totalDaysInMonth }, (_, i) => i + 1);
   const calendarCells = [...offsetDays, ...monthDays];
 
+  // Helper function to check if a specific day falls within a single-day or multi-day event / vacation
+  const isEventOnDay = (evt: SchoolEvent, day: number) => {
+    const cellDate = new Date(currentYear, currentMonthIndex, day, 12, 0, 0);
+
+    // 1. Explicit endDate
+    if (evt.endDate) {
+      try {
+        const start = new Date(evt.date);
+        start.setHours(0, 0, 0, 0);
+        const end = new Date(evt.endDate);
+        end.setHours(23, 59, 59, 999);
+        if (!isNaN(start.getTime()) && !isNaN(end.getTime())) {
+          return cellDate >= start && cellDate <= end;
+        }
+      } catch (_) {}
+    }
+
+    // 2. Date string range (e.g. "July 20, 2026 - July 28, 2026", "2026-07-20 ~ 2026-07-28")
+    const rawDate = evt.date || "";
+    const rangeSeps = [" - ", " ~ ", " to ", " – "];
+    for (const sep of rangeSeps) {
+      if (rawDate.includes(sep)) {
+        const parts = rawDate.split(sep);
+        if (parts.length === 2) {
+          try {
+            const start = new Date(parts[0].trim());
+            start.setHours(0, 0, 0, 0);
+            const end = new Date(parts[1].trim());
+            end.setHours(23, 59, 59, 999);
+            if (!isNaN(start.getTime()) && !isNaN(end.getTime())) {
+              return cellDate >= start && cellDate <= end;
+            }
+          } catch (_) {}
+        }
+      }
+    }
+
+    // 3. Single-day fallback
+    try {
+      const d = new Date(evt.date);
+      return d.getFullYear() === currentYear && d.getMonth() === currentMonthIndex && d.getDate() === day;
+    } catch (_) {
+      return false;
+    }
+  };
+
   // Get events on a specific day
   const getEventsOnDay = (day: number) => {
-    return events.filter(evt => {
-      try {
-        const d = new Date(evt.date);
-        return d.getFullYear() === currentYear && d.getMonth() === currentMonthIndex && d.getDate() === day;
-      } catch {
-        return false;
-      }
-    });
+    return events.filter(evt => isEventOnDay(evt, day));
   };
 
   // Select day handler
@@ -719,9 +762,14 @@ export default function ToolsSection({ isAdmin = false }: ToolsSectionProps) {
                           {evt.type}
                         </span>
                         
-                        <div className="flex items-center space-x-1 text-[10px] text-slate-400 font-mono font-bold">
-                          <Calendar className="w-3.5 h-3.5 text-slate-450" />
-                          <span>{evt.date}</span>
+                        <div className="flex items-center space-x-1 text-[10px] text-slate-500 font-mono font-bold">
+                          <Calendar className="w-3.5 h-3.5 text-indigo-500" />
+                          <span>{evt.endDate ? `${evt.date} ~ ${evt.endDate}` : evt.date}</span>
+                          {evt.endDate && (
+                            <span className="ml-1 px-1.5 py-0.2 bg-amber-100 text-amber-800 rounded font-black text-[9px]">
+                              Vacation / Multi-day
+                            </span>
+                          )}
                         </div>
                       </div>
 
@@ -769,19 +817,26 @@ export default function ToolsSection({ isAdmin = false }: ToolsSectionProps) {
                   Add Event Scheduler
                 </h4>
                 <form onSubmit={handleAddEvent} className="space-y-3 font-sans text-xs">
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                     <input 
                       type="text" 
-                      placeholder="Event Title..."
+                      placeholder="Event Title (e.g. Summer Vacation / Exam)..."
                       value={newEventTitle}
                       onChange={(e) => setNewEventTitle(e.target.value)}
+                      className="bg-white border border-indigo-100 p-2 rounded-lg text-slate-850 font-bold focus:outline-none col-span-1 sm:col-span-2"
+                    />
+                    <input 
+                      type="text" 
+                      placeholder="Start Date (e.g. August 20, 2026)..."
+                      value={newEventDate}
+                      onChange={(e) => setNewEventDate(e.target.value)}
                       className="bg-white border border-indigo-100 p-2 rounded-lg text-slate-850 font-bold focus:outline-none"
                     />
                     <input 
                       type="text" 
-                      placeholder="Date (e.g. July 24, 2026)..."
-                      value={newEventDate}
-                      onChange={(e) => setNewEventDate(e.target.value)}
+                      placeholder="End Date (Optional for Vacation e.g. August 28, 2026)..."
+                      value={newEventEndDate}
+                      onChange={(e) => setNewEventEndDate(e.target.value)}
                       className="bg-white border border-indigo-100 p-2 rounded-lg text-slate-850 font-bold focus:outline-none"
                     />
                   </div>

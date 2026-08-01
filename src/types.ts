@@ -25,7 +25,8 @@ export interface AcademicProgram {
 export interface SchoolEvent {
   id: string;
   title: string;
-  date: string;
+  date: string; // Start date or single date (e.g., "August 20, 2026")
+  endDate?: string; // Optional end date for multi-day events / vacations (e.g., "August 28, 2026")
   description: string;
   time: string;
   location: string;
