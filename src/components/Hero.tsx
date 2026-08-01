@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { ArrowRight, GraduationCap, Users, AlertCircle, ChevronLeft, ChevronRight, Sparkles } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
+import { GalleryItem } from "../types";
 
 import learningImg from "../assets/images/montessori_learning_1782145030889.jpg";
 import labImg from "../assets/images/science_lab_1782145047179.jpg";
@@ -17,9 +18,10 @@ interface HeroProps {
   onApplyNow: () => void;
   onViewNotices: () => void;
   lastNoticeTitle: string;
+  galleryItems?: GalleryItem[];
 }
 
-const CAMPUS_MOMENTS = [
+const DEFAULT_CAMPUS_MOMENTS = [
   {
     image: outdoorExcursionImg,
     fallback: learningImg,
@@ -57,25 +59,36 @@ const CAMPUS_MOMENTS = [
   }
 ];
 
-export default function Hero({ onExplorePrograms, onApplyNow, onViewNotices, lastNoticeTitle }: HeroProps) {
+export default function Hero({ onExplorePrograms, onApplyNow, onViewNotices, lastNoticeTitle, galleryItems }: HeroProps) {
   const [currentSlide, setCurrentSlide] = useState(0);
+
+  // If user uploaded real photos in AdminPortal, prioritize them in the slideshow
+  const activeMoments = (galleryItems && galleryItems.length > 0)
+    ? galleryItems.map(item => ({
+        image: item.image,
+        fallback: learningImg,
+        title: item.title,
+        description: item.description,
+        tag: item.category || "Campus Moment"
+      }))
+    : DEFAULT_CAMPUS_MOMENTS;
 
   // Auto-play the gallery slides
   useEffect(() => {
     const interval = setInterval(() => {
-      setCurrentSlide((prev) => (prev + 1) % CAMPUS_MOMENTS.length);
+      setCurrentSlide((prev) => (prev + 1) % activeMoments.length);
     }, 4500);
     return () => clearInterval(interval);
-  }, []);
+  }, [activeMoments.length]);
 
   const handleNextSlide = (e: React.MouseEvent) => {
     e.stopPropagation();
-    setCurrentSlide((prev) => (prev + 1) % CAMPUS_MOMENTS.length);
+    setCurrentSlide((prev) => (prev + 1) % activeMoments.length);
   };
 
   const handlePrevSlide = (e: React.MouseEvent) => {
     e.stopPropagation();
-    setCurrentSlide((prev) => (prev - 1 + CAMPUS_MOMENTS.length) % CAMPUS_MOMENTS.length);
+    setCurrentSlide((prev) => (prev - 1 + activeMoments.length) % activeMoments.length);
   };
 
   return (
@@ -224,12 +237,12 @@ export default function Hero({ onExplorePrograms, onApplyNow, onViewNotices, las
                     className="absolute inset-0"
                   >
                     <img
-                      src={CAMPUS_MOMENTS[currentSlide].image}
-                      alt={CAMPUS_MOMENTS[currentSlide].title}
+                      src={activeMoments[currentSlide % activeMoments.length].image}
+                      alt={activeMoments[currentSlide % activeMoments.length].title}
                       className="w-full h-full object-cover select-none"
                       referrerPolicy="no-referrer"
                       onError={(e) => {
-                        e.currentTarget.src = CAMPUS_MOMENTS[currentSlide].fallback;
+                        e.currentTarget.src = activeMoments[currentSlide % activeMoments.length].fallback;
                       }}
                     />
                     
@@ -240,7 +253,7 @@ export default function Hero({ onExplorePrograms, onApplyNow, onViewNotices, las
 
                 {/* Floating Tag */}
                 <div className="absolute top-3 left-3 bg-white/95 backdrop-blur-sm shadow-md text-indigo-700 font-mono text-[10px] font-black uppercase tracking-wider py-1.5 px-3 rounded-xl select-none border border-indigo-100">
-                  {CAMPUS_MOMENTS[currentSlide].tag}
+                  {activeMoments[currentSlide % activeMoments.length].tag}
                 </div>
 
                 {/* Chevron Navigation Controls - visible on hover or mobile always */}
@@ -262,16 +275,16 @@ export default function Hero({ onExplorePrograms, onApplyNow, onViewNotices, las
                 {/* Bottom Overlay Info Text */}
                 <div className="absolute bottom-0 inset-x-0 p-4 text-left pointer-events-none select-none">
                   <h4 className="text-white font-extrabold text-sm font-display tracking-tight leading-tight">
-                    {CAMPUS_MOMENTS[currentSlide].title}
+                    {activeMoments[currentSlide % activeMoments.length].title}
                   </h4>
                   <p className="text-slate-200 text-[10px] sm:text-[11px] font-medium opacity-90 truncate mt-0.5">
-                    {CAMPUS_MOMENTS[currentSlide].description}
+                    {activeMoments[currentSlide % activeMoments.length].description}
                   </p>
                 </div>
 
                 {/* Image Indicator Dots */}
                 <div className="absolute right-3.5 bottom-3.5 flex items-center space-x-1 z-10">
-                  {CAMPUS_MOMENTS.map((_, idx) => (
+                  {activeMoments.map((_, idx) => (
                     <button
                       key={idx}
                       onClick={(e) => {

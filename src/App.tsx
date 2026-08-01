@@ -583,6 +583,7 @@ export default function App() {
                     onApplyNow={() => setCurrentSection("admission")}
                     onViewNotices={() => setCurrentSection("notices")}
                     lastNoticeTitle={lastNoticeTitle}
+                    galleryItems={galleryItems}
                   />
 
                   {/* Clean 6-pillars cards layout representing values on safe white section (uncluttered, highly readable) */}
