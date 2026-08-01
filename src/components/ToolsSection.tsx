@@ -98,26 +98,48 @@ export default function ToolsSection({ isAdmin = false }: ToolsSectionProps) {
   const [newEventDesc, setNewEventDesc] = useState("");
   const [newEventType, setNewEventType] = useState<"Sports" | "Academic" | "Excursion" | "Ceremony">("Academic");
 
-  // Load from local storage
+  // Load from local storage and sync in real time
   useEffect(() => {
-    const cachedEvents = localStorage.getItem("shristi_calendar_events");
-    const cachedCalImage = localStorage.getItem("shristi_calendar_uploaded_image");
+    const loadCalendarData = () => {
+      const cachedEvents = localStorage.getItem("shristi_calendar_events");
+      const cachedCalImage = localStorage.getItem("shristi_calendar_uploaded_image");
 
-    if (cachedEvents) {
-      setEvents(JSON.parse(cachedEvents));
-    } else {
-      setEvents(DEFAULT_EVENTS);
-      localStorage.setItem("shristi_calendar_events", JSON.stringify(DEFAULT_EVENTS));
-    }
+      if (cachedEvents) {
+        try {
+          setEvents(JSON.parse(cachedEvents));
+        } catch (_) {
+          setEvents(DEFAULT_EVENTS);
+        }
+      } else {
+        setEvents(DEFAULT_EVENTS);
+        localStorage.setItem("shristi_calendar_events", JSON.stringify(DEFAULT_EVENTS));
+      }
 
-    if (cachedCalImage) {
-      setCalendarImage(cachedCalImage);
-    }
+      if (cachedCalImage) {
+        setCalendarImage(cachedCalImage);
+      } else {
+        setCalendarImage(null);
+      }
+    };
+
+    loadCalendarData();
+
+    window.addEventListener("shristi_calendar_updated", loadCalendarData);
+    window.addEventListener("storage", loadCalendarData);
+    return () => {
+      window.removeEventListener("shristi_calendar_updated", loadCalendarData);
+      window.removeEventListener("storage", loadCalendarData);
+    };
   }, []);
 
   const saveEvents = (updated: SchoolEvent[]) => {
     setEvents(updated);
-    localStorage.setItem("shristi_calendar_events", JSON.stringify(updated));
+    try {
+      localStorage.setItem("shristi_calendar_events", JSON.stringify(updated));
+      window.dispatchEvent(new Event("shristi_calendar_updated"));
+    } catch (err) {
+      console.error("Storage save error:", err);
+    }
   };
 
   // Image / PDF Upload handler (Base64)

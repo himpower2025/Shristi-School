@@ -66,7 +66,7 @@ Parse each event into the following structure:
 Return the extracted list as a JSON array of events. Do not write any markdown wrappers or comments, just valid JSON matching the schema.`;
 
     const response = await ai.models.generateContent({
-      model: "gemini-3.5-flash",
+      model: "gemini-2.5-flash",
       contents: {
         parts: [
           { text: prompt },

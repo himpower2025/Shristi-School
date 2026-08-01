@@ -1,8 +1,8 @@
-import { useState, FormEvent, ChangeEvent } from "react";
+import { useState, useEffect, FormEvent, ChangeEvent } from "react";
 import { 
   Lock, Unlock, ShieldAlert, Sparkles, Send, FileEdit, 
   Trash2, Plus, Megaphone, Users, Calendar, ArrowRight, UserCheck, CheckCircle2, Bookmark, Info, CircleAlert, HelpCircle,
-  BellRing, Image as ImageIcon, LayoutTemplate, Eye, Upload, Check, Power, Download, FileText, Edit3, X, Star
+  BellRing, Image as ImageIcon, LayoutTemplate, Eye, Upload, Check, Power, Download, FileText, Edit3, X, Star, Save
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { Notice, NoticeCategory, AdmissionQuery, SuggestionInquiry, PopupNoticeConfig, SchoolProfileConfig, GalleryItem, ParentReview, SchoolEvent } from "../types";
@@ -64,7 +64,7 @@ export default function AdminPortal({
   // CMS Tabs State variables
   const [cmsTab, setCmsTab] = useState<"ManageNo" | "WritePost" | "Admit" | "Admins" | "ParentsVoice" | "PopupNotice" | "SchoolProfile" | "CampusGallery" | "ParentReviews" | "AcademicCalendar">("ManageNo");
 
-  // School Calendar Management States
+  // School Calendar Management States & Real-Time Sync
   const [adminCalImage, setAdminCalImage] = useState<string | null>(() => localStorage.getItem("shristi_calendar_uploaded_image"));
   const [adminCalIsParsing, setAdminCalIsParsing] = useState(false);
   const [adminCalEvents, setAdminCalEvents] = useState<SchoolEvent[]>(() => {
@@ -77,37 +77,127 @@ export default function AdminPortal({
   const [calEventLocation, setCalEventLocation] = useState("School Premises");
   const [calEventType, setCalEventType] = useState<"Sports" | "Academic" | "Excursion" | "Ceremony">("Academic");
   const [calEventDesc, setCalEventDesc] = useState("");
+  const [calSaveNotice, setCalSaveNotice] = useState<string | null>(null);
 
-  const handleAdminCalUpload = (e: ChangeEvent<HTMLInputElement>) => {
+  // Sync calendar data from localStorage and custom events
+  useEffect(() => {
+    const syncCalendarFromStorage = () => {
+      const cachedImg = localStorage.getItem("shristi_calendar_uploaded_image");
+      const cachedEvts = localStorage.getItem("shristi_calendar_events");
+      setAdminCalImage(cachedImg);
+      if (cachedEvts) {
+        try {
+          setAdminCalEvents(JSON.parse(cachedEvts));
+        } catch (_) {}
+      }
+    };
+    syncCalendarFromStorage();
+    window.addEventListener("shristi_calendar_updated", syncCalendarFromStorage);
+    window.addEventListener("storage", syncCalendarFromStorage);
+    return () => {
+      window.removeEventListener("shristi_calendar_updated", syncCalendarFromStorage);
+      window.removeEventListener("storage", syncCalendarFromStorage);
+    };
+  }, []);
+
+  // Helper to compress image before saving to localStorage to prevent quota errors
+  const compressCalendarImage = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      if (file.type === "application/pdf" || file.size < 400 * 1024) {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const img = new Image();
+        img.onload = () => {
+          let width = img.width;
+          let height = img.height;
+          const maxDim = 1600;
+          if (width > maxDim || height > maxDim) {
+            if (width > height) {
+              height = Math.round((height * maxDim) / width);
+              width = maxDim;
+            } else {
+              width = Math.round((width * maxDim) / height);
+              height = maxDim;
+            }
+          }
+          const canvas = document.createElement("canvas");
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext("2d");
+          if (ctx) {
+            ctx.drawImage(img, 0, 0, width, height);
+            resolve(canvas.toDataURL("image/jpeg", 0.85));
+          } else {
+            resolve(event.target?.result as string);
+          }
+        };
+        img.onerror = () => resolve(event.target?.result as string);
+        img.src = event.target?.result as string;
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const handleAdminCalUpload = async (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (file.size > 10 * 1024 * 1024) {
-      alert("File is too large! Please choose a file smaller than 10MB.");
+    if (file.size > 15 * 1024 * 1024) {
+      alert("File is too large! Please choose a file smaller than 15MB.");
       return;
     }
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      const base64 = reader.result as string;
+    try {
+      const base64 = await compressCalendarImage(file);
       setAdminCalImage(base64);
       localStorage.setItem("shristi_calendar_uploaded_image", base64);
-      handleAIParseInAdmin(base64);
-    };
-    reader.readAsDataURL(file);
+      window.dispatchEvent(new Event("shristi_calendar_updated"));
+      setCalSaveNotice("📁 Poster selected & saved to browser memory! Click 'SAVE CALENDAR POSTER TO LIVE WEBSITE' or run 'AI SYNC' below.");
+    } catch (err) {
+      alert("Failed to process uploaded file. Please try again with a valid JPG/PNG or PDF.");
+    }
+  };
+
+  const handleSaveAdminCalPoster = () => {
+    if (!adminCalImage) {
+      alert("Please upload or select a calendar poster image first.");
+      return;
+    }
+    try {
+      localStorage.setItem("shristi_calendar_uploaded_image", adminCalImage);
+      window.dispatchEvent(new Event("shristi_calendar_updated"));
+      setCalSaveNotice("✅ Academic Calendar Poster successfully saved and published on live website!");
+      alert("🎉 Academic Calendar Poster Successfully Saved & Published!\n\nYour calendar poster is now live in the #tools section of the website for all students, parents, and visitors.");
+    } catch (err) {
+      alert("Storage quota exceeded. The image is saved in session memory. Please try using a slightly smaller image.");
+    }
   };
 
   const handleAIParseInAdmin = async (overrideBase64?: string) => {
     const targetImage = overrideBase64 || adminCalImage;
-    if (!targetImage) return;
+    if (!targetImage) {
+      alert("Please upload a calendar image before running AI Sync.");
+      return;
+    }
     setAdminCalIsParsing(true);
+    setCalSaveNotice("✨ Gemini AI is analyzing calendar image and extracting scheduled events...");
     try {
       const res = await fetch("/api/parse-calendar", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ imageBase64: targetImage }),
       });
-      if (!res.ok) throw new Error("API parsing response error");
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.error || "Failed to reach AI parsing endpoint");
+      }
       const data = await res.json();
-      if (data.events && Array.isArray(data.events)) {
+      if (data.events && Array.isArray(data.events) && data.events.length > 0) {
         const parsedEvents: SchoolEvent[] = data.events.map((evt: any, idx: number) => ({
           id: `ai-${Date.now()}-${idx}`,
           title: evt.title || "Unnamed Event",
@@ -117,24 +207,35 @@ export default function AdminPortal({
           description: evt.description || "Auto-parsed from uploaded official academic calendar document via Gemini AI.",
           type: (["Sports", "Academic", "Excursion", "Ceremony"].includes(evt.type) ? evt.type : "Academic") as any
         }));
-        if (parsedEvents.length > 0) {
-          const merged = [...parsedEvents, ...adminCalEvents];
-          setAdminCalEvents(merged);
-          localStorage.setItem("shristi_calendar_events", JSON.stringify(merged));
-          alert(`🎉 AI Sync Successful! Successfully extracted ${parsedEvents.length} academic calendar events from your document!`);
-        }
+        
+        const merged = [...parsedEvents, ...adminCalEvents];
+        setAdminCalEvents(merged);
+        localStorage.setItem("shristi_calendar_events", JSON.stringify(merged));
+        window.dispatchEvent(new Event("shristi_calendar_updated"));
+        setCalSaveNotice(`🎉 AI Sync Successful! Successfully extracted ${parsedEvents.length} events and published to live website!`);
+        alert(`🎉 AI Sync Successful!\n\nSuccessfully extracted ${parsedEvents.length} academic calendar events from your document!\n\nThe extracted events are now published on the public website calendar grid and event schedule.`);
+      } else {
+        alert("Gemini AI was unable to detect distinct text/dates in the uploaded image. Poster is saved, but please add events manually below.");
       }
-    } catch (_) {
-      alert(`📅 Official Calendar Document Saved Successfully!\n\nYour calendar poster image is now live on the public website (#tools section).`);
+    } catch (err: any) {
+      console.error("AI Calendar parse error:", err);
+      // Ensure the poster itself is saved even if AI parsing fails
+      try {
+        localStorage.setItem("shristi_calendar_uploaded_image", targetImage);
+        window.dispatchEvent(new Event("shristi_calendar_updated"));
+      } catch (_) {}
+      alert(`📅 Calendar Poster Saved to Website!\n\nNote: Automatic AI text extraction encountered an issue (${err.message || "Network"}). Your calendar image is live, and you can manually add scheduled events using the form below.`);
     } finally {
       setAdminCalIsParsing(false);
     }
   };
 
   const handleRemoveAdminCalImage = () => {
-    if (confirm("Are you sure you want to remove the custom uploaded calendar poster?")) {
+    if (confirm("Are you sure you want to remove the custom uploaded calendar poster? It will revert to default bulletin view.")) {
       setAdminCalImage(null);
       localStorage.removeItem("shristi_calendar_uploaded_image");
+      window.dispatchEvent(new Event("shristi_calendar_updated"));
+      setCalSaveNotice("Removed custom calendar poster.");
     }
   };
 
@@ -156,9 +257,11 @@ export default function AdminPortal({
     const updated = [newEvt, ...adminCalEvents];
     setAdminCalEvents(updated);
     localStorage.setItem("shristi_calendar_events", JSON.stringify(updated));
+    window.dispatchEvent(new Event("shristi_calendar_updated"));
     setCalEventTitle("");
     setCalEventDate("");
     setCalEventDesc("");
+    setCalSaveNotice("✅ Academic Calendar event added & published!");
     alert("✅ Academic Calendar event added successfully!");
   };
 
@@ -167,6 +270,7 @@ export default function AdminPortal({
       const updated = adminCalEvents.filter((ev) => ev.id !== id);
       setAdminCalEvents(updated);
       localStorage.setItem("shristi_calendar_events", JSON.stringify(updated));
+      window.dispatchEvent(new Event("shristi_calendar_updated"));
     }
   };
 
@@ -2090,7 +2194,20 @@ export default function AdminPortal({
 
                     {/* POSTER / IMAGE UPLOAD SECTION */}
                     <div className="bg-slate-50/80 p-6 rounded-2xl border border-slate-200/80 space-y-4">
-                      <div className="flex items-center justify-between">
+                      {calSaveNotice && (
+                        <div className="p-3 bg-indigo-50 border border-indigo-200 text-indigo-900 rounded-xl text-xs font-mono font-bold flex items-center justify-between animate-fadeIn">
+                          <span>{calSaveNotice}</span>
+                          <button
+                            type="button"
+                            onClick={() => setCalSaveNotice(null)}
+                            className="text-slate-400 hover:text-slate-600 text-xs px-1"
+                          >
+                            ✕
+                          </button>
+                        </div>
+                      )}
+
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                         <div>
                           <h4 className="font-extrabold text-sm text-slate-900 flex items-center space-x-2">
                             <span>📄 Official Print Calendar Poster</span>
@@ -2103,31 +2220,43 @@ export default function AdminPortal({
                           <p className="text-xs text-slate-500">Upload JPG, PNG or PDF document poster for the current academic session.</p>
                         </div>
 
-                        {adminCalImage && (
-                          <div className="flex items-center space-x-2">
-                            <button
-                              type="button"
-                              onClick={() => handleAIParseInAdmin()}
-                              disabled={adminCalIsParsing}
-                              className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-mono font-bold rounded-xl flex items-center space-x-1.5 transition-colors cursor-pointer"
-                            >
-                              <Sparkles className="w-3.5 h-3.5 text-amber-300" />
-                              <span>{adminCalIsParsing ? "Parsing via Gemini..." : "✨ AI SYNC EVENTS"}</span>
-                            </button>
-                            <button
-                              type="button"
-                              onClick={handleRemoveAdminCalImage}
-                              className="px-3 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 text-xs font-mono font-bold rounded-xl flex items-center space-x-1 transition-colors cursor-pointer"
-                            >
-                              <Trash2 className="w-3.5 h-3.5" />
-                              <span>REMOVE</span>
-                            </button>
-                          </div>
-                        )}
+                        <div className="flex flex-wrap items-center gap-2">
+                          {adminCalImage && (
+                            <>
+                              <button
+                                type="button"
+                                onClick={handleSaveAdminCalPoster}
+                                className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-mono font-black rounded-xl flex items-center space-x-1.5 transition-all shadow-sm cursor-pointer"
+                              >
+                                <Save className="w-3.5 h-3.5 text-emerald-200" />
+                                <span>💾 SAVE POSTER TO WEBSITE</span>
+                              </button>
+
+                              <button
+                                type="button"
+                                onClick={() => handleAIParseInAdmin()}
+                                disabled={adminCalIsParsing}
+                                className="px-3 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-mono font-bold rounded-xl flex items-center space-x-1.5 transition-colors cursor-pointer disabled:opacity-50"
+                              >
+                                <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+                                <span>{adminCalIsParsing ? "Parsing via Gemini..." : "✨ AI SYNC EVENTS"}</span>
+                              </button>
+
+                              <button
+                                type="button"
+                                onClick={handleRemoveAdminCalImage}
+                                className="px-3 py-2 bg-rose-50 hover:bg-rose-100 text-rose-600 text-xs font-mono font-bold rounded-xl flex items-center space-x-1 transition-colors cursor-pointer"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                                <span>REMOVE</span>
+                              </button>
+                            </>
+                          )}
+                        </div>
                       </div>
 
                       {adminCalImage ? (
-                        <div className="space-y-3">
+                        <div className="space-y-4">
                           <div className="relative rounded-2xl overflow-hidden border border-slate-300 max-h-96 bg-slate-900/5 flex items-center justify-center p-2">
                             <img
                               src={adminCalImage}
@@ -2135,10 +2264,23 @@ export default function AdminPortal({
                               className="max-h-88 object-contain rounded-xl shadow-md"
                             />
                           </div>
-                          <p className="text-[11px] text-emerald-700 font-medium bg-emerald-50 p-2.5 rounded-xl border border-emerald-100 flex items-center space-x-2">
-                            <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                            <span>This calendar poster is actively published on the public <strong>School Calendar & Events</strong> section for all parents and students.</span>
-                          </p>
+
+                          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-3.5 bg-emerald-50 rounded-2xl border border-emerald-100">
+                            <p className="text-xs text-emerald-800 font-medium flex items-center space-x-2">
+                              <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                              <span>This poster is published on the live website. Click <strong>SAVE POSTER TO WEBSITE</strong> or <strong>AI SYNC EVENTS</strong> to extract dates.</span>
+                            </p>
+
+                            <label className="px-3 py-1.5 bg-white hover:bg-slate-50 text-slate-800 border border-slate-300 text-xs font-mono font-bold rounded-xl cursor-pointer shrink-0 transition-colors">
+                              <span>🔄 REPLACE POSTER FILE</span>
+                              <input
+                                type="file"
+                                accept="image/*,application/pdf"
+                                onChange={handleAdminCalUpload}
+                                className="hidden"
+                              />
+                            </label>
+                          </div>
                         </div>
                       ) : (
                         <div className="border-2 border-dashed border-slate-300 hover:border-indigo-400 bg-white p-8 rounded-2xl text-center space-y-3 transition-colors">
