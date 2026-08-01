@@ -207,7 +207,7 @@ export default function Footer({ onNavigate, onOpenAdmin }: FooterProps) {
       <div className="max-w-7xl mx-auto px-6 mt-16 pt-8 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4 text-slate-400 text-[10px] font-mono relative z-10 font-bold">
         
         <div className="text-center sm:text-left leading-relaxed">
-          <span>© Since 2016 - {new Date().getFullYear()} Shristi Academy. All Rights Reserved.</span>
+          <span>© Since 2016 Shristi Academy. All Rights Reserved.</span>
           <span className="hidden md:inline"> | Approved by Ministry of Education, Nepal.</span>
         </div>
 
