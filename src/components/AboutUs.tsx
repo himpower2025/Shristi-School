@@ -65,7 +65,7 @@ interface AboutUsProps {
 }
 
 export default function AboutUs({ onOpenSchoolProfile, schoolProfileConfig, galleryItems }: AboutUsProps) {
-  const activeGallery = galleryItems && galleryItems.length > 0 ? galleryItems : DEFAULT_GALLERY_ITEMS;
+  const activeGallery = galleryItems !== undefined ? galleryItems : DEFAULT_GALLERY_ITEMS;
   const [selectedImage, setSelectedImage] = useState<GalleryItem | null>(null);
 
   const values = [
@@ -333,50 +333,58 @@ export default function AboutUs({ onOpenSchoolProfile, schoolProfileConfig, gall
           </div>
 
           {/* GIGANTIC RESPONSIVE GRID FOR VIVID GRAPHICS (DYNAMIC - ONLY UPLOADED PHOTOS DISPLAYED, MAX 10) */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {activeGallery.slice(0, 10).map((item) => (
-              <motion.div
-                key={item.id || item.title}
-                whileHover={{ y: -8 }}
-                onClick={() => setSelectedImage(item)}
-                className="bg-white rounded-[32px] overflow-hidden border border-slate-200 p-5 shadow-md hover:shadow-2xl transition-all duration-300 flex flex-col justify-between group cursor-pointer"
-              >
-                {/* Image Wrap (Vivid Aspect Ratio) */}
-                <div className="relative aspect-[16/10] overflow-hidden rounded-2xl bg-slate-100 shadow-inner">
-                  <img
-                    src={item.image}
-                    alt={item.title}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-all duration-500"
-                    referrerPolicy="no-referrer"
-                    onError={(e) => {
-                      e.currentTarget.src = (item as any).fallbackImage || montessoriImg;
-                    }}
-                  />
-                  {/* Floating category */}
-                  <div className="absolute top-3 left-3 bg-[#1e1b4b]/95 backdrop-blur-sm text-white text-[10px] font-mono font-black uppercase px-3 py-1.5 rounded-xl shadow-md">
-                    {item.category}
-                  </div>
-                  {/* Hover indicator overlay */}
-                  <div className="absolute inset-0 bg-slate-900/40 opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-center justify-center">
-                    <div className="bg-white/95 text-slate-900 text-xs font-bold px-4 py-2.5 rounded-xl flex items-center space-x-1.5 shadow-lg">
-                      <Maximize2 className="w-4 h-4 text-indigo-600" />
-                      <span>View Full Photo</span>
+          {activeGallery.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {activeGallery.slice(0, 10).map((item) => (
+                <motion.div
+                  key={item.id || item.title}
+                  whileHover={{ y: -8 }}
+                  onClick={() => setSelectedImage(item)}
+                  className="bg-white rounded-[32px] overflow-hidden border border-slate-200 p-5 shadow-md hover:shadow-2xl transition-all duration-300 flex flex-col justify-between group cursor-pointer"
+                >
+                  {/* Image Wrap (Vivid Aspect Ratio) */}
+                  <div className="relative aspect-[16/10] overflow-hidden rounded-2xl bg-slate-100 shadow-inner">
+                    <img
+                      src={item.image}
+                      alt={item.title}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-all duration-500"
+                      referrerPolicy="no-referrer"
+                      onError={(e) => {
+                        e.currentTarget.src = (item as any).fallbackImage || montessoriImg;
+                      }}
+                    />
+                    {/* Floating category */}
+                    <div className="absolute top-3 left-3 bg-[#1e1b4b]/95 backdrop-blur-sm text-white text-[10px] font-mono font-black uppercase px-3 py-1.5 rounded-xl shadow-md">
+                      {item.category}
+                    </div>
+                    {/* Hover indicator overlay */}
+                    <div className="absolute inset-0 bg-slate-900/40 opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-center justify-center">
+                      <div className="bg-white/95 text-slate-900 text-xs font-bold px-4 py-2.5 rounded-xl flex items-center space-x-1.5 shadow-lg">
+                        <Maximize2 className="w-4 h-4 text-indigo-600" />
+                        <span>View Full Photo</span>
+                      </div>
                     </div>
                   </div>
-                </div>
-                
-                {/* Brief, impact-oriented descriptions */}
-                <div className="p-4 text-left space-y-1.5">
-                  <h4 className="font-black text-lg text-slate-950 group-hover:text-indigo-600 transition-colors leading-snug">
-                    {item.title}
-                  </h4>
-                  <p className="text-xs text-slate-600 font-bold leading-relaxed">
-                    {item.description}
-                  </p>
-                </div>
-              </motion.div>
-            ))}
-          </div>
+                  
+                  {/* Brief, impact-oriented descriptions */}
+                  <div className="p-4 text-left space-y-1.5">
+                    <h4 className="font-black text-lg text-slate-950 group-hover:text-indigo-600 transition-colors leading-snug">
+                      {item.title}
+                    </h4>
+                    <p className="text-xs text-slate-600 font-bold leading-relaxed">
+                      {item.description}
+                    </p>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          ) : (
+            <div className="bg-slate-50 border border-dashed border-slate-200 rounded-3xl p-12 text-center text-slate-400 space-y-2">
+              <ImageIcon className="w-10 h-10 text-slate-300 mx-auto" />
+              <p className="font-bold text-sm text-slate-600">No Campus Photos Currently Displayed</p>
+              <p className="text-xs text-slate-400">School administration can upload campus photos through the Admin Portal.</p>
+            </div>
+          )}
         </div>
 
         {/* Facilities Section Showcase */}

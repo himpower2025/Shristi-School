@@ -8,9 +8,12 @@ import { SchoolEvent } from "../types";
 
 interface ToolsSectionProps {
   isAdmin?: boolean;
+  events?: SchoolEvent[];
+  onAddEvent?: (event: SchoolEvent) => void;
+  onDeleteEvent?: (id: string) => void;
 }
 
-const DEFAULT_EVENTS: SchoolEvent[] = [
+export const DEFAULT_EVENTS: SchoolEvent[] = [
   {
     id: "evt-1",
     title: "First Terminal Examination Reviews",
@@ -74,8 +77,22 @@ const MONTHS_2026 = [
 
 const DAYS_OF_WEEK = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
-export default function ToolsSection({ isAdmin = false }: ToolsSectionProps) {
-  const [events, setEvents] = useState<SchoolEvent[]>([]);
+export default function ToolsSection({ isAdmin = false, events: propsEvents, onAddEvent, onDeleteEvent }: ToolsSectionProps) {
+  const [events, setEvents] = useState<SchoolEvent[]>(() => {
+    if (propsEvents !== undefined) return propsEvents;
+    const cached = localStorage.getItem("shristi_calendar_events");
+    try {
+      return cached ? JSON.parse(cached) : DEFAULT_EVENTS;
+    } catch {
+      return DEFAULT_EVENTS;
+    }
+  });
+
+  useEffect(() => {
+    if (propsEvents !== undefined) {
+      setEvents(propsEvents);
+    }
+  }, [propsEvents]);
   const [calendarImage, setCalendarImage] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<"grid" | "poster">("grid");
   const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
@@ -285,11 +302,10 @@ export default function ToolsSection({ isAdmin = false }: ToolsSectionProps) {
 
   // Remove uploaded calendar image
   const handleRemoveImage = () => {
-    if (confirm("Are you sure you want to remove the custom uploaded calendar? It will revert to the default school bulletin display.")) {
-      setCalendarImage(null);
-      localStorage.removeItem("shristi_calendar_uploaded_image");
-      setActiveTab("grid");
-    }
+    setCalendarImage(null);
+    localStorage.removeItem("shristi_calendar_uploaded_image");
+    window.dispatchEvent(new Event("shristi_calendar_updated"));
+    setActiveTab("grid");
   };
 
   // Add event handler
@@ -311,8 +327,12 @@ export default function ToolsSection({ isAdmin = false }: ToolsSectionProps) {
       type: newEventType
     };
 
-    const updated = [added, ...events];
-    saveEvents(updated);
+    if (onAddEvent) {
+      onAddEvent(added);
+    } else {
+      const updated = [added, ...events];
+      saveEvents(updated);
+    }
 
     // reset fields
     setNewEventTitle("");
@@ -325,11 +345,13 @@ export default function ToolsSection({ isAdmin = false }: ToolsSectionProps) {
 
   // Delete event handler
   const handleDeleteEvent = (id: string) => {
-    if (confirm("Permanently remove this school event from the dynamic list?")) {
+    if (onDeleteEvent) {
+      onDeleteEvent(id);
+    } else {
       const updated = events.filter(e => e.id !== id);
       saveEvents(updated);
-      setSelectedDayEvents(prev => prev.filter(e => e.id !== id));
     }
+    setSelectedDayEvents(prev => prev.filter(e => e.id !== id));
   };
 
   // Month navigation

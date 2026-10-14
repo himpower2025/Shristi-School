@@ -1,8 +1,9 @@
 import { useState, useEffect, FormEvent, ChangeEvent } from "react";
 import { 
   Lock, Unlock, ShieldAlert, Sparkles, Send, FileEdit, 
-  Trash2, Plus, Megaphone, Users, Calendar, ArrowRight, UserCheck, CheckCircle2, Bookmark, Info, CircleAlert, HelpCircle,
-  BellRing, Image as ImageIcon, LayoutTemplate, Eye, Upload, Check, Power, Download, FileText, Edit3, X, Star, Save
+  Trash2, Plus, Megaphone, Users, Calendar, ArrowRight, ArrowLeft, UserCheck, CheckCircle2, Bookmark, Info, CircleAlert, HelpCircle,
+  BellRing, Image as ImageIcon, LayoutTemplate, Eye, Upload, Check, Power, Download, FileText, Edit3, X, Star, Save,
+  LayoutDashboard, GraduationCap, Search, Filter, MessageSquareQuote, ChevronRight, SlidersHorizontal, Clock, Layers
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { Notice, NoticeCategory, AdmissionQuery, SuggestionInquiry, PopupNoticeConfig, SchoolProfileConfig, GalleryItem, ParentReview, SchoolEvent } from "../types";
@@ -31,6 +32,14 @@ interface AdminPortalProps {
   onUpdateGalleryItems?: (items: GalleryItem[]) => void;
   reviews?: ParentReview[];
   onUpdateReviews?: (reviews: ParentReview[]) => void;
+  schoolEvents?: SchoolEvent[];
+  onAddSchoolEvent?: (event: SchoolEvent) => void;
+  onDeleteSchoolEvent?: (id: string) => void;
+  onUpdateSchoolEvents?: (events: SchoolEvent[]) => void;
+  onClearSampleNotices?: () => void;
+  onClearSampleEvents?: () => void;
+  onClearSamplePhotos?: () => void;
+  onClearAllSampleData?: () => void;
 }
 
 export default function AdminPortal({ 
@@ -54,7 +63,15 @@ export default function AdminPortal({
   galleryItems = [],
   onUpdateGalleryItems,
   reviews = [],
-  onUpdateReviews
+  onUpdateReviews,
+  schoolEvents,
+  onAddSchoolEvent,
+  onDeleteSchoolEvent,
+  onUpdateSchoolEvents,
+  onClearSampleNotices,
+  onClearSampleEvents,
+  onClearSamplePhotos,
+  onClearAllSampleData,
 }: AdminPortalProps) {
   // Login Gate State variables
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -64,15 +81,53 @@ export default function AdminPortal({
   const [loggedEmail, setLoggedEmail] = useState("");
 
   // CMS Tabs State variables
-  const [cmsTab, setCmsTab] = useState<"ManageNo" | "WritePost" | "Admit" | "Admins" | "ParentsVoice" | "PopupNotice" | "SchoolProfile" | "CampusGallery" | "ParentReviews" | "AcademicCalendar">("ManageNo");
+  type CmsTab = 
+    | "Overview" 
+    | "ManageNo" 
+    | "WritePost" 
+    | "Admit" 
+    | "Admins" 
+    | "ParentsVoice" 
+    | "PopupNotice" 
+    | "SchoolProfile" 
+    | "CampusGallery" 
+    | "ParentReviews" 
+    | "AcademicCalendar";
+
+  const [cmsTab, setCmsTab] = useState<CmsTab>("Overview");
+
+  // Search & Filter States for High Usability
+  const [noticeSearch, setNoticeSearch] = useState("");
+  const [noticeCategoryFilter, setNoticeCategoryFilter] = useState<string>("All");
+  const [admissionSearch, setAdmissionSearch] = useState("");
+  const [admissionStatusFilter, setAdmissionStatusFilter] = useState<string>("All");
+
+  // Admin feedback notification toast
+  const [adminToast, setAdminToast] = useState<string | null>(null);
+  const showAdminToast = (msg: string) => {
+    setAdminToast(msg);
+    setTimeout(() => setAdminToast(null), 3500);
+  };
 
   // School Calendar Management States & Real-Time Sync
   const [adminCalImage, setAdminCalImage] = useState<string | null>(() => localStorage.getItem("shristi_calendar_uploaded_image"));
   const [adminCalIsParsing, setAdminCalIsParsing] = useState(false);
   const [adminCalEvents, setAdminCalEvents] = useState<SchoolEvent[]>(() => {
+    if (schoolEvents && schoolEvents.length > 0) return schoolEvents;
     const cached = localStorage.getItem("shristi_calendar_events");
-    return cached ? JSON.parse(cached) : [];
+    try {
+      return cached ? JSON.parse(cached) : [];
+    } catch {
+      return [];
+    }
   });
+
+  useEffect(() => {
+    if (schoolEvents !== undefined) {
+      setAdminCalEvents(schoolEvents);
+    }
+  }, [schoolEvents]);
+
   const [calEventTitle, setCalEventTitle] = useState("");
   const [calEventDate, setCalEventDate] = useState("");
   const [calEventEndDate, setCalEventEndDate] = useState("");
@@ -104,6 +159,42 @@ export default function AdminPortal({
   }, []);
 
   // Helper to compress image before saving to localStorage to prevent quota errors
+  const compressImageFile = (file: File, maxDim = 1200, quality = 0.82): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const img = new Image();
+        img.onload = () => {
+          let width = img.width;
+          let height = img.height;
+          if (width > maxDim || height > maxDim) {
+            if (width > height) {
+              height = Math.round((height * maxDim) / width);
+              width = maxDim;
+            } else {
+              width = Math.round((width * maxDim) / height);
+              height = maxDim;
+            }
+          }
+          const canvas = document.createElement("canvas");
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext("2d");
+          if (ctx) {
+            ctx.drawImage(img, 0, 0, width, height);
+            resolve(canvas.toDataURL("image/jpeg", quality));
+          } else {
+            resolve(event.target?.result as string);
+          }
+        };
+        img.onerror = () => resolve(event.target?.result as string);
+        img.src = event.target?.result as string;
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  };
+
   const compressCalendarImage = (file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
       if (file.type === "application/pdf" || file.size < 400 * 1024) {
@@ -242,18 +333,17 @@ export default function AdminPortal({
   };
 
   const handleRemoveAdminCalImage = () => {
-    if (confirm("Are you sure you want to remove the custom uploaded calendar poster? It will revert to default bulletin view.")) {
-      setAdminCalImage(null);
-      localStorage.removeItem("shristi_calendar_uploaded_image");
-      window.dispatchEvent(new Event("shristi_calendar_updated"));
-      setCalSaveNotice("Removed custom calendar poster.");
-    }
+    setAdminCalImage(null);
+    localStorage.removeItem("shristi_calendar_uploaded_image");
+    window.dispatchEvent(new Event("shristi_calendar_updated"));
+    setCalSaveNotice("Removed custom calendar poster.");
+    showAdminToast("🗑️ Calendar poster removed. Reverted to default.");
   };
 
   const handleAddCalEventInAdmin = (e: FormEvent) => {
     e.preventDefault();
     if (!calEventTitle.trim() || !calEventDate.trim()) {
-      alert("Please fill in event title and date.");
+      showAdminToast("⚠️ Please fill in event title and date.");
       return;
     }
     const newEvt: SchoolEvent = {
@@ -266,25 +356,40 @@ export default function AdminPortal({
       description: calEventDesc.trim() || "Official Shristi Academy scheduled academic event.",
       type: calEventType,
     };
-    const updated = [newEvt, ...adminCalEvents];
-    setAdminCalEvents(updated);
-    localStorage.setItem("shristi_calendar_events", JSON.stringify(updated));
-    window.dispatchEvent(new Event("shristi_calendar_updated"));
+    if (onAddSchoolEvent) {
+      onAddSchoolEvent(newEvt);
+    } else {
+      const updated = [newEvt, ...adminCalEvents];
+      setAdminCalEvents(updated);
+      try {
+        localStorage.setItem("shristi_calendar_events", JSON.stringify(updated));
+      } catch (err) {
+        console.warn(err);
+      }
+      window.dispatchEvent(new Event("shristi_calendar_updated"));
+    }
     setCalEventTitle("");
     setCalEventDate("");
     setCalEventEndDate("");
     setCalEventDesc("");
     setCalSaveNotice("✅ Academic Calendar event added & published!");
-    alert("✅ Academic Calendar event added successfully!");
+    showAdminToast("✅ Academic Calendar event added & published!");
   };
 
   const handleDeleteCalEventInAdmin = (id: string) => {
-    if (confirm("Delete this event from the calendar schedule?")) {
+    if (onDeleteSchoolEvent) {
+      onDeleteSchoolEvent(id);
+    } else {
       const updated = adminCalEvents.filter((ev) => ev.id !== id);
       setAdminCalEvents(updated);
-      localStorage.setItem("shristi_calendar_events", JSON.stringify(updated));
+      try {
+        localStorage.setItem("shristi_calendar_events", JSON.stringify(updated));
+      } catch (err) {
+        console.warn(err);
+      }
       window.dispatchEvent(new Event("shristi_calendar_updated"));
     }
+    showAdminToast("🗑️ Calendar event deleted.");
   };
 
   // Review Edit & Manual Add States
@@ -330,34 +435,33 @@ export default function AdminPortal({
   const [showLivePreview, setShowLivePreview] = useState(false);
   const [showSpPreview, setShowSpPreview] = useState(false);
 
-  // File upload handler for Campus Gallery Photo
-  const handleGalleryFileUpload = (e: ChangeEvent<HTMLInputElement>) => {
+  // File upload handler for Campus Gallery Photo with automatic compression
+  const handleGalleryFileUpload = async (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     if (galleryItems.length >= 10) {
-      alert("Maximum limit of 10 photos reached! Please delete an existing photo before uploading a new one.");
+      showAdminToast("⚠️ Maximum limit of 10 photos reached! Please delete an existing photo before uploading a new one.");
       return;
     }
-    if (file.size > 15 * 1024 * 1024) {
-      alert("File is too large! Please select an image file under 15MB.");
-      return;
-    }
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const base64 = event.target?.result as string;
+    try {
+      showAdminToast("⏳ Optimizing image for web display...");
+      const base64 = await compressImageFile(file, 1200, 0.82);
       setGalImage(base64);
-    };
-    reader.readAsDataURL(file);
+      showAdminToast("✓ Photo ready for upload!");
+    } catch (err) {
+      console.error(err);
+      showAdminToast("⚠️ Could not process image. Please try a different JPG or PNG.");
+    }
   };
 
   const handleAddGalleryPhoto = (e: FormEvent) => {
     e.preventDefault();
     if (galleryItems.length >= 10) {
-      alert("Maximum limit of 10 photos reached! Please delete an existing photo before uploading a new one.");
+      showAdminToast("⚠️ Maximum limit of 10 photos reached! Please delete an existing photo before uploading a new one.");
       return;
     }
     if (!galImage) {
-      alert("Please select an image file to upload.");
+      showAdminToast("⚠️ Please select an image file to upload.");
       return;
     }
     const newItem: GalleryItem = {
@@ -376,15 +480,15 @@ export default function AdminPortal({
     setGalCategory("");
     setGalDescription("");
     setGalImage(null);
+    showAdminToast("🎉 Campus photo added to gallery!");
   };
 
   const handleDeleteGalleryPhoto = (id: string) => {
-    if (confirm("Are you sure you want to delete this photo from the campus gallery?")) {
-      const updated = galleryItems.filter(item => item.id !== id);
-      if (onUpdateGalleryItems) {
-        onUpdateGalleryItems(updated);
-      }
+    const updated = galleryItems.filter(item => item.id !== id);
+    if (onUpdateGalleryItems) {
+      onUpdateGalleryItems(updated);
     }
+    showAdminToast("🗑️ Photo removed from campus gallery.");
   };
 
   // File upload handler for School Profile PDF
@@ -586,6 +690,34 @@ export default function AdminPortal({
     setCmsTab("ManageNo");
   };
 
+  // Filtered lists for user-friendly searching
+  const filteredNotices = notices.filter((notice) => {
+    const q = noticeSearch.trim().toLowerCase();
+    const matchesSearch = !q || 
+      notice.title.toLowerCase().includes(q) ||
+      notice.content.toLowerCase().includes(q) ||
+      notice.targetAudience.toLowerCase().includes(q) ||
+      notice.author.toLowerCase().includes(q);
+    const matchesCategory = noticeCategoryFilter === "All" || notice.category === noticeCategoryFilter;
+    return matchesSearch && matchesCategory;
+  });
+
+  const filteredAdmissions = admissions.filter((admit) => {
+    const q = admissionSearch.trim().toLowerCase();
+    const matchesSearch = !q ||
+      admit.studentName.toLowerCase().includes(q) ||
+      admit.parentName.toLowerCase().includes(q) ||
+      admit.mobileNo.includes(q) ||
+      admit.email.toLowerCase().includes(q) ||
+      admit.gradeOfInterest.toLowerCase().includes(q);
+    const matchesStatus = admissionStatusFilter === "All" || admit.status === admissionStatusFilter;
+    return matchesSearch && matchesStatus;
+  });
+
+  const pendingAdmissionsCount = admissions.filter(a => a.status === "Pending").length;
+  const contactedAdmissionsCount = admissions.filter(a => a.status === "Contacted").length;
+  const approvedAdmissionsCount = admissions.filter(a => a.status === "Approved").length;
+
   return (
     <div className="py-24 px-4 bg-[#FAF9F6] border-t border-indigo-100 text-slate-850 font-sans min-h-[85vh] bg-dot-grid">
       <div className="max-w-7xl mx-auto">
@@ -679,237 +811,737 @@ export default function AdminPortal({
               className="space-y-8 text-left"
             >
               
-              {/* Dashboard header banner */}
-              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-6 bg-white border border-indigo-100 rounded-[32px] shadow-sm shadow-indigo-50">
-                <div className="flex items-center space-x-4">
-                  <div className="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-full flex items-center justify-center border border-indigo-100">
-                    <UserCheck className="w-6 h-6" />
+              {/* Modern Admin Navigation Bar */}
+              <div className="bg-white border border-slate-200/80 rounded-2xl p-4 md:p-5 shadow-xs space-y-3.5">
+                {/* Top Zone: Title, User Session & Quick Return / Logout */}
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 pb-3 border-b border-slate-100">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-10 h-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center shadow-md shadow-indigo-100">
+                      <LayoutDashboard className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <div className="flex items-center space-x-2">
+                        <h2 className="font-display font-extrabold text-base md:text-lg text-slate-900 tracking-tight">Shristi Academy Admin</h2>
+                        <span className="px-2 py-0.5 text-[10px] font-mono font-bold rounded-md bg-emerald-50 text-emerald-700 border border-emerald-100">
+                          Active Console
+                        </span>
+                      </div>
+                      <p className="text-xs text-slate-500">
+                        Staff Account: <span className="font-medium text-slate-700">{loggedEmail}</span>
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <h2 className="font-display font-black text-xl text-slate-900 tracking-tight">Shristi Academy Admin (Cabinet)</h2>
-                    <p className="text-[11px] text-indigo-600 font-mono font-bold">Status: <span className="text-pink-650 font-black">{loggedEmail}</span> Logged In • Live Sync Active</p>
+
+                  <div className="flex items-center space-x-2 shrink-0">
+                    <button 
+                      onClick={() => setCmsTab("Overview")}
+                      className={`px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center space-x-1.5 transition-colors cursor-pointer ${
+                        cmsTab === "Overview" 
+                          ? "bg-indigo-600 text-white shadow-xs" 
+                          : "bg-slate-100 hover:bg-slate-200 text-slate-700"
+                      }`}
+                    >
+                      <LayoutDashboard className="w-3.5 h-3.5" />
+                      <span>Dashboard Hub</span>
+                    </button>
+
+                    <button 
+                      onClick={() => setIsLoggedIn(false)}
+                      className="px-3.5 py-2 bg-slate-100 hover:bg-rose-50 text-slate-600 hover:text-rose-600 rounded-xl border border-slate-200 text-xs font-medium cursor-pointer transition-colors"
+                    >
+                      Logout
+                    </button>
                   </div>
                 </div>
 
-                <div className="flex space-x-2">
-                  <button 
-                    onClick={() => setIsLoggedIn(false)}
-                    className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 hover:text-slate-800 rounded-xl border border-slate-200 text-xs font-mono font-bold cursor-pointer transition-colors"
+                {/* Categorized Primary Navigation */}
+                <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-thin">
+                  {/* 1. Dashboard Hub */}
+                  <button
+                    onClick={() => setCmsTab("Overview")}
+                    className={`px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all flex items-center space-x-2 cursor-pointer ${
+                      cmsTab === "Overview"
+                        ? "bg-slate-900 text-white shadow-xs"
+                        : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+                    }`}
                   >
-                    Secure Logout
+                    <LayoutDashboard className="w-3.5 h-3.5" />
+                    <span>Overview</span>
+                  </button>
+
+                  {/* 2. Notices & News */}
+                  <button
+                    onClick={() => setCmsTab("ManageNo")}
+                    className={`px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all flex items-center space-x-2 cursor-pointer ${
+                      cmsTab === "ManageNo" || cmsTab === "WritePost" || cmsTab === "PopupNotice"
+                        ? "bg-slate-900 text-white shadow-xs"
+                        : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+                    }`}
+                  >
+                    <Megaphone className="w-3.5 h-3.5" />
+                    <span>Notices & Popup</span>
+                    <span className={`text-[10px] px-1.5 py-0.5 rounded-md font-mono ${
+                      cmsTab === "ManageNo" || cmsTab === "WritePost" || cmsTab === "PopupNotice"
+                        ? "bg-slate-700 text-white"
+                        : "bg-slate-200 text-slate-700"
+                    }`}>
+                      {notices.length}
+                    </span>
+                  </button>
+
+                  {/* 3. Admissions */}
+                  <button
+                    onClick={() => setCmsTab("Admit")}
+                    className={`px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all flex items-center space-x-2 cursor-pointer ${
+                      cmsTab === "Admit"
+                        ? "bg-slate-900 text-white shadow-xs"
+                        : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+                    }`}
+                  >
+                    <GraduationCap className="w-3.5 h-3.5" />
+                    <span>Admissions</span>
+                    <span className={`text-[10px] px-1.5 py-0.5 rounded-md font-mono ${
+                      cmsTab === "Admit"
+                        ? "bg-slate-700 text-white"
+                        : "bg-slate-200 text-slate-700"
+                    }`}>
+                      {admissions.length}
+                    </span>
+                    {pendingAdmissionsCount > 0 && (
+                      <span className="w-2 h-2 rounded-full bg-amber-500" title={`${pendingAdmissionsCount} pending inquiry`} />
+                    )}
+                  </button>
+
+                  {/* 4. Academic Calendar */}
+                  <button
+                    onClick={() => setCmsTab("AcademicCalendar")}
+                    className={`px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all flex items-center space-x-2 cursor-pointer ${
+                      cmsTab === "AcademicCalendar"
+                        ? "bg-slate-900 text-white shadow-xs"
+                        : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+                    }`}
+                  >
+                    <Calendar className="w-3.5 h-3.5" />
+                    <span>Academic Calendar</span>
+                    <span className={`text-[10px] px-1.5 py-0.5 rounded-md font-mono ${
+                      cmsTab === "AcademicCalendar"
+                        ? "bg-slate-700 text-white"
+                        : "bg-slate-200 text-slate-700"
+                    }`}>
+                      {adminCalEvents.length}
+                    </span>
+                  </button>
+
+                  {/* 5. School Showcase (Profile, Gallery, Reviews) */}
+                  <button
+                    onClick={() => setCmsTab("SchoolProfile")}
+                    className={`px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all flex items-center space-x-2 cursor-pointer ${
+                      cmsTab === "SchoolProfile" || cmsTab === "CampusGallery" || cmsTab === "ParentReviews"
+                        ? "bg-slate-900 text-white shadow-xs"
+                        : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+                    }`}
+                  >
+                    <ImageIcon className="w-3.5 h-3.5" />
+                    <span>School Showcase</span>
+                  </button>
+
+                  {/* 6. Parents' Voice */}
+                  <button
+                    onClick={() => setCmsTab("ParentsVoice")}
+                    className={`px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all flex items-center space-x-2 cursor-pointer ${
+                      cmsTab === "ParentsVoice"
+                        ? "bg-slate-900 text-white shadow-xs"
+                        : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+                    }`}
+                  >
+                    <MessageSquareQuote className="w-3.5 h-3.5" />
+                    <span>Parents' Voice</span>
+                    <span className={`text-[10px] px-1.5 py-0.5 rounded-md font-mono ${
+                      cmsTab === "ParentsVoice"
+                        ? "bg-slate-700 text-white"
+                        : "bg-slate-200 text-slate-700"
+                    }`}>
+                      {suggestions.length}
+                    </span>
+                  </button>
+
+                  {/* 7. Admin Accounts */}
+                  <button
+                    onClick={() => setCmsTab("Admins")}
+                    className={`px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all flex items-center space-x-2 cursor-pointer ${
+                      cmsTab === "Admins"
+                        ? "bg-slate-900 text-white shadow-xs"
+                        : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+                    }`}
+                  >
+                    <Users className="w-3.5 h-3.5" />
+                    <span>Admin Staff</span>
+                    <span className={`text-[10px] px-1.5 py-0.5 rounded-md font-mono ${
+                      cmsTab === "Admins"
+                        ? "bg-slate-700 text-white"
+                        : "bg-slate-200 text-slate-700"
+                    }`}>
+                      {authorizedAdmins.length}
+                    </span>
                   </button>
                 </div>
+
+                {/* Contextual Sub-Navigation */}
+                {(cmsTab === "ManageNo" || cmsTab === "WritePost" || cmsTab === "PopupNotice") && (
+                  <div className="pt-2 border-t border-slate-100 flex items-center gap-2 overflow-x-auto text-xs">
+                    <span className="text-slate-400 font-medium shrink-0">Notices & Alerts:</span>
+                    <button
+                      onClick={() => setCmsTab("ManageNo")}
+                      className={`px-3 py-1.5 rounded-lg font-medium transition-colors cursor-pointer ${
+                        cmsTab === "ManageNo" ? "bg-indigo-50 text-indigo-700 font-semibold border border-indigo-200" : "text-slate-600 hover:bg-slate-100"
+                      }`}
+                    >
+                      Notice Board ({notices.length})
+                    </button>
+                    <button
+                      onClick={() => setCmsTab("WritePost")}
+                      className={`px-3 py-1.5 rounded-lg font-medium transition-colors cursor-pointer ${
+                        cmsTab === "WritePost" ? "bg-indigo-50 text-indigo-700 font-semibold border border-indigo-200" : "text-slate-600 hover:bg-slate-100"
+                      }`}
+                    >
+                      {editingNoticeId ? "✏️ Edit Notice" : "+ Post New Notice"}
+                    </button>
+                    <button
+                      onClick={() => setCmsTab("PopupNotice")}
+                      className={`px-3 py-1.5 rounded-lg font-medium transition-colors cursor-pointer flex items-center space-x-1.5 ${
+                        cmsTab === "PopupNotice" ? "bg-indigo-50 text-indigo-700 font-semibold border border-indigo-200" : "text-slate-600 hover:bg-slate-100"
+                      }`}
+                    >
+                      <BellRing className="w-3 h-3" />
+                      <span>Homepage Popup ({popEnabled ? "Active" : "Off"})</span>
+                    </button>
+                  </div>
+                )}
+
+                {(cmsTab === "SchoolProfile" || cmsTab === "CampusGallery" || cmsTab === "ParentReviews") && (
+                  <div className="pt-2 border-t border-slate-100 flex items-center gap-2 overflow-x-auto text-xs">
+                    <span className="text-slate-400 font-medium shrink-0">Showcase Media:</span>
+                    <button
+                      onClick={() => setCmsTab("SchoolProfile")}
+                      className={`px-3 py-1.5 rounded-lg font-medium transition-colors cursor-pointer ${
+                        cmsTab === "SchoolProfile" ? "bg-indigo-50 text-indigo-700 font-semibold border border-indigo-200" : "text-slate-600 hover:bg-slate-100"
+                      }`}
+                    >
+                      School Profile PDF
+                    </button>
+                    <button
+                      onClick={() => setCmsTab("CampusGallery")}
+                      className={`px-3 py-1.5 rounded-lg font-medium transition-colors cursor-pointer ${
+                        cmsTab === "CampusGallery" ? "bg-indigo-50 text-indigo-700 font-semibold border border-indigo-200" : "text-slate-600 hover:bg-slate-100"
+                      }`}
+                    >
+                      Campus Gallery ({galleryItems.length}/10)
+                    </button>
+                    <button
+                      onClick={() => setCmsTab("ParentReviews")}
+                      className={`px-3 py-1.5 rounded-lg font-medium transition-colors cursor-pointer ${
+                        cmsTab === "ParentReviews" ? "bg-indigo-50 text-indigo-700 font-semibold border border-indigo-200" : "text-slate-600 hover:bg-slate-100"
+                      }`}
+                    >
+                      Parent Reviews ({reviews.length})
+                    </button>
+                  </div>
+                )}
               </div>
-
-              {/* CRM Navigation Tabs */}
-              <div className="flex space-x-2 border-b border-indigo-50/50 pb-2 overflow-x-auto whitespace-nowrap">
-                <button
-                  onClick={() => setCmsTab("ManageNo")}
-                  className={`px-4 py-3 rounded-2xl text-xs font-mono font-black tracking-wider transition-all cursor-pointer ${
-                    cmsTab === "ManageNo"
-                      ? "bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-md shadow-indigo-100"
-                      : "text-slate-500 hover:text-indigo-600 hover:bg-slate-100/50"
-                  }`}
-                >
-                  📰 ANNOUNCEMENTS ({notices.length})
-                </button>
-                
-                <button
-                  onClick={() => setCmsTab("WritePost")}
-                  className={`px-4 py-3 rounded-2xl text-xs font-mono font-black tracking-wider transition-all cursor-pointer ${
-                    cmsTab === "WritePost"
-                      ? "bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-md shadow-indigo-100"
-                      : "text-slate-500 hover:text-indigo-600 hover:bg-slate-100/50"
-                  }`}
-                >
-                  {editingNoticeId ? "✏️ EDIT NOTICE" : "➕ CREATE NOTICE"}
-                </button>
-
-                <button
-                  onClick={() => setCmsTab("Admit")}
-                  className={`px-4 py-3 rounded-2xl text-xs font-mono font-black tracking-wider transition-all cursor-pointer ${
-                    cmsTab === "Admit"
-                      ? "bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-md shadow-indigo-100"
-                      : "text-slate-500 hover:text-indigo-600 hover:bg-slate-100/50"
-                  }`}
-                >
-                  🎓 ADMISSIONS ({admissions.length})
-                </button>
-
-                <button
-                  onClick={() => setCmsTab("Admins")}
-                  className={`px-4 py-3 rounded-2xl text-xs font-mono font-black tracking-wider transition-all cursor-pointer ${
-                    cmsTab === "Admins"
-                      ? "bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-md shadow-indigo-100"
-                      : "text-slate-500 hover:text-indigo-600 hover:bg-slate-100/50"
-                  }`}
-                >
-                  👥 MANAGE ADMINS ({authorizedAdmins.length})
-                </button>
-
-                <button
-                  onClick={() => setCmsTab("ParentsVoice")}
-                  className={`px-4 py-3 rounded-2xl text-xs font-mono font-black tracking-wider transition-all cursor-pointer ${
-                    cmsTab === "ParentsVoice"
-                      ? "bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-md shadow-indigo-100"
-                      : "text-slate-500 hover:text-indigo-600 hover:bg-slate-100/50"
-                  }`}
-                >
-                  💬 PARENTS' VOICE ({suggestions.length})
-                </button>
-
-                <button
-                  onClick={() => setCmsTab("PopupNotice")}
-                  className={`px-4 py-3 rounded-2xl text-xs font-mono font-black tracking-wider transition-all cursor-pointer flex items-center space-x-1.5 ${
-                    cmsTab === "PopupNotice"
-                      ? "bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-md shadow-indigo-100"
-                      : "text-slate-500 hover:text-indigo-600 hover:bg-slate-100/50"
-                  }`}
-                >
-                  <BellRing className="w-3.5 h-3.5 text-pink-300" />
-                  <span>📢 POPUP ANNOUNCEMENT {popEnabled ? "(ACTIVE)" : "(OFF)"}</span>
-                </button>
-
-                <button
-                  onClick={() => setCmsTab("SchoolProfile")}
-                  className={`px-4 py-3 rounded-2xl text-xs font-mono font-black tracking-wider transition-all cursor-pointer flex items-center space-x-1.5 ${
-                    cmsTab === "SchoolProfile"
-                      ? "bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-md shadow-indigo-100"
-                      : "text-slate-500 hover:text-indigo-600 hover:bg-slate-100/50"
-                  }`}
-                >
-                  <FileText className="w-3.5 h-3.5 text-pink-300" />
-                  <span>📄 SCHOOL PROFILE (PDF)</span>
-                </button>
-
-                <button
-                  onClick={() => setCmsTab("CampusGallery")}
-                  className={`px-4 py-3 rounded-2xl text-xs font-mono font-black tracking-wider transition-all cursor-pointer flex items-center space-x-1.5 ${
-                    cmsTab === "CampusGallery"
-                      ? "bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-md shadow-indigo-100"
-                      : "text-slate-500 hover:text-indigo-600 hover:bg-slate-100/50"
-                  }`}
-                >
-                  <ImageIcon className="w-3.5 h-3.5 text-pink-300" />
-                  <span>🖼️ CAMPUS GALLERY ({galleryItems.length}/10)</span>
-                </button>
-
-                <button
-                  onClick={() => setCmsTab("AcademicCalendar")}
-                  className={`px-4 py-3 rounded-2xl text-xs font-mono font-black tracking-wider transition-all cursor-pointer flex items-center space-x-1.5 ${
-                    cmsTab === "AcademicCalendar"
-                      ? "bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-md shadow-indigo-100"
-                      : "text-slate-500 hover:text-indigo-600 hover:bg-slate-100/50"
-                  }`}
-                >
-                  <Calendar className="w-3.5 h-3.5 text-emerald-400" />
-                  <span>📅 SCHOOL CALENDAR ({adminCalEvents.length})</span>
-                </button>
-
-                <button
-                  onClick={() => setCmsTab("ParentReviews")}
-                  className={`px-4 py-3 rounded-2xl text-xs font-mono font-black tracking-wider transition-all cursor-pointer flex items-center space-x-1.5 ${
-                    cmsTab === "ParentReviews"
-                      ? "bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-md shadow-indigo-100"
-                      : "text-slate-500 hover:text-indigo-600 hover:bg-slate-100/50"
-                  }`}
-                >
-                  <Sparkles className="w-3.5 h-3.5 text-amber-300" />
-                  <span>⭐ PARENT REVIEWS ({reviews.length})</span>
-                </button>
-              </div>
-
 
               {/* Tab Outputs */}
               <div className="min-h-[400px]">
+
+                {/* TAB 0: DASHBOARD OVERVIEW / COMMAND CENTER */}
+                {cmsTab === "Overview" && (
+                  <div className="space-y-6">
+                    {/* Welcome Hero Banner */}
+                    <div className="bg-gradient-to-br from-indigo-950 via-slate-900 to-indigo-900 text-white rounded-3xl p-6 md:p-8 shadow-lg relative overflow-hidden">
+                      <div className="relative z-10 max-w-2xl space-y-2">
+                        <span className="text-xs font-mono font-semibold tracking-wider uppercase text-indigo-300">
+                          Shristi Academy Administration Portal
+                        </span>
+                        <h3 className="font-display font-black text-2xl md:text-3xl tracking-tight text-white">
+                          Welcome to the Administrative Center
+                        </h3>
+                        <p className="text-sm text-indigo-150 leading-relaxed">
+                          Manage announcements, academic calendar dates, student admission inquiries, and official school media all in one place. Select any task below to update.
+                        </p>
+                      </div>
+                      <div className="absolute right-6 -bottom-6 opacity-10 text-white pointer-events-none hidden md:block">
+                        <LayoutDashboard className="w-56 h-56" />
+                      </div>
+                    </div>
+
+                    {/* Real-time Summary KPI Strip */}
+                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+                      {/* 1. Notices */}
+                      <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs space-y-1">
+                        <div className="flex items-center justify-between text-slate-500">
+                          <span className="text-xs font-medium">Public Notices</span>
+                          <Megaphone className="w-4 h-4 text-indigo-600" />
+                        </div>
+                        <p className="text-2xl font-bold font-mono tabular-nums text-slate-900">{notices.length}</p>
+                        <p className="text-[11px] text-slate-400">{notices.filter(n => n.pinned).length} pinned notices</p>
+                      </div>
+
+                      {/* 2. Admissions */}
+                      <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs space-y-1">
+                        <div className="flex items-center justify-between text-slate-500">
+                          <span className="text-xs font-medium">Admissions</span>
+                          <GraduationCap className="w-4 h-4 text-purple-600" />
+                        </div>
+                        <p className="text-2xl font-bold font-mono tabular-nums text-slate-900">{admissions.length}</p>
+                        <p className="text-[11px] text-amber-600 font-semibold">{pendingAdmissionsCount} pending</p>
+                      </div>
+
+                      {/* 3. Calendar */}
+                      <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs space-y-1">
+                        <div className="flex items-center justify-between text-slate-500">
+                          <span className="text-xs font-medium">Calendar Events</span>
+                          <Calendar className="w-4 h-4 text-emerald-600" />
+                        </div>
+                        <p className="text-2xl font-bold font-mono tabular-nums text-slate-900">{adminCalEvents.length}</p>
+                        <p className="text-[11px] text-slate-400">{adminCalImage ? "Poster uploaded" : "No poster"}</p>
+                      </div>
+
+                      {/* 4. Popup Banner */}
+                      <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs space-y-1">
+                        <div className="flex items-center justify-between text-slate-500">
+                          <span className="text-xs font-medium">Homepage Popup</span>
+                          <BellRing className="w-4 h-4 text-pink-600" />
+                        </div>
+                        <p className={`text-base font-bold font-mono ${popEnabled ? "text-emerald-600" : "text-slate-400"}`}>
+                          {popEnabled ? "ACTIVE" : "OFF"}
+                        </p>
+                        <p className="text-[11px] text-slate-400">{popEnabled ? "Showing to visitors" : "Not displayed"}</p>
+                      </div>
+
+                      {/* 5. Inquiries */}
+                      <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs space-y-1">
+                        <div className="flex items-center justify-between text-slate-500">
+                          <span className="text-xs font-medium">Parents' Voice</span>
+                          <MessageSquareQuote className="w-4 h-4 text-blue-600" />
+                        </div>
+                        <p className="text-2xl font-bold font-mono tabular-nums text-slate-900">{suggestions.length}</p>
+                        <p className="text-[11px] text-slate-400">Total received</p>
+                      </div>
+
+                      {/* 6. Gallery */}
+                      <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs space-y-1">
+                        <div className="flex items-center justify-between text-slate-500">
+                          <span className="text-xs font-medium">Gallery Photos</span>
+                          <ImageIcon className="w-4 h-4 text-amber-600" />
+                        </div>
+                        <p className="text-2xl font-bold font-mono tabular-nums text-slate-900">{galleryItems.length}/10</p>
+                        <p className="text-[11px] text-slate-400">{reviews.length} Parent reviews</p>
+                      </div>
+                    </div>
+
+                    {/* Section: Task Launchpad (What would you like to update?) */}
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h4 className="font-display font-extrabold text-base text-slate-900">Direct Management Hub</h4>
+                          <p className="text-xs text-slate-500">Click any card to open and update that feature</p>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {/* Card 1: Notices & Announcements */}
+                        <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs hover:border-indigo-400 hover:shadow-md transition-all flex flex-col justify-between space-y-4">
+                          <div className="space-y-2">
+                            <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
+                              <Megaphone className="w-5 h-5" />
+                            </div>
+                            <h5 className="font-bold text-slate-900 text-sm">School Notices & News</h5>
+                            <p className="text-xs text-slate-500 leading-relaxed">
+                              Publish official directives, exam routines, holiday updates, and pin important announcements to the homepage.
+                            </p>
+                          </div>
+                          <div className="flex items-center gap-2 pt-2 border-t border-slate-100">
+                            <button
+                              onClick={() => setCmsTab("ManageNo")}
+                              className="px-3 py-1.5 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-xs font-medium cursor-pointer transition-colors"
+                            >
+                              View List ({notices.length})
+                            </button>
+                            <button
+                              onClick={() => setCmsTab("WritePost")}
+                              className="px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-lg text-xs font-medium cursor-pointer transition-colors"
+                            >
+                              + Post New
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Card 2: Academic Calendar */}
+                        <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs hover:border-emerald-400 hover:shadow-md transition-all flex flex-col justify-between space-y-4">
+                          <div className="space-y-2">
+                            <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                              <Calendar className="w-5 h-5" />
+                            </div>
+                            <h5 className="font-bold text-slate-900 text-sm">Academic Calendar & Events</h5>
+                            <p className="text-xs text-slate-500 leading-relaxed">
+                              Upload the official calendar poster, auto-scan dates with AI, and manage multi-day vacations or single-day events.
+                            </p>
+                          </div>
+                          <div className="flex items-center justify-between pt-2 border-t border-slate-100">
+                            <span className="text-xs text-slate-500 font-mono font-medium">{adminCalEvents.length} events scheduled</span>
+                            <button
+                              onClick={() => setCmsTab("AcademicCalendar")}
+                              className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-medium cursor-pointer transition-colors flex items-center space-x-1"
+                            >
+                              <span>Manage Calendar</span>
+                              <ArrowRight className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Card 3: Homepage Popup Announcement */}
+                        <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs hover:border-pink-400 hover:shadow-md transition-all flex flex-col justify-between space-y-4">
+                          <div className="space-y-2">
+                            <div className="w-10 h-10 rounded-xl bg-pink-50 text-pink-600 flex items-center justify-center">
+                              <BellRing className="w-5 h-5" />
+                            </div>
+                            <div className="flex items-center justify-between">
+                              <h5 className="font-bold text-slate-900 text-sm">Homepage Popup Modal</h5>
+                              <span className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold ${popEnabled ? "bg-emerald-50 text-emerald-700" : "bg-slate-100 text-slate-500"}`}>
+                                {popEnabled ? "Active" : "Off"}
+                              </span>
+                            </div>
+                            <p className="text-xs text-slate-500 leading-relaxed">
+                              Display an emergency notice or admission opening popup banner when visitors first open the school homepage.
+                            </p>
+                          </div>
+                          <div className="flex items-center justify-between pt-2 border-t border-slate-100">
+                            <button
+                              onClick={() => {
+                                const nextState = !popEnabled;
+                                setPopEnabled(nextState);
+                                onUpdatePopupConfig({ ...popupConfig, enabled: nextState });
+                              }}
+                              className={`px-3 py-1.5 rounded-lg text-xs font-medium cursor-pointer transition-colors ${
+                                popEnabled ? "bg-rose-50 text-rose-600 hover:bg-rose-100" : "bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
+                              }`}
+                            >
+                              {popEnabled ? "Turn Off" : "Turn On"}
+                            </button>
+                            <button
+                              onClick={() => setCmsTab("PopupNotice")}
+                              className="px-3 py-1.5 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-xs font-medium cursor-pointer transition-colors flex items-center space-x-1"
+                            >
+                              <span>Configure</span>
+                              <ArrowRight className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Card 4: Online Admissions */}
+                        <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs hover:border-purple-400 hover:shadow-md transition-all flex flex-col justify-between space-y-4">
+                          <div className="space-y-2">
+                            <div className="w-10 h-10 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center">
+                              <GraduationCap className="w-5 h-5" />
+                            </div>
+                            <div className="flex items-center justify-between">
+                              <h5 className="font-bold text-slate-900 text-sm">Admissions Pipeline</h5>
+                              {pendingAdmissionsCount > 0 && (
+                                <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-amber-50 text-amber-700 border border-amber-100">
+                                  {pendingAdmissionsCount} Pending
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-xs text-slate-500 leading-relaxed">
+                              Review incoming student admission forms. Call parents directly, change applicant status, or remove completed records.
+                            </p>
+                          </div>
+                          <div className="flex items-center justify-between pt-2 border-t border-slate-100">
+                            <span className="text-xs text-slate-500 font-mono font-medium">{admissions.length} applications</span>
+                            <button
+                              onClick={() => setCmsTab("Admit")}
+                              className="px-3 py-1.5 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-xs font-medium cursor-pointer transition-colors flex items-center space-x-1"
+                            >
+                              <span>Review Inquiries</span>
+                              <ArrowRight className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Card 5: School Profile PDF */}
+                        <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs hover:border-blue-400 hover:shadow-md transition-all flex flex-col justify-between space-y-4">
+                          <div className="space-y-2">
+                            <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
+                              <FileText className="w-5 h-5" />
+                            </div>
+                            <h5 className="font-bold text-slate-900 text-sm">School Profile Brochure (PDF)</h5>
+                            <p className="text-xs text-slate-500 leading-relaxed">
+                              Manage the official prospectus document that parents and prospective students can view or download.
+                            </p>
+                          </div>
+                          <div className="flex items-center justify-between pt-2 border-t border-slate-100">
+                            <span className="text-xs text-slate-500 truncate max-w-[140px] font-mono">{spFileName}</span>
+                            <button
+                              onClick={() => setCmsTab("SchoolProfile")}
+                              className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-medium cursor-pointer transition-colors flex items-center space-x-1"
+                            >
+                              <span>Manage PDF</span>
+                              <ArrowRight className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Card 6: Campus Photo Gallery */}
+                        <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs hover:border-amber-400 hover:shadow-md transition-all flex flex-col justify-between space-y-4">
+                          <div className="space-y-2">
+                            <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center">
+                              <ImageIcon className="w-5 h-5" />
+                            </div>
+                            <h5 className="font-bold text-slate-900 text-sm">Campus Photo Gallery</h5>
+                            <p className="text-xs text-slate-500 leading-relaxed">
+                              Upload photos of labs, library, sports, cultural events, and classrooms to showcase the vibrant campus life.
+                            </p>
+                          </div>
+                          <div className="flex items-center justify-between pt-2 border-t border-slate-100">
+                            <span className="text-xs text-slate-500 font-mono font-medium">{galleryItems.length}/10 photos</span>
+                            <button
+                              onClick={() => setCmsTab("CampusGallery")}
+                              className="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-xs font-medium cursor-pointer transition-colors flex items-center space-x-1"
+                            >
+                              <span>Manage Gallery</span>
+                              <ArrowRight className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Card 7: Parent Reviews */}
+                        <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs hover:border-indigo-400 hover:shadow-md transition-all flex flex-col justify-between space-y-4">
+                          <div className="space-y-2">
+                            <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
+                              <Star className="w-5 h-5" />
+                            </div>
+                            <h5 className="font-bold text-slate-900 text-sm">Parent Reviews & Ratings</h5>
+                            <p className="text-xs text-slate-500 leading-relaxed">
+                              Add or edit verified parent testimonials and star ratings featured on the homepage.
+                            </p>
+                          </div>
+                          <div className="flex items-center justify-between pt-2 border-t border-slate-100">
+                            <span className="text-xs text-slate-500 font-mono font-medium">{reviews.length} reviews</span>
+                            <button
+                              onClick={() => setCmsTab("ParentReviews")}
+                              className="px-3 py-1.5 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-xs font-medium cursor-pointer transition-colors flex items-center space-x-1"
+                            >
+                              <span>Manage Reviews</span>
+                              <ArrowRight className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Card 8: Parents' Voice */}
+                        <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs hover:border-blue-400 hover:shadow-md transition-all flex flex-col justify-between space-y-4">
+                          <div className="space-y-2">
+                            <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
+                              <MessageSquareQuote className="w-5 h-5" />
+                            </div>
+                            <h5 className="font-bold text-slate-900 text-sm">Parents' Voice & Inquiries</h5>
+                            <p className="text-xs text-slate-500 leading-relaxed">
+                              Read questions and feedback submitted by parents and publish official administrative replies.
+                            </p>
+                          </div>
+                          <div className="flex items-center justify-between pt-2 border-t border-slate-100">
+                            <span className="text-xs text-slate-500 font-mono font-medium">{suggestions.length} inquiries</span>
+                            <button
+                              onClick={() => setCmsTab("ParentsVoice")}
+                              className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-medium cursor-pointer transition-colors flex items-center space-x-1"
+                            >
+                              <span>View & Reply</span>
+                              <ArrowRight className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Card 9: Admin Accounts */}
+                        <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs hover:border-slate-400 hover:shadow-md transition-all flex flex-col justify-between space-y-4">
+                          <div className="space-y-2">
+                            <div className="w-10 h-10 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center">
+                              <Users className="w-5 h-5" />
+                            </div>
+                            <h5 className="font-bold text-slate-900 text-sm">Admin Staff Accounts</h5>
+                            <p className="text-xs text-slate-500 leading-relaxed">
+                              Manage authorized school staff emails permitted to log in, review security instructions, and credentials.
+                            </p>
+                          </div>
+                          <div className="flex items-center justify-between pt-2 border-t border-slate-100">
+                            <span className="text-xs text-slate-500 font-mono font-medium">{authorizedAdmins.length} authorized staff</span>
+                            <button
+                              onClick={() => setCmsTab("Admins")}
+                              className="px-3 py-1.5 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-xs font-medium cursor-pointer transition-colors flex items-center space-x-1"
+                            >
+                              <span>Manage Staff</span>
+                              <ArrowRight className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
                 
                 {/* TAB 1: MANAGE PUBLIC NOTICES */}
                 {cmsTab === "ManageNo" && (
                   <div className="space-y-4">
-                    <div className="flex justify-between items-center bg-white p-4 border border-indigo-100/50 rounded-2xl shadow-sm">
-                      <p className="text-xs text-slate-500 font-bold font-mono">
-                        Showing all current notices active on the Shristi public home board.
-                      </p>
-                      <button
-                        onClick={() => setCmsTab("WritePost")}
-                        className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-mono font-bold flex items-center space-x-1.5 transition-colors cursor-pointer"
-                      >
-                        <Plus className="w-3.5 h-3.5" />
-                        <span>QUICK CREATE</span>
-                      </button>
+                    {/* Header with Breadcrumb */}
+                    <div className="bg-white p-5 border border-slate-200/80 rounded-2xl shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+                      <div>
+                        <div className="flex items-center space-x-2 text-xs text-slate-400 mb-1">
+                          <button 
+                            type="button" 
+                            onClick={() => setCmsTab("Overview")} 
+                            className="hover:text-indigo-600 transition-colors flex items-center space-x-1 cursor-pointer"
+                          >
+                            <ArrowLeft className="w-3.5 h-3.5" />
+                            <span>Dashboard Hub</span>
+                          </button>
+                          <span>/</span>
+                          <span className="text-slate-700 font-medium">Notices & News</span>
+                        </div>
+                        <h4 className="font-display font-extrabold text-slate-900 text-lg">School Announcements & Circulars</h4>
+                        <p className="text-xs text-slate-500 mt-0.5">
+                          Notices published here are displayed live on the homepage noticeboard.
+                        </p>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        {onClearSampleNotices && notices.some(n => ["notice-1", "notice-2", "notice-3", "notice-4"].includes(n.id)) && (
+                          <button
+                            type="button"
+                            onClick={onClearSampleNotices}
+                            className="px-3.5 py-2 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 rounded-xl text-xs font-semibold cursor-pointer transition-colors"
+                          >
+                            Clear Sample Notices
+                          </button>
+                        )}
+                        <button
+                          onClick={() => setCmsTab("WritePost")}
+                          className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-semibold flex items-center space-x-1.5 transition-colors cursor-pointer shadow-xs"
+                        >
+                          <Plus className="w-3.5 h-3.5" />
+                          <span>+ Post New Notice</span>
+                        </button>
+                      </div>
                     </div>
 
-                    {notices.length > 0 ? (
-                      <div className="overflow-x-auto bg-white border border-indigo-100 rounded-[28px] shadow-xl shadow-indigo-100/10">
+                    {/* Search & Category Filter Bar */}
+                    <div className="bg-white p-3.5 border border-slate-200/80 rounded-2xl shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                      <div className="relative flex-1 max-w-md">
+                        <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                        <input
+                          type="text"
+                          placeholder="Search notices by title, content, or audience..."
+                          value={noticeSearch}
+                          onChange={(e) => setNoticeSearch(e.target.value)}
+                          className="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600"
+                        />
+                        {noticeSearch && (
+                          <button
+                            type="button"
+                            onClick={() => setNoticeSearch("")}
+                            className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-xs"
+                          >
+                            ×
+                          </button>
+                        )}
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-slate-500 font-medium shrink-0">Category:</span>
+                        <select
+                          value={noticeCategoryFilter}
+                          onChange={(e) => setNoticeCategoryFilter(e.target.value)}
+                          className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-700 font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                        >
+                          <option value="All">All Categories ({notices.length})</option>
+                          <option value="Academic">Academic</option>
+                          <option value="Event">Event</option>
+                          <option value="Exam">Exam</option>
+                          <option value="Result">Result</option>
+                          <option value="Holiday">Holiday</option>
+                        </select>
+
+                        <span className="text-xs text-slate-400 font-mono hidden md:inline">
+                          Showing {filteredNotices.length} of {notices.length}
+                        </span>
+                      </div>
+                    </div>
+
+                    {filteredNotices.length > 0 ? (
+                      <div className="overflow-x-auto bg-white border border-slate-200/80 rounded-2xl shadow-xs">
                         <table className="w-full text-slate-800 font-sans text-xs text-left min-w-[700px]">
-                          <thead className="bg-[#FAF9F6] text-slate-500 font-mono font-bold text-[10px] tracking-wider border-b border-indigo-50 uppercase">
+                          <thead className="bg-slate-50 text-slate-500 font-mono font-bold text-[10px] tracking-wider border-b border-slate-100 uppercase">
                             <tr>
-                              <th className="py-4 px-6">STAFF STATE</th>
-                              <th className="py-4 px-6">NOTICE FILE TITLE</th>
-                              <th className="py-4 px-6">CATEGORY</th>
-                              <th className="py-4 px-6">AUDIENCE TARGET</th>
-                              <th className="py-4 px-6 text-right">METRIC ACTIONS</th>
+                              <th className="py-3.5 px-5">STATE</th>
+                              <th className="py-3.5 px-5">NOTICE TITLE</th>
+                              <th className="py-3.5 px-5">CATEGORY</th>
+                              <th className="py-3.5 px-5">TARGET AUDIENCE</th>
+                              <th className="py-3.5 px-5 text-right">ACTIONS</th>
                             </tr>
                           </thead>
-                          <tbody className="divide-y divide-indigo-50/50 font-bold text-slate-600">
-                            {notices.map((notice) => (
-                              <tr key={notice.id} className="hover:bg-slate-50/50 transition-colors">
-                                <td className="py-4 px-6 font-mono font-bold">
+                          <tbody className="divide-y divide-slate-100 font-medium text-slate-600">
+                            {filteredNotices.map((notice) => (
+                              <tr key={notice.id} className="hover:bg-slate-50/70 transition-colors">
+                                <td className="py-3.5 px-5 font-mono">
                                   {notice.pinned ? (
-                                    <span className="inline-flex items-center text-pink-600 bg-pink-50 border border-pink-100 px-2.5 py-0.5 rounded text-[9px] uppercase tracking-widest font-black">
+                                    <span className="inline-flex items-center text-rose-600 bg-rose-50 border border-rose-100 px-2 py-0.5 rounded text-[10px] uppercase font-bold tracking-wider">
                                       PINNED
                                     </span>
                                   ) : (
-                                    <span className="text-slate-400 text-[10px]">NORMAL</span>
+                                    <span className="text-slate-400 text-[10px] uppercase">NORMAL</span>
                                   )}
                                 </td>
-                                <td className="py-4 px-6">
+                                <td className="py-3.5 px-5">
                                   <div>
-                                    <span className="font-extrabold text-slate-900 text-sm block leading-snug">{notice.title}</span>
-                                    <span className="text-[10px] text-slate-400 font-mono uppercase mt-0.5 block">{notice.date} • {notice.author}</span>
+                                    <span className="font-bold text-slate-900 text-sm block leading-snug">{notice.title}</span>
+                                    <span className="text-[11px] text-slate-400 font-mono mt-0.5 block">{notice.date} · {notice.author}</span>
                                   </div>
                                 </td>
-                                <td className="py-4 px-6">
-                                  <span className="px-2.5 py-1 bg-indigo-50 text-indigo-600 border border-indigo-100 rounded-lg text-[10px] uppercase font-mono font-black">
+                                <td className="py-3.5 px-5">
+                                  <span className="px-2.5 py-1 bg-indigo-50 text-indigo-700 rounded-lg text-[11px] font-semibold">
                                     {notice.category}
                                   </span>
                                 </td>
-                                <td className="py-4 px-6 font-mono text-slate-500 font-bold">
+                                <td className="py-3.5 px-5 font-mono text-slate-600 text-xs">
                                   {notice.targetAudience}
                                 </td>
-                                <td className="py-4 px-6 text-right space-x-1.5 whitespace-nowrap">
-                                  
+                                <td className="py-3.5 px-5 text-right space-x-1.5 whitespace-nowrap">
                                   {/* Toggle Pin Action button */}
                                   <button
                                     onClick={() => {
                                       onUpdateNotice({ ...notice, pinned: !notice.pinned });
                                     }}
-                                    className={`px-2.5 py-1.5 rounded-lg border text-[10px] font-mono font-extrabold ${
+                                    className={`px-2.5 py-1.5 rounded-lg border text-xs font-semibold transition-colors cursor-pointer ${
                                       notice.pinned 
-                                        ? "bg-pink-50 border-pink-100 text-pink-600 hover:bg-pink-100" 
-                                        : "bg-white border-indigo-100 text-slate-500 hover:border-indigo-300 hover:text-indigo-600"
+                                        ? "bg-rose-50 border-rose-200 text-rose-600 hover:bg-rose-100" 
+                                        : "bg-white border-slate-200 text-slate-600 hover:border-slate-400 hover:text-slate-900"
                                     }`}
-                                    title="Toggle Pin state"
+                                    title={notice.pinned ? "Unpin notice" : "Pin notice to top of board"}
                                   >
-                                    PIN
+                                    {notice.pinned ? "Unpin" : "Pin"}
                                   </button>
 
                                   <button
                                     onClick={() => handleEditNoticeClick(notice)}
-                                    className="p-2 bg-white border border-indigo-100 text-purple-650 rounded-lg hover:border-purple-300 hover:bg-purple-50"
-                                    title="Edit Notice details"
+                                    className="p-1.5 bg-white border border-slate-200 text-indigo-600 rounded-lg hover:border-indigo-400 hover:bg-indigo-50 transition-colors cursor-pointer"
+                                    title="Edit notice details"
                                   >
                                     <FileEdit className="w-3.5 h-3.5" />
                                   </button>
 
                                   <button
                                     onClick={() => {
-                                      if (confirm(`Are you sure you want to delete: "${notice.title}"?`)) {
-                                        onDeleteNotice(notice.id);
-                                      }
+                                      onDeleteNotice(notice.id);
+                                      showAdminToast(`🗑️ Notice "${notice.title}" deleted.`);
                                     }}
-                                    className="p-2 bg-white border border-indigo-100 text-rose-500 rounded-lg hover:border-rose-300 hover:bg-rose-50"
-                                    title="Delete notice Permanent"
+                                    className="p-1.5 bg-white border border-slate-200 text-rose-500 rounded-lg hover:border-rose-400 hover:bg-rose-50 transition-colors cursor-pointer"
+                                    title="Delete notice permanently"
                                   >
                                     <Trash2 className="w-3.5 h-3.5" />
                                   </button>
@@ -920,10 +1552,26 @@ export default function AdminPortal({
                         </table>
                       </div>
                     ) : (
-                      <div className="bg-white p-12 text-center rounded-[32px] border border-indigo-100 shadow-xl shadow-indigo-150/10">
-                        <Megaphone className="w-8 h-8 text-slate-300 mx-auto mb-2" />
-                        <h4 className="font-bold text-slate-700">No announcements in list</h4>
-                        <p className="text-xs text-slate-400 mt-1">Start by writing a fresh notice using the creator form tab!</p>
+                      <div className="bg-white p-12 text-center rounded-2xl border border-slate-200/80 shadow-xs space-y-2">
+                        <Megaphone className="w-8 h-8 text-slate-300 mx-auto" />
+                        <h4 className="font-bold text-slate-800 text-sm">No announcements found</h4>
+                        <p className="text-xs text-slate-400">
+                          {noticeSearch || noticeCategoryFilter !== "All"
+                            ? "Try adjusting your search query or category filter."
+                            : "Start by writing a fresh notice using the '+ Post New Notice' button!"}
+                        </p>
+                        {(noticeSearch || noticeCategoryFilter !== "All") && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setNoticeSearch("");
+                              setNoticeCategoryFilter("All");
+                            }}
+                            className="mt-2 text-xs font-semibold text-indigo-600 hover:underline cursor-pointer"
+                          >
+                            Reset filters
+                          </button>
+                        )}
                       </div>
                     )}
                   </div>
@@ -931,15 +1579,37 @@ export default function AdminPortal({
 
                 {/* TAB 2: WRITE / POST / EDIT FORM */}
                 {cmsTab === "WritePost" && (
-                  <form onSubmit={handleCreateOrUpdateNotice} className="bg-white border border-indigo-100 p-6 md:p-8 rounded-[32px] shadow-2xl space-y-6 max-w-3xl mx-auto text-left font-sans">
+                  <form onSubmit={handleCreateOrUpdateNotice} className="bg-white border border-slate-200/80 p-6 md:p-8 rounded-2xl shadow-xs space-y-6 max-w-3xl mx-auto text-left font-sans">
                     
+                    {/* Breadcrumbs */}
+                    <div className="flex items-center space-x-2 text-xs text-slate-400 pb-2 border-b border-slate-100">
+                      <button 
+                        type="button" 
+                        onClick={() => setCmsTab("Overview")} 
+                        className="hover:text-indigo-600 transition-colors flex items-center space-x-1 cursor-pointer"
+                      >
+                        <ArrowLeft className="w-3.5 h-3.5" />
+                        <span>Dashboard Hub</span>
+                      </button>
+                      <span>/</span>
+                      <button 
+                        type="button" 
+                        onClick={() => setCmsTab("ManageNo")} 
+                        className="hover:text-indigo-600 transition-colors cursor-pointer"
+                      >
+                        Notices & News
+                      </button>
+                      <span>/</span>
+                      <span className="text-slate-700 font-medium">{editingNoticeId ? "Edit Notice" : "Create Notice"}</span>
+                    </div>
+
                     <div className="flex justify-between items-center">
                       <div>
                         <h3 className="font-display font-black text-lg text-slate-900">
-                          {editingNoticeId ? "Modify Announcement Properties" : "Formulate New Public Notice"}
+                          {editingNoticeId ? "Modify Announcement Details" : "Formulate New Public Notice"}
                         </h3>
-                        <p className="text-[10px] text-slate-400 font-mono uppercase mt-0.5">
-                          {editingNoticeId ? "Original notices will be modified with today's date" : "Approved notices will instantly appear on the front page noticeboard"}
+                        <p className="text-xs text-slate-500 mt-0.5">
+                          {editingNoticeId ? "Modifications will be updated with today's date." : "Published notices appear instantly on the homepage noticeboard."}
                         </p>
                       </div>
                       {editingNoticeId && (
@@ -1063,40 +1733,134 @@ export default function AdminPortal({
                 {/* TAB 3: ADMISSIONS SUBMISSIONS DIRECTORY */}
                 {cmsTab === "Admit" && (
                   <div className="space-y-4 text-left font-sans">
-                    <div className="bg-white p-5 border border-indigo-100 rounded-3xl flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-sm">
-                      <div className="space-y-1 font-sans">
-                        <h4 className="font-extrabold text-slate-900 text-sm flex items-center">
-                          <CheckCircle2 className="w-4 h-4 mr-1.5 text-indigo-600" />
-                          Admissions Leads Pipeline
+                    {/* Header with Breadcrumb */}
+                    <div className="bg-white p-5 border border-slate-200/80 rounded-2xl shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+                      <div>
+                        <div className="flex items-center space-x-2 text-xs text-slate-400 mb-1">
+                          <button 
+                            type="button" 
+                            onClick={() => setCmsTab("Overview")} 
+                            className="hover:text-indigo-600 transition-colors flex items-center space-x-1 cursor-pointer"
+                          >
+                            <ArrowLeft className="w-3.5 h-3.5" />
+                            <span>Dashboard Hub</span>
+                          </button>
+                          <span>/</span>
+                          <span className="text-slate-700 font-medium">Admissions</span>
+                        </div>
+                        <h4 className="font-display font-extrabold text-slate-900 text-lg flex items-center gap-2">
+                          <span>Online Admission Inquiries</span>
+                          <span className="text-xs font-mono font-bold px-2 py-0.5 rounded-md bg-purple-50 text-purple-700 border border-purple-150">
+                            Session 2083/2084 BS
+                          </span>
                         </h4>
-                        <p className="text-[11px] text-slate-500 leading-normal font-medium">
-                          These represent interactive online admissions queries filled out by parents and prospective students. Call them directly to process physical campus registrations.
+                        <p className="text-xs text-slate-500 mt-0.5">
+                          Student applications submitted through the online admission form. Call parents directly or update inquiry status.
                         </p>
                       </div>
-                      <div className="bg-indigo-50 border border-indigo-100 py-1.5 px-3 rounded-xl text-[10px] text-indigo-700 font-mono font-bold whitespace-nowrap">
-                        Academic Term: <strong>2083/2084 session</strong>
+
+                      <div className="flex items-center gap-2 text-xs font-mono font-bold">
+                        <span className="px-3 py-1.5 bg-slate-100 rounded-xl text-slate-700">
+                          Total: {admissions.length}
+                        </span>
+                        {pendingAdmissionsCount > 0 && (
+                          <span className="px-3 py-1.5 bg-amber-50 text-amber-800 border border-amber-200 rounded-xl">
+                            {pendingAdmissionsCount} Pending
+                          </span>
+                        )}
                       </div>
                     </div>
 
-                    {admissions.length > 0 ? (
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">
-                        {admissions.map((admit) => (
+                    {/* Search & Status Filter Bar */}
+                    <div className="bg-white p-3.5 border border-slate-200/80 rounded-2xl shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                      <div className="relative flex-1 max-w-md">
+                        <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                        <input
+                          type="text"
+                          placeholder="Search by student, parent, mobile, grade..."
+                          value={admissionSearch}
+                          onChange={(e) => setAdmissionSearch(e.target.value)}
+                          className="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-600"
+                        />
+                        {admissionSearch && (
+                          <button
+                            type="button"
+                            onClick={() => setAdmissionSearch("")}
+                            className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-xs"
+                          >
+                            ×
+                          </button>
+                        )}
+                      </div>
+
+                      {/* Status Segmented Buttons */}
+                      <div className="flex items-center gap-1.5 overflow-x-auto text-xs">
+                        <button
+                          type="button"
+                          onClick={() => setAdmissionStatusFilter("All")}
+                          className={`px-3 py-1.5 rounded-lg font-medium transition-colors cursor-pointer ${
+                            admissionStatusFilter === "All"
+                              ? "bg-slate-900 text-white font-semibold"
+                              : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                          }`}
+                        >
+                          All ({admissions.length})
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setAdmissionStatusFilter("Pending")}
+                          className={`px-3 py-1.5 rounded-lg font-medium transition-colors cursor-pointer ${
+                            admissionStatusFilter === "Pending"
+                              ? "bg-amber-600 text-white font-semibold"
+                              : "bg-amber-50 text-amber-700 hover:bg-amber-100"
+                          }`}
+                        >
+                          Pending ({pendingAdmissionsCount})
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setAdmissionStatusFilter("Contacted")}
+                          className={`px-3 py-1.5 rounded-lg font-medium transition-colors cursor-pointer ${
+                            admissionStatusFilter === "Contacted"
+                              ? "bg-purple-600 text-white font-semibold"
+                              : "bg-purple-50 text-purple-700 hover:bg-purple-100"
+                          }`}
+                        >
+                          Contacted ({contactedAdmissionsCount})
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setAdmissionStatusFilter("Approved")}
+                          className={`px-3 py-1.5 rounded-lg font-medium transition-colors cursor-pointer ${
+                            admissionStatusFilter === "Approved"
+                              ? "bg-emerald-600 text-white font-semibold"
+                              : "bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
+                          }`}
+                        >
+                          Approved ({approvedAdmissionsCount})
+                        </button>
+                      </div>
+                    </div>
+
+                    {filteredAdmissions.length > 0 ? (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-5 items-stretch">
+                        {filteredAdmissions.map((admit) => (
                           <div 
                             key={admit.id} 
-                            className="bg-white border border-indigo-100/50 p-6 rounded-[28px] flex flex-col justify-between space-y-4 hover:border-indigo-300 hover:shadow-2xl hover:shadow-indigo-100/30 transition-all duration-300 relative shadow-sm"
+                            className="bg-white border border-slate-200/80 p-5 rounded-2xl flex flex-col justify-between space-y-4 hover:border-purple-300 hover:shadow-md transition-all shadow-xs"
                           >
-                            <div className="space-y-3.5">
+                            <div className="space-y-3">
                               {/* Header Metadata */}
-                              <div className="flex justify-between items-center text-[10px] font-mono font-bold text-slate-400">
-                                <span>{admit.submittedAt}</span>
+                              <div className="flex justify-between items-center text-xs text-slate-400">
+                                <span className="font-mono">{admit.submittedAt}</span>
                                 
                                 <div className="flex items-center space-x-2">
-                                  <span className={`px-2.5 py-0.5 rounded-lg border font-black uppercase text-[9px] tracking-wider ${
+                                  <span className={`px-2.5 py-0.5 rounded-md text-[10px] font-mono font-bold uppercase tracking-wider ${
                                     admit.status === "Approved" 
-                                      ? "bg-indigo-50 border-indigo-150 text-indigo-600" 
+                                      ? "bg-emerald-50 border border-emerald-200 text-emerald-700" 
                                       : admit.status === "Contacted"
-                                        ? "bg-purple-50 border-purple-150 text-purple-600"
-                                        : "bg-amber-50 border-amber-150 text-amber-600"
+                                        ? "bg-purple-50 border border-purple-200 text-purple-700"
+                                        : "bg-amber-50 border border-amber-200 text-amber-700"
                                   }`}>
                                     {admit.status}
                                   </span>
@@ -1104,86 +1868,101 @@ export default function AdminPortal({
                                     <button
                                       type="button"
                                       onClick={() => {
-                                        if (confirm(`Are you sure you want to delete the admission data for student '${admit.studentName}'?`)) {
-                                          onDeleteAdmission(admit.id);
-                                        }
+                                        onDeleteAdmission(admit.id);
+                                        showAdminToast(`🗑️ Admission inquiry for "${admit.studentName}" deleted.`);
                                       }}
-                                      className="p-1 hover:bg-red-50 text-slate-400 hover:text-red-600 rounded-lg transition-colors cursor-pointer"
+                                      className="p-1 hover:bg-rose-50 text-slate-400 hover:text-rose-600 rounded-lg transition-colors cursor-pointer"
                                       title="Delete student admission record"
                                     >
-                                      <Trash2 className="w-3.5 h-3.5 text-red-500" />
+                                      <Trash2 className="w-3.5 h-3.5 text-rose-500" />
                                     </button>
                                   )}
                                 </div>
                               </div>
 
                               {/* Student Details */}
-                              <div className="space-y-1">
-                                <h4 className="text-base font-black text-slate-905 font-display tracking-tight leading-normal">
+                              <div className="space-y-0.5">
+                                <h4 className="text-base font-bold text-slate-900 font-display">
                                   {admit.studentName}
                                 </h4>
-                                <p className="text-xs text-slate-500 font-semibold">
-                                  Parent name: <strong className="text-slate-800">{admit.parentName}</strong>
+                                <p className="text-xs text-slate-500">
+                                  Parent: <strong className="text-slate-800">{admit.parentName}</strong>
                                 </p>
                               </div>
 
                               {/* Table specs */}
-                              <div className="grid grid-cols-2 gap-y-3 text-xs font-bold pt-2 text-slate-500 border-t border-indigo-50/50">
+                              <div className="grid grid-cols-2 gap-y-2.5 text-xs pt-3 text-slate-500 border-t border-slate-100">
                                 <div>
-                                  <span className="block text-[9px] text-slate-400 uppercase font-mono">Grade Applied</span>
-                                  <span className="font-bold text-slate-800 text-xs">{admit.gradeOfInterest}</span>
+                                  <span className="block text-[10px] text-slate-400 uppercase font-mono">Grade Applied</span>
+                                  <span className="font-semibold text-slate-800 text-xs">{admit.gradeOfInterest}</span>
                                 </div>
                                 <div>
-                                  <span className="block text-[9px] text-slate-400 uppercase font-mono">Mobile Contact</span>
-                                  <span className="font-mono font-bold text-indigo-600 leading-normal text-xs">{admit.mobileNo}</span>
+                                  <span className="block text-[10px] text-slate-400 uppercase font-mono">Mobile Contact</span>
+                                  <a 
+                                    href={`tel:${admit.mobileNo}`}
+                                    className="font-mono font-bold text-indigo-600 hover:underline text-xs flex items-center space-x-1"
+                                  >
+                                    <span>{admit.mobileNo}</span>
+                                  </a>
                                 </div>
                                 <div>
-                                  <span className="block text-[9px] text-slate-400 uppercase font-mono">Previous School</span>
-                                  <span className="truncate block font-bold text-slate-600 text-xs">{admit.previousSchool || "N/A"}</span>
+                                  <span className="block text-[10px] text-slate-400 uppercase font-mono">Previous School</span>
+                                  <span className="truncate block font-medium text-slate-700 text-xs">{admit.previousSchool || "N/A"}</span>
                                 </div>
                                 <div>
-                                  <span className="block text-[9px] text-slate-400 uppercase font-mono">District</span>
-                                  <span className="font-bold text-slate-600 text-xs">{admit.district || "Bhaktapur"}</span>
+                                  <span className="block text-[10px] text-slate-400 uppercase font-mono">District</span>
+                                  <span className="font-medium text-slate-700 text-xs">{admit.district || "Bhaktapur"}</span>
                                 </div>
                               </div>
                             </div>
 
                             {/* Actions state cycler */}
-                            <div className="pt-4 border-t border-indigo-50/50 flex justify-between items-center text-xs">
-                              <span className="text-[10px] font-mono text-slate-400 font-bold">CYCLE STATE:</span>
+                            <div className="pt-3 border-t border-slate-100 flex flex-wrap justify-between items-center gap-2 text-xs">
+                              <span className="text-[10px] font-mono text-slate-400 font-bold uppercase">Change Status:</span>
                               
-                              <div className="flex space-x-1.5 font-mono text-[10px] font-bold">
+                              <div className="flex items-center space-x-1.5 text-xs">
                                 <button
                                   onClick={() => onUpdateAdmissionStatus(admit.id, "Pending")}
-                                  className={`px-2.5 py-1 rounded-lg cursor-pointer transition-all ${admit.status === "Pending" ? "bg-amber-500 text-slate-950 font-bold border border-amber-500/10 shadow-sm" : "bg-slate-100 text-slate-500 hover:text-indigo-600"}`}
+                                  className={`px-2.5 py-1 rounded-lg text-xs font-medium cursor-pointer transition-all ${
+                                    admit.status === "Pending" 
+                                      ? "bg-amber-600 text-white font-semibold shadow-xs" 
+                                      : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                                  }`}
                                 >
-                                  PEND
+                                  Pending
                                 </button>
                                 <button
                                   onClick={() => onUpdateAdmissionStatus(admit.id, "Contacted")}
-                                  className={`px-2.5 py-1 rounded-lg cursor-pointer transition-all ${admit.status === "Contacted" ? "bg-purple-600 text-white font-bold shadow-sm" : "bg-slate-100 text-slate-500 hover:text-indigo-600"}`}
+                                  className={`px-2.5 py-1 rounded-lg text-xs font-medium cursor-pointer transition-all ${
+                                    admit.status === "Contacted" 
+                                      ? "bg-purple-600 text-white font-semibold shadow-xs" 
+                                      : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                                  }`}
                                 >
-                                  CALL
+                                  Contacted
                                 </button>
                                 <button
                                   onClick={() => onUpdateAdmissionStatus(admit.id, "Approved")}
-                                  className={`px-2.5 py-1 rounded-lg cursor-pointer transition-all ${admit.status === "Approved" ? "bg-indigo-600 text-white font-bold shadow-sm" : "bg-slate-100 text-slate-500 hover:text-indigo-600"}`}
+                                  className={`px-2.5 py-1 rounded-lg text-xs font-medium cursor-pointer transition-all ${
+                                    admit.status === "Approved" 
+                                      ? "bg-emerald-600 text-white font-semibold shadow-xs" 
+                                      : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                                  }`}
                                 >
-                                  APPROVE
+                                  Approved
                                 </button>
                                 {onDeleteAdmission && (
                                   <button
                                     type="button"
                                     onClick={() => {
-                                      if (confirm(`Are you sure you want to delete the admission data for student '${admit.studentName}'?`)) {
-                                        onDeleteAdmission(admit.id);
-                                      }
+                                      onDeleteAdmission(admit.id);
+                                      showAdminToast(`🗑️ Admission inquiry for "${admit.studentName}" deleted.`);
                                     }}
-                                    className="px-2.5 py-1 rounded-lg bg-red-50 hover:bg-red-600 text-red-600 hover:text-white border border-red-200/80 transition-all cursor-pointer flex items-center space-x-1"
+                                    className="px-2.5 py-1 rounded-lg bg-rose-50 hover:bg-rose-600 text-rose-600 hover:text-white border border-rose-200 transition-all cursor-pointer flex items-center space-x-1"
                                     title="Delete student admission record"
                                   >
                                     <Trash2 className="w-3 h-3" />
-                                    <span>DELETE</span>
+                                    <span>Delete</span>
                                   </button>
                                 )}
                               </div>
@@ -1193,10 +1972,26 @@ export default function AdminPortal({
                         ))}
                       </div>
                     ) : (
-                      <div className="bg-white p-12 text-center rounded-[32px] border border-indigo-100 shadow-xl shadow-indigo-150/10">
-                        <Users className="w-8 h-8 text-slate-300 mx-auto mb-2" />
-                        <h4 className="font-bold text-slate-700 font-sans">No Admission Applicants Yet</h4>
-                        <p className="text-xs text-slate-400 mt-1">Registrations will propagate here as soon as users complete the admissions wizard!</p>
+                      <div className="bg-white p-12 text-center rounded-2xl border border-slate-200/80 shadow-xs space-y-2">
+                        <Users className="w-8 h-8 text-slate-300 mx-auto" />
+                        <h4 className="font-bold text-slate-800 text-sm">No admission applicants found</h4>
+                        <p className="text-xs text-slate-400">
+                          {admissionSearch || admissionStatusFilter !== "All"
+                            ? "Try adjusting your search query or status filter."
+                            : "New applications submitted from the website will appear here in real-time."}
+                        </p>
+                        {(admissionSearch || admissionStatusFilter !== "All") && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setAdmissionSearch("");
+                              setAdmissionStatusFilter("All");
+                            }}
+                            className="mt-2 text-xs font-semibold text-purple-600 hover:underline cursor-pointer"
+                          >
+                            Reset filters
+                          </button>
+                        )}
                       </div>
                     )}
                   </div>
@@ -1205,15 +2000,30 @@ export default function AdminPortal({
                 {/* TAB 4: AUTHORIZED ADMINS LIST */}
                 {cmsTab === "Admins" && (
                   <div className="space-y-6 text-left font-sans">
-                    <div className="bg-white p-5 border border-indigo-100 rounded-3xl flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-sm">
-                      <div className="space-y-1">
-                        <h4 className="font-extrabold text-slate-900 text-sm flex items-center">
-                          <Users className="w-4 h-4 mr-1.5 text-indigo-600" />
-                          Dynamic Administrator Clearance
+                    <div className="bg-white p-5 border border-slate-200/80 rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-xs">
+                      <div>
+                        <div className="flex items-center space-x-2 text-xs text-slate-400 mb-1">
+                          <button 
+                            type="button" 
+                            onClick={() => setCmsTab("Overview")} 
+                            className="hover:text-indigo-600 transition-colors flex items-center space-x-1 cursor-pointer"
+                          >
+                            <ArrowLeft className="w-3.5 h-3.5" />
+                            <span>Dashboard Hub</span>
+                          </button>
+                          <span>/</span>
+                          <span className="text-slate-700 font-medium">Admin Staff</span>
+                        </div>
+                        <h4 className="font-display font-extrabold text-slate-900 text-lg flex items-center">
+                          <Users className="w-5 h-5 mr-2 text-indigo-600" />
+                          Authorized Staff Accounts & Clearance
                         </h4>
-                        <p className="text-[11px] text-slate-500 leading-normal font-medium">
-                          Manage and authorize secondary email addresses for administrative access control.
+                        <p className="text-xs text-slate-500 mt-0.5">
+                          Manage and authorize staff email addresses permitted to log in and manage school records.
                         </p>
+                      </div>
+                      <div className="text-xs font-mono font-bold px-3 py-1.5 rounded-xl bg-slate-100 text-slate-700">
+                        {authorizedAdmins.length} Staff Authorized
                       </div>
                     </div>
 
@@ -1282,9 +2092,8 @@ export default function AdminPortal({
                                   {emailItem !== "info@shristiacademy.edu.np" ? (
                                     <button
                                       onClick={() => {
-                                        if (confirm(`Revoke administrator access privileges for ${emailItem}?`)) {
-                                          onDeleteAuthorizedAdmin(emailItem);
-                                        }
+                                        onDeleteAuthorizedAdmin(emailItem);
+                                        showAdminToast(`🗑️ Access revoked for ${emailItem}`);
                                       }}
                                       className="text-pink-600 hover:text-pink-850 font-mono text-[10px] bg-pink-50 hover:bg-pink-100 px-3 py-1.5 rounded-lg border border-pink-100 cursor-pointer font-bold"
                                     >
@@ -1306,15 +2115,30 @@ export default function AdminPortal({
                 {/* TAB 5: PUBLIC PARENTS' VOICE SUGGESTIONS AND REPLIES */}
                 {cmsTab === "ParentsVoice" && (
                   <div className="space-y-6 text-left font-sans">
-                    <div className="bg-white p-5 border border-indigo-100 rounded-3xl flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-sm">
-                      <div className="space-y-1">
-                        <h4 className="font-extrabold text-slate-900 text-sm flex items-center">
-                          <HelpCircle className="w-4 h-4 mr-1.5 text-indigo-600" />
-                          Parents' Shared Directives & Clarifications
+                    <div className="bg-white p-5 border border-slate-200/80 rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-xs">
+                      <div>
+                        <div className="flex items-center space-x-2 text-xs text-slate-400 mb-1">
+                          <button 
+                            type="button" 
+                            onClick={() => setCmsTab("Overview")} 
+                            className="hover:text-indigo-600 transition-colors flex items-center space-x-1 cursor-pointer"
+                          >
+                            <ArrowLeft className="w-3.5 h-3.5" />
+                            <span>Dashboard Hub</span>
+                          </button>
+                          <span>/</span>
+                          <span className="text-slate-700 font-medium">Parents' Voice</span>
+                        </div>
+                        <h4 className="font-display font-extrabold text-slate-900 text-lg flex items-center">
+                          <MessageSquareQuote className="w-5 h-5 mr-2 text-indigo-600" />
+                          Parents' Voice & Community Inquiries
                         </h4>
-                        <p className="text-[11px] text-slate-505 leading-normal font-medium flex items-center">
-                          Inspect suggestions and dry-run feedback sent in by parents. Write instant replies to resolve inquiries on the public board.
+                        <p className="text-xs text-slate-500 mt-0.5">
+                          Inspect inquiries and suggestions sent by parents. Write instant replies to resolve inquiries on the public board.
                         </p>
+                      </div>
+                      <div className="text-xs font-mono font-bold px-3 py-1.5 rounded-xl bg-slate-100 text-slate-700">
+                        {suggestions.length} Total Messages
                       </div>
                     </div>
 
@@ -1419,9 +2243,8 @@ export default function AdminPortal({
                             <div className="flex justify-end pt-2 border-t border-slate-100">
                               <button
                                 onClick={() => {
-                                  if (confirm("Permanently wipe this suggestion from Shristi databases?")) {
-                                    onDeleteSuggestion(item.id);
-                                  }
+                                  onDeleteSuggestion(item.id);
+                                  showAdminToast("🗑️ Inquiry deleted from database.");
                                 }}
                                 className="text-pink-600 hover:text-pink-850 font-mono text-[10px] bg-pink-50 hover:bg-pink-100 border border-pink-100 px-3 py-1.5 rounded-lg flex items-center space-x-1 cursor-pointer font-bold"
                               >
@@ -1466,17 +2289,40 @@ export default function AdminPortal({
 
                     {/* Section Title & Status Bar */}
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-indigo-50 pb-6">
-                      <div className="flex items-center space-x-3">
-                        <div className="p-3 bg-pink-50 text-pink-600 border border-pink-100 rounded-2xl">
-                          <BellRing className="w-6 h-6" />
+                      <div>
+                        <div className="flex items-center space-x-2 text-xs text-slate-400 mb-2">
+                          <button 
+                            type="button" 
+                            onClick={() => setCmsTab("Overview")} 
+                            className="hover:text-indigo-600 transition-colors flex items-center space-x-1 cursor-pointer"
+                          >
+                            <ArrowLeft className="w-3.5 h-3.5" />
+                            <span>Dashboard Hub</span>
+                          </button>
+                          <span>/</span>
+                          <button 
+                            type="button" 
+                            onClick={() => setCmsTab("ManageNo")} 
+                            className="hover:text-indigo-600 transition-colors cursor-pointer"
+                          >
+                            Notices & News
+                          </button>
+                          <span>/</span>
+                          <span className="text-slate-700 font-medium">Homepage Popup Announcement</span>
                         </div>
-                        <div>
-                          <h3 className="font-display font-black text-xl text-slate-900 leading-tight">
-                            Website Visitor Pop-up Notice Manager
-                          </h3>
-                          <p className="text-xs text-slate-500 font-medium mt-0.5">
-                            Configure site-wide popup modal overlays for website visitors. Choose between pre-designed poster image/PDF or a clean structured template.
-                          </p>
+
+                        <div className="flex items-center space-x-3">
+                          <div className="p-3 bg-pink-50 text-pink-600 border border-pink-100 rounded-2xl">
+                            <BellRing className="w-6 h-6" />
+                          </div>
+                          <div>
+                            <h3 className="font-display font-black text-xl text-slate-900 leading-tight">
+                              Website Visitor Pop-up Notice Manager
+                            </h3>
+                            <p className="text-xs text-slate-500 font-medium mt-0.5">
+                              Configure site-wide popup modal overlays for website visitors. Choose between pre-designed poster image/PDF or a clean structured template.
+                            </p>
+                          </div>
                         </div>
                       </div>
 
@@ -1790,17 +2636,34 @@ export default function AdminPortal({
 
                     {/* Section Header */}
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-indigo-50 pb-6">
-                      <div className="flex items-center space-x-3">
-                        <div className="p-3 bg-indigo-50 text-indigo-600 border border-indigo-100 rounded-2xl">
-                          <FileText className="w-6 h-6" />
+                      <div>
+                        <div className="flex items-center space-x-2 text-xs text-slate-400 mb-2">
+                          <button 
+                            type="button" 
+                            onClick={() => setCmsTab("Overview")} 
+                            className="hover:text-indigo-600 transition-colors flex items-center space-x-1 cursor-pointer"
+                          >
+                            <ArrowLeft className="w-3.5 h-3.5" />
+                            <span>Dashboard Hub</span>
+                          </button>
+                          <span>/</span>
+                          <span className="text-slate-700 font-medium">School Showcase</span>
+                          <span>/</span>
+                          <span className="text-slate-700 font-medium">School Profile (PDF)</span>
                         </div>
-                        <div>
-                          <h3 className="font-display font-black text-xl text-slate-900 leading-tight">
-                            School Profile & PDF Prospectus Manager
-                          </h3>
-                          <p className="text-xs text-slate-500 font-medium mt-0.5">
-                            Upload your official school prospectus / profile PDF. Visitors can preview it directly inside an in-browser interactive PDF reader without forcing downloads.
-                          </p>
+
+                        <div className="flex items-center space-x-3">
+                          <div className="p-3 bg-indigo-50 text-indigo-600 border border-indigo-100 rounded-2xl">
+                            <FileText className="w-6 h-6" />
+                          </div>
+                          <div>
+                            <h3 className="font-display font-black text-xl text-slate-900 leading-tight">
+                              School Profile & PDF Prospectus Manager
+                            </h3>
+                            <p className="text-xs text-slate-500 font-medium mt-0.5">
+                              Upload your official school prospectus / profile PDF. Visitors can preview it directly inside an in-browser interactive PDF reader without forcing downloads.
+                            </p>
+                          </div>
                         </div>
                       </div>
 
@@ -1921,17 +2784,34 @@ export default function AdminPortal({
                   <div className="bg-white p-6 sm:p-8 rounded-[32px] border border-indigo-100 shadow-sm space-y-8 animate-fadeIn text-left">
                     {/* Section Header */}
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-indigo-50 pb-6">
-                      <div className="flex items-center space-x-3">
-                        <div className="p-3 bg-indigo-50 text-indigo-600 border border-indigo-100 rounded-2xl">
-                          <ImageIcon className="w-6 h-6" />
+                      <div>
+                        <div className="flex items-center space-x-2 text-xs text-slate-400 mb-2">
+                          <button 
+                            type="button" 
+                            onClick={() => setCmsTab("Overview")} 
+                            className="hover:text-indigo-600 transition-colors flex items-center space-x-1 cursor-pointer"
+                          >
+                            <ArrowLeft className="w-3.5 h-3.5" />
+                            <span>Dashboard Hub</span>
+                          </button>
+                          <span>/</span>
+                          <span className="text-slate-700 font-medium">School Showcase</span>
+                          <span>/</span>
+                          <span className="text-slate-700 font-medium">Campus Photo Gallery</span>
                         </div>
-                        <div>
-                          <h3 className="font-display font-black text-xl text-slate-900 leading-tight">
-                            Campus Photo Gallery Manager (Max 10 Photos)
-                          </h3>
-                          <p className="text-xs text-slate-500 font-medium mt-0.5">
-                            Upload up to 10 campus photos. Only uploaded photos will be displayed on the website without any blank/white placeholders.
-                          </p>
+
+                        <div className="flex items-center space-x-3">
+                          <div className="p-3 bg-indigo-50 text-indigo-600 border border-indigo-100 rounded-2xl">
+                            <ImageIcon className="w-6 h-6" />
+                          </div>
+                          <div>
+                            <h3 className="font-display font-black text-xl text-slate-900 leading-tight">
+                              Campus Photo Gallery Manager (Max 10 Photos)
+                            </h3>
+                            <p className="text-xs text-slate-500 font-medium mt-0.5">
+                              Upload up to 10 campus photos. Only uploaded photos will be displayed on the website without any blank/white placeholders.
+                            </p>
+                          </div>
                         </div>
                       </div>
 
@@ -2075,17 +2955,34 @@ export default function AdminPortal({
                 {cmsTab === "ParentReviews" && (
                   <div className="bg-white p-6 sm:p-8 rounded-[32px] border border-indigo-100 shadow-sm space-y-8 animate-fadeIn text-left">
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-indigo-50 pb-6">
-                      <div className="flex items-center space-x-3">
-                        <div className="p-3 bg-amber-50 text-amber-600 border border-amber-100 rounded-2xl">
-                          <Sparkles className="w-6 h-6" />
+                      <div>
+                        <div className="flex items-center space-x-2 text-xs text-slate-400 mb-2">
+                          <button 
+                            type="button" 
+                            onClick={() => setCmsTab("Overview")} 
+                            className="hover:text-indigo-600 transition-colors flex items-center space-x-1 cursor-pointer"
+                          >
+                            <ArrowLeft className="w-3.5 h-3.5" />
+                            <span>Dashboard Hub</span>
+                          </button>
+                          <span>/</span>
+                          <span className="text-slate-700 font-medium">School Showcase</span>
+                          <span>/</span>
+                          <span className="text-slate-700 font-medium">Parent Reviews</span>
                         </div>
-                        <div>
-                          <h3 className="font-display font-black text-xl text-slate-900 leading-tight">
-                            Parent Reviews & Testimonials Manager
-                          </h3>
-                          <p className="text-xs text-slate-500 font-medium mt-0.5">
-                            Review, edit, publish or reject parent feedback submitted via QR code or sent to info@shristiacademy.edu.np.
-                          </p>
+
+                        <div className="flex items-center space-x-3">
+                          <div className="p-3 bg-amber-50 text-amber-600 border border-amber-100 rounded-2xl">
+                            <Sparkles className="w-6 h-6" />
+                          </div>
+                          <div>
+                            <h3 className="font-display font-black text-xl text-slate-900 leading-tight">
+                              Parent Reviews & Testimonials Manager
+                            </h3>
+                            <p className="text-xs text-slate-500 font-medium mt-0.5">
+                              Review, edit, publish or reject parent feedback submitted via QR code or sent to info@shristiacademy.edu.np.
+                            </p>
+                          </div>
                         </div>
                       </div>
 
@@ -2196,10 +3093,9 @@ export default function AdminPortal({
                                   type="button"
                                   onClick={() => {
                                     if (!onUpdateReviews) return;
-                                    if (confirm(`Are you sure you want to delete the review by ${rev.reviewerName}?`)) {
-                                      const updated = reviews.filter((r) => r.id !== rev.id);
-                                      onUpdateReviews(updated);
-                                    }
+                                    const updated = reviews.filter((r) => r.id !== rev.id);
+                                    onUpdateReviews(updated);
+                                    showAdminToast(`🗑️ Review by ${rev.reviewerName} deleted.`);
                                   }}
                                   className="px-3 py-2 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-xl text-xs font-mono font-bold flex items-center justify-center space-x-1 transition-colors cursor-pointer"
                                 >
@@ -2219,17 +3115,32 @@ export default function AdminPortal({
                 {cmsTab === "AcademicCalendar" && (
                   <div className="bg-white p-6 sm:p-8 rounded-[32px] border border-indigo-100 shadow-sm space-y-8 animate-fadeIn text-left">
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-indigo-50 pb-6">
-                      <div className="flex items-center space-x-3">
-                        <div className="p-3 bg-emerald-50 text-emerald-600 border border-emerald-100 rounded-2xl">
-                          <Calendar className="w-6 h-6" />
+                      <div>
+                        <div className="flex items-center space-x-2 text-xs text-slate-400 mb-2">
+                          <button 
+                            type="button" 
+                            onClick={() => setCmsTab("Overview")} 
+                            className="hover:text-indigo-600 transition-colors flex items-center space-x-1 cursor-pointer"
+                          >
+                            <ArrowLeft className="w-3.5 h-3.5" />
+                            <span>Dashboard Hub</span>
+                          </button>
+                          <span>/</span>
+                          <span className="text-slate-700 font-medium">Academic Calendar</span>
                         </div>
-                        <div>
-                          <h3 className="font-display font-black text-xl text-slate-900 leading-tight">
-                            School Academic Calendar & Event Schedule Manager
-                          </h3>
-                          <p className="text-xs text-slate-500 font-medium mt-0.5">
-                            Upload your official printed school calendar poster (Image/PDF), run Gemini AI extraction, or manage term dates.
-                          </p>
+
+                        <div className="flex items-center space-x-3">
+                          <div className="p-3 bg-emerald-50 text-emerald-600 border border-emerald-100 rounded-2xl">
+                            <Calendar className="w-6 h-6" />
+                          </div>
+                          <div>
+                            <h3 className="font-display font-black text-xl text-slate-900 leading-tight">
+                              School Academic Calendar & Routine Manager
+                            </h3>
+                            <p className="text-xs text-slate-500 font-medium mt-0.5">
+                              Upload your official printed school calendar poster (Image/PDF), run Gemini AI extraction, or manage single & multi-day vacation dates.
+                            </p>
+                          </div>
                         </div>
                       </div>
 

@@ -479,9 +479,7 @@ export default function SuggestionsSection({
                           {onDeleteSuggestion && (
                             <button
                               onClick={() => {
-                                if (confirm("Remove this parent inquiry permanently from school board database?")) {
-                                  onDeleteSuggestion(item.id);
-                                }
+                                onDeleteSuggestion(item.id);
                               }}
                               className="text-pink-600 hover:text-pink-800 font-mono font-bold flex items-center space-x-1 cursor-pointer bg-pink-50 hover:bg-pink-100 px-2.5 py-1 rounded-lg border border-pink-100"
                             >

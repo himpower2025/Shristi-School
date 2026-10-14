@@ -15,14 +15,14 @@ import Academics from "./components/Academics";
 import NoticeBoard from "./components/NoticeBoard";
 import AdminPortal from "./components/AdminPortal";
 import AdmissionForm from "./components/AdmissionForm";
-import ToolsSection from "./components/ToolsSection";
+import ToolsSection, { DEFAULT_EVENTS } from "./components/ToolsSection";
 import Footer from "./components/Footer";
 import WhyShristi from "./components/WhyShristi";
 import SuggestionsSection from "./components/SuggestionsSection";
 import PopupModal from "./components/PopupModal";
 import SchoolProfileModal from "./components/SchoolProfileModal";
 import ParentReviews, { DEFAULT_PARENT_REVIEWS } from "./components/ParentReviews";
-import { ParentReview } from "./types";
+import { ParentReview, SchoolEvent } from "./types";
 
 // DEFAULT SCHOOL PROFILE CONFIGURATION
 const DEFAULT_SCHOOL_PROFILE_CONFIG: SchoolProfileConfig = {
@@ -142,6 +142,7 @@ export default function App() {
   const [isSchoolProfileOpen, setIsSchoolProfileOpen] = useState(false);
   const [galleryItems, setGalleryItems] = useState<GalleryItem[]>([]);
   const [parentReviews, setParentReviews] = useState<ParentReview[]>([]);
+  const [schoolEvents, setSchoolEvents] = useState<SchoolEvent[]>([]);
 
   // Load from local storage or initialize realistic mock templates
   useEffect(() => {
@@ -272,6 +273,18 @@ export default function App() {
     } else {
       setParentReviews(DEFAULT_PARENT_REVIEWS);
       localStorage.setItem("shristi_parent_reviews_cache", JSON.stringify(DEFAULT_PARENT_REVIEWS));
+    }
+
+    const cachedEvents = localStorage.getItem("shristi_calendar_events");
+    if (cachedEvents) {
+      try {
+        setSchoolEvents(JSON.parse(cachedEvents));
+      } catch (_) {
+        setSchoolEvents(DEFAULT_EVENTS);
+      }
+    } else {
+      setSchoolEvents(DEFAULT_EVENTS);
+      localStorage.setItem("shristi_calendar_events", JSON.stringify(DEFAULT_EVENTS));
     }
   }, []);
 
@@ -451,6 +464,75 @@ export default function App() {
     showToast("🗑️ Inquiry item permanently purged.");
   };
 
+  // Academic Calendar Events Handlers
+  const handleAddSchoolEvent = (newEvent: SchoolEvent) => {
+    const updated = [newEvent, ...schoolEvents];
+    setSchoolEvents(updated);
+    try {
+      localStorage.setItem("shristi_calendar_events", JSON.stringify(updated));
+    } catch (e) {
+      console.warn("Storage quota hit", e);
+    }
+    window.dispatchEvent(new Event("shristi_calendar_updated"));
+    showToast("✅ Academic Calendar event added & published!");
+  };
+
+  const handleDeleteSchoolEvent = (id: string) => {
+    const updated = schoolEvents.filter(e => e.id !== id);
+    setSchoolEvents(updated);
+    try {
+      localStorage.setItem("shristi_calendar_events", JSON.stringify(updated));
+    } catch (e) {
+      console.warn("Storage quota hit", e);
+    }
+    window.dispatchEvent(new Event("shristi_calendar_updated"));
+    showToast("🗑️ School event removed from calendar.");
+  };
+
+  const handleUpdateSchoolEvents = (updated: SchoolEvent[]) => {
+    setSchoolEvents(updated);
+    try {
+      localStorage.setItem("shristi_calendar_events", JSON.stringify(updated));
+    } catch (e) {
+      console.warn("Storage quota hit", e);
+    }
+    window.dispatchEvent(new Event("shristi_calendar_updated"));
+    showToast("📅 Calendar events synchronized.");
+  };
+
+  // Quick Wipe Handlers for Initial Fake/Sample Data
+  const handleClearSampleNotices = () => {
+    const sampleIds = ["notice-1", "notice-2", "notice-3", "notice-4"];
+    const filtered = notices.filter(n => !sampleIds.includes(n.id));
+    saveNoticesToStorage(filtered);
+    showToast("🗑️ Initial sample notices removed.");
+  };
+
+  const handleClearSampleEvents = () => {
+    const sampleIds = ["evt-1", "evt-2", "evt-3", "evt-4", "evt-5", "evt-6"];
+    const filtered = schoolEvents.filter(e => !sampleIds.includes(e.id));
+    handleUpdateSchoolEvents(filtered);
+    showToast("🗑️ Initial sample calendar events removed.");
+  };
+
+  const handleClearSamplePhotos = () => {
+    const sampleIds = ["gal-1", "gal-2", "gal-3", "gal-4", "gal-5"];
+    const filtered = galleryItems.filter(g => !sampleIds.includes(g.id));
+    handleUpdateGalleryItems(filtered);
+    showToast("🗑️ Initial sample campus photos removed.");
+  };
+
+  const handleClearAllSampleData = () => {
+    const noticeIds = ["notice-1", "notice-2", "notice-3", "notice-4"];
+    const eventIds = ["evt-1", "evt-2", "evt-3", "evt-4", "evt-5", "evt-6"];
+    const photoIds = ["gal-1", "gal-2", "gal-3", "gal-4", "gal-5"];
+    
+    saveNoticesToStorage(notices.filter(n => !noticeIds.includes(n.id)));
+    handleUpdateSchoolEvents(schoolEvents.filter(e => !eventIds.includes(e.id)));
+    handleUpdateGalleryItems(galleryItems.filter(g => !photoIds.includes(g.id)));
+    showToast("✨ All sample notices, events & photos cleared successfully!");
+  };
+
   // Scroll smoothly to top helper
   const handleScrollTop = () => {
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -550,6 +632,14 @@ export default function App() {
                 onUpdateGalleryItems={handleUpdateGalleryItems}
                 reviews={parentReviews}
                 onUpdateReviews={handleUpdateParentReviews}
+                schoolEvents={schoolEvents}
+                onAddSchoolEvent={handleAddSchoolEvent}
+                onDeleteSchoolEvent={handleDeleteSchoolEvent}
+                onUpdateSchoolEvents={handleUpdateSchoolEvents}
+                onClearSampleNotices={handleClearSampleNotices}
+                onClearSampleEvents={handleClearSampleEvents}
+                onClearSamplePhotos={handleClearSamplePhotos}
+                onClearAllSampleData={handleClearAllSampleData}
               />
             </motion.div>
 
@@ -717,7 +807,12 @@ export default function App() {
                       </p>
                     </div>
                   </div>
-                  <ToolsSection isAdmin={isAdminMode} />
+                  <ToolsSection 
+                    isAdmin={isAdminMode} 
+                    events={schoolEvents}
+                    onAddEvent={handleAddSchoolEvent}
+                    onDeleteEvent={handleDeleteSchoolEvent}
+                  />
                 </div>
               ) : currentSection === "suggestions" ? (
                 <div className="animate-fade-in">
