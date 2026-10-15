@@ -146,8 +146,8 @@ export default function Footer({ onNavigate, onOpenAdmin }: FooterProps) {
               </div>
               <div>
                 <span className="text-white font-black block text-sm sm:text-base">Contact Numbers</span>
-                <p className="text-indigo-300 font-mono text-xs sm:text-sm font-black mt-0.5">Landline: 01-4496573</p>
-                <p className="text-purple-300 font-mono text-xs font-bold mt-1">Mobile: +977-9761682858, 9709757025</p>
+                <p className="text-indigo-300 font-mono text-xs sm:text-sm font-black mt-0.5">Landline: 01-4596573</p>
+                <p className="text-purple-300 font-mono text-xs font-bold mt-1">Mobile: +977-9761682858, 9851112787</p>
               </div>
             </li>
 
