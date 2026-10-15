@@ -1,4 +1,4 @@
-import { MapPin, Phone, Mail, GraduationCap, Award, ExternalLink, Globe, Layers, BookOpen, Clock, Facebook, Youtube } from "lucide-react";
+import { MapPin, Phone, Mail, GraduationCap, Award, ExternalLink, Globe, Layers, BookOpen, Clock, Facebook, Youtube, Instagram } from "lucide-react";
 import SchoolLogo from "./SchoolLogo";
 
 interface FooterProps {
@@ -195,6 +195,15 @@ export default function Footer({ onNavigate, onOpenAdmin }: FooterProps) {
                   title="YouTube Channel"
                 >
                   <Youtube className="w-5 h-5" />
+                </a>
+                <a 
+                  href="https://instagram.com/ikg_shristiacademy?vrfl=dXhkZTkxOXdpYWk%3D" 
+                  target="_blank" 
+                  referrerPolicy="no-referrer"
+                  className="w-10 h-10 rounded-xl bg-white/5 hover:bg-[#E1306C]/25 text-[#E1306C] hover:text-white transition-all flex items-center justify-center border border-white/10 hover:border-[#E1306C]/40 shadow-sm"
+                  title="Instagram Account"
+                >
+                  <Instagram className="w-5 h-5" />
                 </a>
               </div>
             </li>

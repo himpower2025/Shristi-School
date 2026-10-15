@@ -409,7 +409,7 @@ export default function AboutUs({ onOpenSchoolProfile, schoolProfileConfig, gall
                   Need a Physical Campus Tour?
                 </h4>
                 <p className="text-xs text-slate-600 font-bold">
-                  Our premises in Mid-Baneshwor, Kathmandu are open for walk-ins from Monday to Friday, 9:00 AM to 4:00 PM. Call us at <strong className="text-indigo-700">01-4496573</strong> to schedule.
+                  Our premises in Mid-Baneshwor, Kathmandu are open for walk-ins from Monday to Friday, 9:00 AM to 4:00 PM. Call us at <strong className="text-indigo-700">01-4596573</strong> to schedule.
                 </p>
               </div>
             </div>

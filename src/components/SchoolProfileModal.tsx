@@ -271,7 +271,7 @@ export default function SchoolProfileModal({
                       </p>
                       <p className="flex items-center space-x-2">
                         <Phone className="w-4 h-4 text-indigo-600 shrink-0" />
-                        <span>Tel: 01-4496573 • Mobile: +977-9851082643</span>
+                        <span>Tel: 01-4596573 • Mobile: +977-9851112787</span>
                       </p>
                       <p className="flex items-center space-x-2">
                         <Calendar className="w-4 h-4 text-indigo-600 shrink-0" />
