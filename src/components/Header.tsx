@@ -81,7 +81,7 @@ export default function Header({
             <span className="text-pink-100 font-black uppercase tracking-widest">Shristi Academy (Established 2016 AD)</span>
           </div>
           <div className="flex items-center space-x-4">
-            <span className="text-white font-black">Call: <strong className="text-pink-200">01-4496573</strong></span>
+            <span className="text-white font-black">Call: <strong className="text-pink-200">01-4596573</strong></span>
             <span>•</span>
             <a 
               href="mailto:info@shristiacademy.edu.np"
