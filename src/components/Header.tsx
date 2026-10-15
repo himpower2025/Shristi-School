@@ -322,7 +322,7 @@ export default function Header({
               <div className="p-6 bg-slate-50 border-t border-slate-100 font-sans text-xs space-y-4">
                 <div className="flex items-center space-x-2.5 text-slate-600">
                   <Phone className="w-4 h-4 text-indigo-400" />
-                  <span className="font-medium font-mono text-[11px] text-slate-700">01-4496573 / 9851088741</span>
+                  <span className="font-medium font-mono text-[11px] text-slate-700">01-4596573 / 9851112787</span>
                 </div>
                 <div className="flex items-center space-x-2.5 text-slate-600">
                   <Mail className="w-4 h-4 text-indigo-400" />
