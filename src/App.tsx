@@ -600,17 +600,13 @@ export default function App() {
             /* SPECIAL INTEGRATED CMS DASHBOARD FOR SHRISTI ACADEMY LEADERS */
             <motion.div
               key="admin-workspace"
-              initial={{ opacity: 0, scale: 0.98 }}
+              initial={{ opacity: 0, scale: 0.99 }}
               animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.98 }}
-              transition={{ duration: 0.3 }}
+              exit={{ opacity: 0, scale: 0.99 }}
+              transition={{ duration: 0.2 }}
             >
-              <div className="bg-emerald-50 border-b border-emerald-100 p-4 text-center text-xs font-mono text-slate-600 flex justify-center items-center space-x-2">
-                <Landmark className="w-3.5 h-3.5 text-emerald-600 mr-1 animate-pulse" />
-                <span>You are in <strong className="text-emerald-800">MBN-Kathmandu Admin Panel</strong>. Notices published here sync in real-time.</span>
-              </div>
-              
               <AdminPortal 
+                onExitAdmin={() => setIsAdminMode(false)}
                 notices={notices}
                 onAddNotice={handleAddNotice}
                 onUpdateNotice={handleUpdateNotice}
