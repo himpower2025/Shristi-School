@@ -104,6 +104,9 @@ export default function AdminPortal({
   const [admissionSearch, setAdmissionSearch] = useState("");
   const [admissionStatusFilter, setAdmissionStatusFilter] = useState<string>("All");
 
+  // Quick Start Guide state for first-time or returning admins
+  const [showQuickGuide, setShowQuickGuide] = useState(() => localStorage.getItem("shristi_admin_hide_guide") !== "true");
+
   // Admin feedback notification toast
   const [adminToast, setAdminToast] = useState<string | null>(null);
   const showAdminToast = (msg: string) => {
@@ -745,46 +748,46 @@ export default function AdminPortal({
                     <Lock className="w-5 h-5 text-indigo-600" />
                   </div>
                   <div>
-                    <h3 className="font-display font-black text-lg text-slate-900 leading-tight">Shristi Staff Center</h3>
-                    <p className="text-[10px] text-slate-400 font-mono tracking-widest font-black">AUTHORIZED PERSONNEL ONLY</p>
+                    <h3 className="font-display font-black text-xl text-slate-900 leading-tight">School Staff Sign In</h3>
+                    <p className="text-xs text-slate-500 font-medium">Shristi Academy Administration</p>
                   </div>
                 </div>
 
-                <div className="p-4 bg-indigo-50/50 border border-indigo-100/55 rounded-2xl flex items-start space-x-3">
-                  <ShieldAlert className="w-4 h-4 text-indigo-600 shrink-0 mt-0.5" />
-                  <p className="text-[11px] text-slate-500 leading-normal font-semibold">
-                    You must be registered as a certified teacher, administrative clerk, secondary supervisor, or senior principal to update public directives.
+                <div className="p-4 bg-indigo-50/70 border border-indigo-100 rounded-2xl flex items-start space-x-3">
+                  <Info className="w-4 h-4 text-indigo-600 shrink-0 mt-0.5" />
+                  <p className="text-xs text-slate-600 leading-relaxed">
+                    Sign in with your authorized school email to publish announcements, review student admission applications, and maintain school records.
                   </p>
                 </div>
 
                 {/* Form fields */}
                 <form onSubmit={handleLoginSubmit} className="space-y-4">
                   <div className="space-y-1.5">
-                    <label className="block text-xs font-mono font-bold text-slate-500 uppercase">EMAIL OR USERNAME</label>
+                    <label className="block text-xs font-semibold text-slate-700">School Email Address</label>
                     <input
                       required
                       type="text"
-                      placeholder="Enter administrator email"
+                      placeholder="e.g. admin@shristiacademy.edu.np"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      className="w-full bg-white border border-indigo-100 p-3 rounded-xl text-xs text-slate-800 focus:outline-none focus:border-indigo-600 focus:ring-2 focus:ring-indigo-600/25 font-mono font-bold shadow-inner"
+                      className="w-full bg-slate-50/60 border border-slate-200 p-3 rounded-xl text-xs text-slate-800 focus:outline-none focus:border-indigo-600 focus:ring-2 focus:ring-indigo-600/20 font-medium shadow-xs"
                     />
                   </div>
 
                   <div className="space-y-1.5">
-                    <label className="block text-xs font-mono font-bold text-slate-500 uppercase">ADMIN ACCESS PASSWORD</label>
+                    <label className="block text-xs font-semibold text-slate-700">Password</label>
                     <input
                       required
                       type="password"
-                      placeholder="••••••••••••"
+                      placeholder="Enter your password"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      className="w-full bg-white border border-indigo-100 p-3 rounded-xl text-xs text-slate-800 focus:outline-none focus:border-indigo-600 focus:ring-2 focus:ring-indigo-600/25 font-mono font-bold shadow-inner"
+                      className="w-full bg-slate-50/60 border border-slate-200 p-3 rounded-xl text-xs text-slate-800 focus:outline-none focus:border-indigo-600 focus:ring-2 focus:ring-indigo-600/20 font-medium shadow-xs"
                     />
                   </div>
 
                   {loginError && (
-                    <div className="text-pink-600 text-xs font-mono font-bold flex items-center space-x-1.5">
+                    <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl text-rose-700 text-xs font-semibold flex items-center space-x-2">
                       <CircleAlert className="w-4 h-4 shrink-0" />
                       <span>{loginError}</span>
                     </div>
@@ -792,11 +795,17 @@ export default function AdminPortal({
 
                   <button
                     type="submit"
-                    className="w-full py-3.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:opacity-95 text-white font-bold text-xs font-mono rounded-xl shadow-lg shadow-indigo-100 flex items-center justify-center space-x-2 cursor-pointer transition-all hover:translate-y-[-2px]"
+                    className="w-full py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl shadow-sm flex items-center justify-center space-x-2 cursor-pointer transition-colors"
                   >
-                    <Unlock className="w-3.5 h-3.5" />
-                    <span>VERIFY ACCESS PASS</span>
+                    <Unlock className="w-4 h-4" />
+                    <span>Sign In to Admin Portal</span>
                   </button>
+
+                  <div className="pt-2 text-center">
+                    <p className="text-[11px] text-slate-400">
+                      Default admin login: <span className="font-mono text-slate-600 font-semibold">admin@shristiacademy.edu.np</span> • Password: <span className="font-mono text-slate-600 font-semibold">admin</span>
+                    </p>
+                  </div>
                 </form>
 
               </div>
@@ -814,7 +823,7 @@ export default function AdminPortal({
             >
               
               {/* Top Control Bar */}
-              <div className="bg-slate-900 text-white rounded-3xl p-4 sm:p-5 mb-6 border border-slate-800 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div className="bg-slate-900 text-white rounded-3xl p-4 sm:p-5 mb-4 border border-slate-800 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div className="flex items-center space-x-3.5">
                   <div className="w-10 h-10 rounded-2xl bg-indigo-600 text-white flex items-center justify-center font-bold shadow-md shadow-indigo-950/40">
                     <LayoutDashboard className="w-5 h-5 text-indigo-100" />
@@ -825,17 +834,17 @@ export default function AdminPortal({
                         Shristi Academy Admin
                       </h2>
                       <span className="px-2 py-0.5 text-[10px] font-mono font-bold rounded-md bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-                        Active Console
+                        System Online
                       </span>
                     </div>
                     <p className="text-xs text-slate-400">
-                      Signed in: <span className="text-slate-200 font-medium">{loggedEmail}</span>
+                      Logged in as: <span className="text-slate-200 font-medium">{loggedEmail}</span>
                     </p>
                   </div>
                 </div>
 
                 {/* Header Shortcuts & Session Actions */}
-                <div className="flex items-center space-x-2.5">
+                <div className="flex flex-wrap items-center gap-2">
                   <button
                     onClick={() => setCmsTab("Overview")}
                     className={`px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center space-x-1.5 transition-colors cursor-pointer ${
@@ -845,7 +854,20 @@ export default function AdminPortal({
                     }`}
                   >
                     <LayoutDashboard className="w-3.5 h-3.5" />
-                    <span>Dashboard Hub</span>
+                    <span>Dashboard</span>
+                  </button>
+
+                  <button
+                    onClick={() => setShowQuickGuide(!showQuickGuide)}
+                    className={`px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center space-x-1.5 transition-colors cursor-pointer ${
+                      showQuickGuide
+                        ? "bg-amber-500/20 text-amber-300 border border-amber-500/40"
+                        : "bg-slate-800 hover:bg-slate-700 text-slate-300"
+                    }`}
+                    title="Toggle First-Time Administrator Guide"
+                  >
+                    <HelpCircle className="w-3.5 h-3.5 text-amber-400" />
+                    <span>{showQuickGuide ? "Hide Guide" : "Help & Guide"}</span>
                   </button>
 
                   {onExitAdmin && (
@@ -867,6 +889,70 @@ export default function AdminPortal({
                   </button>
                 </div>
               </div>
+
+              {/* FIRST-TIME ADMINISTRATOR ONBOARDING & HELP GUIDE */}
+              {showQuickGuide && (
+                <div className="bg-gradient-to-r from-amber-50 via-orange-50/70 to-amber-50 border border-amber-200/90 rounded-3xl p-5 sm:p-6 shadow-xs text-left mb-6 space-y-4">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex items-start space-x-3.5">
+                      <div className="w-9 h-9 rounded-2xl bg-amber-500 text-white flex items-center justify-center shrink-0 shadow-sm mt-0.5">
+                        <Sparkles className="w-5 h-5" />
+                      </div>
+                      <div className="space-y-1">
+                        <h4 className="font-display font-extrabold text-slate-900 text-sm sm:text-base">
+                          Welcome, Administrator! Here is how to manage the school website easily:
+                        </h4>
+                        <p className="text-xs text-slate-600 leading-relaxed max-w-2xl">
+                          Whether it is your first day or you are returning to update records, this portal gives you complete control over what visitors see on the school website in 3 simple steps:
+                        </p>
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowQuickGuide(false);
+                        localStorage.setItem("shristi_admin_hide_guide", "true");
+                      }}
+                      className="text-xs font-semibold text-slate-400 hover:text-slate-700 bg-white hover:bg-slate-100 px-3 py-1.5 rounded-xl border border-slate-200 transition-colors cursor-pointer shrink-0 shadow-2xs"
+                    >
+                      ✕ Close Guide
+                    </button>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5 pt-1">
+                    <div className="bg-white/90 p-4 rounded-2xl border border-amber-200/60 shadow-2xs space-y-1.5">
+                      <div className="flex items-center space-x-2 text-indigo-700 font-bold text-xs">
+                        <Megaphone className="w-4 h-4 text-indigo-600" />
+                        <span>1. Announcements & Circulars</span>
+                      </div>
+                      <p className="text-xs text-slate-600 leading-relaxed">
+                        Click <strong>Notice Board</strong> or <strong>+ Post Notice</strong> to share exam timetables, holiday updates, or emergency circulars. Pinned notices appear right at the top of the homepage.
+                      </p>
+                    </div>
+
+                    <div className="bg-white/90 p-4 rounded-2xl border border-amber-200/60 shadow-2xs space-y-1.5">
+                      <div className="flex items-center space-x-2 text-purple-700 font-bold text-xs">
+                        <GraduationCap className="w-4 h-4 text-purple-600" />
+                        <span>2. Review Student Applications</span>
+                      </div>
+                      <p className="text-xs text-slate-600 leading-relaxed">
+                        Go to <strong>Student Admissions</strong> to see new applications submitted by parents. You can view their phone number, call them directly, and update their admission status.
+                      </p>
+                    </div>
+
+                    <div className="bg-white/90 p-4 rounded-2xl border border-amber-200/60 shadow-2xs space-y-1.5">
+                      <div className="flex items-center space-x-2 text-emerald-700 font-bold text-xs">
+                        <Calendar className="w-4 h-4 text-emerald-600" />
+                        <span>3. Calendar & Campus Photos</span>
+                      </div>
+                      <p className="text-xs text-slate-600 leading-relaxed">
+                        Upload the printed school calendar poster under <strong>Academic Calendar</strong>, or showcase campus life with up to 10 photos in the <strong>Campus Photo Gallery</strong>.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* Main Workspace Frame: Left Navigation Sidebar + Right Main Area */}
               <div className="bg-white rounded-3xl border border-slate-200/90 shadow-sm overflow-hidden grid grid-cols-1 lg:grid-cols-12 min-h-[780px]">
@@ -2286,27 +2372,30 @@ export default function AdminPortal({
                         </div>
                         <h4 className="font-display font-extrabold text-slate-900 text-lg flex items-center">
                           <Users className="w-5 h-5 mr-2 text-indigo-600" />
-                          Authorized Staff Accounts & Clearance
+                          Authorized Staff Accounts
                         </h4>
                         <p className="text-xs text-slate-500 mt-0.5">
-                          Manage and authorize staff email addresses permitted to log in and manage school records.
+                          Manage school staff email addresses that have permission to log in and update website records.
                         </p>
                       </div>
-                      <div className="text-xs font-mono font-bold px-3 py-1.5 rounded-xl bg-slate-100 text-slate-700">
-                        {authorizedAdmins.length} Staff Authorized
+                      <div className="text-xs font-semibold px-3 py-1.5 rounded-xl bg-slate-100 text-slate-700">
+                        {authorizedAdmins.length} Staff Members Authorized
                       </div>
                     </div>
 
                     {/* Add Admin Email Form */}
-                    <div className="bg-white p-6 border border-indigo-50 rounded-[28px] shadow-sm space-y-4">
-                      <h4 className="text-xs font-mono font-bold text-slate-500 uppercase">Authorize New Administrator Email</h4>
-                      <div className="flex flex-col sm:flex-row gap-3 max-w-md">
+                    <div className="bg-white p-6 border border-slate-200/80 rounded-2xl shadow-xs space-y-4">
+                      <div>
+                        <h4 className="text-xs font-bold text-slate-800">Add New Staff Member Email</h4>
+                        <p className="text-xs text-slate-500 mt-0.5">Staff with this email will be able to sign in to this administrative portal.</p>
+                      </div>
+                      <div className="flex flex-col sm:flex-row gap-3 max-w-lg">
                         <input
                           type="email"
-                          placeholder="e.g. viceprincipal@shristyacademy.edu.np"
+                          placeholder="e.g. teacher@shristiacademy.edu.np"
                           value={newAdminEmail}
                           onChange={(e) => setNewAdminEmail(e.target.value)}
-                          className="flex-grow bg-[#FAF9F6] border border-indigo-100 p-3 rounded-xl text-xs text-slate-800 font-bold focus:outline-none focus:border-indigo-600 shadow-inner"
+                          className="flex-grow bg-slate-50 border border-slate-200 p-3 rounded-xl text-xs text-slate-800 font-medium focus:outline-none focus:border-indigo-600 focus:ring-2 focus:ring-indigo-500/20 shadow-xs"
                         />
                         <button
                           type="button"
@@ -2326,51 +2415,53 @@ export default function AdminPortal({
                             }
                             onAddAuthorizedAdmin(trimmed);
                             setNewAdminEmail("");
+                            showAdminToast(`✅ Added ${trimmed} to authorized staff.`);
                           }}
-                          className="px-5 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-mono font-black text-xs rounded-xl cursor-pointer shadow-sm"
+                          className="px-5 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl cursor-pointer shadow-xs transition-colors shrink-0 flex items-center justify-center space-x-1.5"
                         >
-                          AUTHORIZE EMAIL
+                          <Plus className="w-3.5 h-3.5" />
+                          <span>Add Staff Member</span>
                         </button>
                       </div>
                     </div>
 
                     {/* Table listing admins */}
-                    <div className="bg-white border border-indigo-100 rounded-3xl overflow-hidden shadow-sm">
+                    <div className="bg-white border border-slate-200/80 rounded-2xl overflow-hidden shadow-xs">
                       <div className="overflow-x-auto">
-                        <table className="w-full text-left text-xs font-bold text-slate-600 min-w-[600px]">
-                          <thead className="bg-[#FAF9F6] text-[10px] text-slate-400 font-mono tracking-wider border-b border-indigo-50 uppercase">
+                        <table className="w-full text-left text-xs text-slate-700 min-w-[600px]">
+                          <thead className="bg-slate-50 text-[10px] text-slate-500 font-mono tracking-wider border-b border-slate-200/80 uppercase font-bold">
                             <tr>
-                              <th className="py-4 px-6">AUTHORIZED ADMIN EMAIL ADDRESSES</th>
-                              <th className="py-4 px-6">MEMBERSHIP CLEARANCE LEVEL</th>
-                              <th className="py-4 px-6 text-right">METRIC REVOKES</th>
+                              <th className="py-3.5 px-6">STAFF EMAIL ADDRESS</th>
+                              <th className="py-3.5 px-6">ROLE & PERMISSIONS</th>
+                              <th className="py-3.5 px-6 text-right">ACTIONS</th>
                             </tr>
                           </thead>
-                          <tbody className="divide-y divide-indigo-50/50 text-slate-700">
+                          <tbody className="divide-y divide-slate-100 text-slate-700">
                             {authorizedAdmins.map((emailItem, idx) => (
-                              <tr key={idx} className="hover:bg-slate-50/40 transition-colors">
-                                <td className="py-4 px-6 font-mono font-black text-slate-800">
+                              <tr key={idx} className="hover:bg-slate-50/70 transition-colors">
+                                <td className="py-3.5 px-6 font-semibold text-slate-900">
                                   {emailItem}
                                 </td>
-                                <td className="py-4 px-6">
+                                <td className="py-3.5 px-6">
                                   {emailItem === "info@shristiacademy.edu.np" ? (
-                                    <span className="text-[9px] font-mono font-bold uppercase tracking-wider text-purple-700 bg-purple-50 px-2 py-0.5 rounded border border-purple-100">Primary Founder Account</span>
+                                    <span className="text-[10px] font-bold text-purple-700 bg-purple-50 px-2.5 py-1 rounded-lg border border-purple-150">Primary Administrator</span>
                                   ) : (
-                                    <span className="text-[9px] font-mono font-bold uppercase tracking-wider text-indigo-550 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-100">Delegated Staff Admin</span>
+                                    <span className="text-[10px] font-bold text-indigo-700 bg-indigo-50 px-2.5 py-1 rounded-lg border border-indigo-150">Authorized Staff Admin</span>
                                   )}
                                 </td>
-                                <td className="py-4 px-6 text-right w-36">
+                                <td className="py-3.5 px-6 text-right w-40">
                                   {emailItem !== "info@shristiacademy.edu.np" ? (
                                     <button
                                       onClick={() => {
                                         onDeleteAuthorizedAdmin(emailItem);
                                         showAdminToast(`🗑️ Access revoked for ${emailItem}`);
                                       }}
-                                      className="text-pink-600 hover:text-pink-850 font-mono text-[10px] bg-pink-50 hover:bg-pink-100 px-3 py-1.5 rounded-lg border border-pink-100 cursor-pointer font-bold"
+                                      className="text-rose-600 hover:text-rose-700 text-xs bg-rose-50 hover:bg-rose-100 px-3 py-1.5 rounded-lg border border-rose-200 cursor-pointer font-semibold transition-colors"
                                     >
-                                      Revoke Access
+                                      Remove Access
                                     </button>
                                   ) : (
-                                    <span className="text-[10px] text-slate-400 font-mono italic pr-3 font-semibold">Primary Core Locked</span>
+                                    <span className="text-[11px] text-slate-400 italic pr-3">Default Account</span>
                                   )}
                                 </td>
                               </tr>
@@ -2587,10 +2678,10 @@ export default function AdminPortal({
                           </div>
                           <div>
                             <h3 className="font-display font-black text-xl text-slate-900 leading-tight">
-                              Website Visitor Pop-up Notice Manager
+                              Homepage Popup Alert Banner
                             </h3>
                             <p className="text-xs text-slate-500 font-medium mt-0.5">
-                              Configure site-wide popup modal overlays for website visitors. Choose between pre-designed poster image/PDF or a clean structured template.
+                              Display an urgent notice, admission announcement, or event poster when visitors open the school website.
                             </p>
                           </div>
                         </div>
@@ -2601,23 +2692,23 @@ export default function AdminPortal({
                         <button
                           type="button"
                           onClick={() => setShowLivePreview(true)}
-                          className="px-4 py-2.5 bg-indigo-50 hover:bg-indigo-100/80 text-indigo-700 rounded-xl border border-indigo-150 text-xs font-mono font-bold flex items-center space-x-1.5 transition-all cursor-pointer"
+                          className="px-4 py-2.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-xl border border-indigo-150 text-xs font-semibold flex items-center space-x-1.5 transition-colors cursor-pointer"
                         >
                           <Eye className="w-4 h-4 text-indigo-600" />
-                          <span>LIVE PREVIEW POPUP</span>
+                          <span>Preview Popup</span>
                         </button>
 
                         <button
                           type="button"
                           onClick={() => setPopEnabled(!popEnabled)}
-                          className={`px-4 py-2.5 rounded-xl border text-xs font-mono font-black flex items-center space-x-2 transition-all cursor-pointer ${
+                          className={`px-4 py-2.5 rounded-xl border text-xs font-bold flex items-center space-x-2 transition-all cursor-pointer ${
                             popEnabled
-                              ? "bg-emerald-500 text-white border-emerald-600 shadow-md shadow-emerald-100"
-                              : "bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200"
+                              ? "bg-emerald-600 text-white border-emerald-700 shadow-sm"
+                              : "bg-slate-100 text-slate-600 border-slate-300 hover:bg-slate-200"
                           }`}
                         >
                           <Power className="w-4 h-4" />
-                          <span>{popEnabled ? "POPUP IS ACTIVE" : "POPUP IS DISABLED"}</span>
+                          <span>{popEnabled ? "Popup is Active on Site" : "Popup is Disabled"}</span>
                         </button>
                       </div>
                     </div>
@@ -2626,8 +2717,8 @@ export default function AdminPortal({
                     <form onSubmit={handleSavePopupConfig} className="space-y-8">
                       {/* Option Selection Radio Tabs */}
                       <div className="space-y-3">
-                        <label className="block text-xs font-mono font-bold text-slate-700 uppercase">
-                          CHOOSE POPUP TYPE / FORMAT
+                        <label className="block text-xs font-semibold text-slate-700">
+                          Choose How the Popup Should Look
                         </label>
                         
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -2636,14 +2727,14 @@ export default function AdminPortal({
                             onClick={() => setPopType("image")}
                             className={`p-5 rounded-2xl border-2 cursor-pointer transition-all space-y-2 text-left relative ${
                               popType === "image"
-                                ? "bg-indigo-50/40 border-indigo-600 shadow-md"
+                                ? "bg-indigo-50/40 border-indigo-600 shadow-sm"
                                 : "bg-slate-50/50 border-slate-200 hover:border-slate-300"
                             }`}
                           >
                             <div className="flex items-center justify-between">
                               <div className="flex items-center space-x-2.5 text-indigo-900 font-extrabold text-sm">
                                 <ImageIcon className="w-5 h-5 text-indigo-600" />
-                                <span>OPTION 1: Upload Poster Image or PDF</span>
+                                <span>1. Upload Notice Poster or Document</span>
                               </div>
                               <input
                                 type="radio"
@@ -2654,7 +2745,7 @@ export default function AdminPortal({
                               />
                             </div>
                             <p className="text-xs text-slate-600 leading-relaxed font-medium pl-7">
-                              Display an official pre-designed JPG/PNG poster image or PDF document directly inside the visitor popup window.
+                              Upload an official JPG, PNG poster image or PDF notice to display directly in the visitor popup window.
                             </p>
                           </div>
 
@@ -2663,14 +2754,14 @@ export default function AdminPortal({
                             onClick={() => setPopType("custom")}
                             className={`p-5 rounded-2xl border-2 cursor-pointer transition-all space-y-2 text-left relative ${
                               popType === "custom"
-                                ? "bg-purple-50/40 border-purple-600 shadow-md"
+                                ? "bg-purple-50/40 border-purple-600 shadow-sm"
                                 : "bg-slate-50/50 border-slate-200 hover:border-slate-300"
                             }`}
                           >
                             <div className="flex items-center justify-between">
                               <div className="flex items-center space-x-2.5 text-purple-900 font-extrabold text-sm">
                                 <LayoutTemplate className="w-5 h-5 text-purple-600" />
-                                <span>OPTION 2: Structured Event Layout</span>
+                                <span>2. Create Formatted Announcement</span>
                               </div>
                               <input
                                 type="radio"
@@ -2681,7 +2772,7 @@ export default function AdminPortal({
                               />
                             </div>
                             <p className="text-xs text-slate-600 leading-relaxed font-medium pl-7">
-                              Fill in simple text details (Event Title, Date/Time, Location, Description, CTA Button) to render a stylish notice matching Shristi Academy's branding!
+                              Type title, event dates, location, and message to display an elegant school notice card.
                             </p>
                           </div>
                         </div>
@@ -2866,21 +2957,22 @@ export default function AdminPortal({
                       )}
 
                       {/* Save Button */}
-                      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-indigo-50">
+                      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-slate-100">
                         <button
                           type="button"
                           onClick={() => setShowLivePreview(true)}
-                          className="w-full sm:w-auto px-6 py-3.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-800 rounded-2xl text-xs font-mono font-bold flex items-center justify-center space-x-2 transition-all cursor-pointer"
+                          className="w-full sm:w-auto px-6 py-3.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold flex items-center justify-center space-x-2 transition-colors cursor-pointer"
                         >
-                          <Eye className="w-4 h-4 text-indigo-600" />
-                          <span>PREVIEW POPUP BEFORE SAVING</span>
+                          <Eye className="w-4 h-4 text-slate-600" />
+                          <span>Preview Popup Window</span>
                         </button>
 
                         <button
                           type="submit"
-                          className="w-full sm:w-auto px-8 py-3.5 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 hover:from-indigo-700 hover:to-pink-700 text-white rounded-2xl text-xs font-mono font-black tracking-wider shadow-lg shadow-indigo-100 transition-all cursor-pointer"
+                          className="w-full sm:w-auto px-8 py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow-xs transition-colors cursor-pointer flex items-center justify-center space-x-2"
                         >
-                          💾 SAVE & APPLY POPUP SETTINGS
+                          <Save className="w-4 h-4" />
+                          <span>Save Popup Settings</span>
                         </button>
                       </div>
                     </form>
@@ -2928,10 +3020,10 @@ export default function AdminPortal({
                           </div>
                           <div>
                             <h3 className="font-display font-black text-xl text-slate-900 leading-tight">
-                              School Profile & PDF Prospectus Manager
+                              School Prospectus (PDF Brochure)
                             </h3>
                             <p className="text-xs text-slate-500 font-medium mt-0.5">
-                              Upload your official school prospectus / profile PDF. Visitors can preview it directly inside an in-browser interactive PDF reader without forcing downloads.
+                              Upload the official school prospectus document. Visitors can view it online in an interactive reader or download it.
                             </p>
                           </div>
                         </div>
@@ -2940,10 +3032,10 @@ export default function AdminPortal({
                       <button
                         type="button"
                         onClick={() => setShowSpPreview(true)}
-                        className="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-mono font-bold flex items-center justify-center space-x-2 transition-all cursor-pointer shrink-0 shadow-sm"
+                        className="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-semibold flex items-center justify-center space-x-2 transition-colors cursor-pointer shrink-0 shadow-xs"
                       >
-                        <Eye className="w-4 h-4 text-pink-300" />
-                        <span>PREVIEW SCHOOL PROFILE</span>
+                        <Eye className="w-4 h-4" />
+                        <span>Preview Prospectus</span>
                       </button>
                     </div>
 
@@ -2952,18 +3044,18 @@ export default function AdminPortal({
                       {/* PDF File Upload Box */}
                       <div className="p-6 bg-indigo-50/30 border-2 border-dashed border-indigo-200 rounded-2xl space-y-4 text-left">
                         <div className="space-y-1">
-                          <label className="block text-xs font-mono font-bold text-slate-700 uppercase">
-                            SELECT OFFICIAL SCHOOL PROFILE PDF FILE
+                          <label className="block text-xs font-semibold text-slate-700">
+                            Upload School Prospectus PDF File
                           </label>
                           <p className="text-xs text-slate-500">
-                            Accepted file format: .PDF (Max file size: 25MB)
+                            Accepted file format: .pdf (Max file size: 25MB)
                           </p>
                         </div>
 
                         <div className="flex flex-col sm:flex-row items-center gap-4 pt-2">
-                          <label className="w-full sm:w-auto px-6 py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl text-xs font-mono font-bold flex items-center justify-center space-x-2 cursor-pointer shadow-md shadow-indigo-100 transition-all select-none">
-                            <Upload className="w-4 h-4 text-pink-300" />
-                            <span>CHOOSE & UPLOAD NEW PDF</span>
+                          <label className="w-full sm:w-auto px-5 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-semibold flex items-center justify-center space-x-2 cursor-pointer shadow-xs transition-colors select-none">
+                            <Upload className="w-4 h-4" />
+                            <span>Choose PDF File</span>
                             <input
                               type="file"
                               accept="application/pdf"
@@ -3028,21 +3120,22 @@ export default function AdminPortal({
                       </div>
 
                       {/* Action buttons */}
-                      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-indigo-50">
+                      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-slate-100">
                         <button
                           type="button"
                           onClick={() => setShowSpPreview(true)}
-                          className="w-full sm:w-auto px-6 py-3.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-800 rounded-2xl text-xs font-mono font-bold flex items-center justify-center space-x-2 transition-all cursor-pointer"
+                          className="w-full sm:w-auto px-6 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold flex items-center justify-center space-x-2 transition-colors cursor-pointer"
                         >
-                          <Eye className="w-4 h-4 text-indigo-600" />
-                          <span>PREVIEW PDF IN MODAL</span>
+                          <Eye className="w-4 h-4 text-slate-600" />
+                          <span>Preview Prospectus</span>
                         </button>
 
                         <button
                           type="submit"
-                          className="w-full sm:w-auto px-8 py-3.5 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 hover:from-indigo-700 hover:to-pink-700 text-white rounded-2xl text-xs font-mono font-black tracking-wider shadow-lg shadow-indigo-100 transition-all cursor-pointer"
+                          className="w-full sm:w-auto px-8 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow-xs transition-colors cursor-pointer flex items-center justify-center space-x-2"
                         >
-                          💾 SAVE & PUBLISH SCHOOL PROFILE PDF
+                          <Save className="w-4 h-4" />
+                          <span>Save School Prospectus</span>
                         </button>
                       </div>
                     </form>
@@ -3076,24 +3169,24 @@ export default function AdminPortal({
                           </div>
                           <div>
                             <h3 className="font-display font-black text-xl text-slate-900 leading-tight">
-                              Campus Photo Gallery Manager (Max 10 Photos)
+                              Campus Photo Gallery
                             </h3>
                             <p className="text-xs text-slate-500 font-medium mt-0.5">
-                              Upload up to 10 campus photos. Only uploaded photos will be displayed on the website without any blank/white placeholders.
+                              Upload up to 10 campus photos to showcase classrooms, science laboratories, library, and student activities.
                             </p>
                           </div>
                         </div>
                       </div>
 
-                      <div className="flex items-center space-x-2 bg-indigo-50 px-4 py-2 rounded-2xl border border-indigo-100 font-mono text-xs font-black text-indigo-900 shrink-0">
+                      <div className="flex items-center space-x-2 bg-indigo-50 px-4 py-2 rounded-xl border border-indigo-100 text-xs font-bold text-indigo-900 shrink-0">
                         <Sparkles className="w-4 h-4 text-pink-500" />
-                        <span>{galleryItems.length} / 10 Photos Live</span>
+                        <span>{galleryItems.length} / 10 Photos Published</span>
                       </div>
                     </div>
 
                     {/* Photo Upload Form */}
                     {galleryItems.length < 10 ? (
-                      <form onSubmit={handleAddGalleryPhoto} className="p-6 bg-slate-50 border border-indigo-100 rounded-2xl space-y-5">
+                      <form onSubmit={handleAddGalleryPhoto} className="p-6 bg-slate-50 border border-slate-200/80 rounded-2xl space-y-5">
                         <h4 className="font-extrabold text-sm text-slate-900 flex items-center space-x-2">
                           <Plus className="w-4 h-4 text-indigo-600" />
                           <span>Upload New Campus Photo</span>
@@ -3101,9 +3194,9 @@ export default function AdminPortal({
 
                         {/* File Picker */}
                         <div className="flex flex-col sm:flex-row items-center gap-4">
-                          <label className="w-full sm:w-auto px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-mono font-bold flex items-center justify-center space-x-2 cursor-pointer shadow-sm transition-all select-none">
-                            <Upload className="w-4 h-4 text-pink-300" />
-                            <span>SELECT IMAGE FILE</span>
+                          <label className="w-full sm:w-auto px-5 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-semibold flex items-center justify-center space-x-2 cursor-pointer shadow-xs transition-colors select-none">
+                            <Upload className="w-4 h-4" />
+                            <span>Choose Image File</span>
                             <input
                               type="file"
                               accept="image/*"
@@ -3125,8 +3218,8 @@ export default function AdminPortal({
                         {/* Form Inputs */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           <div className="space-y-1">
-                            <label className="block text-xs font-mono font-bold text-slate-700 uppercase">
-                              PHOTO TITLE
+                            <label className="block text-xs font-semibold text-slate-700">
+                              Photo Title
                             </label>
                             <input
                               type="text"
@@ -3134,28 +3227,28 @@ export default function AdminPortal({
                               placeholder="e.g. Science Laboratory Project"
                               value={galTitle}
                               onChange={(e) => setGalTitle(e.target.value)}
-                              className="w-full bg-white border border-indigo-100 p-2.5 rounded-xl text-xs font-bold focus:outline-none focus:border-indigo-600"
+                              className="w-full bg-white border border-slate-200 p-2.5 rounded-xl text-xs font-medium focus:outline-none focus:border-indigo-600"
                             />
                           </div>
 
                           <div className="space-y-1">
-                            <label className="block text-xs font-mono font-bold text-slate-700 uppercase">
-                              CATEGORY / TAG
+                            <label className="block text-xs font-semibold text-slate-700">
+                              Category (e.g. Science Lab, Sports, Classrooms)
                             </label>
                             <input
                               type="text"
                               required
-                              placeholder="e.g. Kindergarten / Academics / Sports"
+                              placeholder="e.g. Science Lab / Sports / Campus"
                               value={galCategory}
                               onChange={(e) => setGalCategory(e.target.value)}
-                              className="w-full bg-white border border-indigo-100 p-2.5 rounded-xl text-xs font-bold focus:outline-none focus:border-indigo-600"
+                              className="w-full bg-white border border-slate-200 p-2.5 rounded-xl text-xs font-medium focus:outline-none focus:border-indigo-600"
                             />
                           </div>
                         </div>
 
                         <div className="space-y-1">
-                          <label className="block text-xs font-mono font-bold text-slate-700 uppercase">
-                            DESCRIPTION / CAPTION
+                          <label className="block text-xs font-semibold text-slate-700">
+                            Caption / Description
                           </label>
                           <input
                             type="text"
@@ -3163,19 +3256,20 @@ export default function AdminPortal({
                             placeholder="e.g. Students engaging in hands-on physics experiments in our modern laboratory."
                             value={galDescription}
                             onChange={(e) => setGalDescription(e.target.value)}
-                            className="w-full bg-white border border-indigo-100 p-2.5 rounded-xl text-xs font-bold focus:outline-none focus:border-indigo-600"
+                            className="w-full bg-white border border-slate-200 p-2.5 rounded-xl text-xs font-medium focus:outline-none focus:border-indigo-600"
                           />
                         </div>
 
                         <button
                           type="submit"
-                          className="px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white rounded-xl text-xs font-mono font-black tracking-wider shadow-md transition-all cursor-pointer"
+                          className="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow-xs transition-colors cursor-pointer flex items-center space-x-2"
                         >
-                          ➕ ADD PHOTO TO GALLERY
+                          <Plus className="w-4 h-4" />
+                          <span>Upload Photo to Gallery</span>
                         </button>
                       </form>
                     ) : (
-                      <div className="p-4 bg-amber-50 border border-amber-200 rounded-2xl text-amber-900 text-xs font-bold flex items-center space-x-2">
+                      <div className="p-4 bg-amber-50 border border-amber-200 rounded-2xl text-amber-900 text-xs font-medium flex items-center space-x-2">
                         <Info className="w-4 h-4 text-amber-600 shrink-0" />
                         <span>Maximum limit of 10 photos reached. Remove an existing photo below to upload a new one.</span>
                       </div>
@@ -3183,8 +3277,8 @@ export default function AdminPortal({
 
                     {/* Gallery Grid List */}
                     <div className="space-y-4">
-                      <h4 className="font-mono font-bold text-xs uppercase text-slate-500">
-                        Current Live Gallery Photos ({galleryItems.length}) - Only these photos are displayed
+                      <h4 className="font-bold text-xs text-slate-700">
+                        Published Campus Photos ({galleryItems.length} of 10)
                       </h4>
 
                       {galleryItems.length === 0 ? (
@@ -3247,26 +3341,26 @@ export default function AdminPortal({
                           </div>
                           <div>
                             <h3 className="font-display font-black text-xl text-slate-900 leading-tight">
-                              Parent Reviews & Testimonials Manager
+                              Parent Reviews & Testimonials
                             </h3>
                             <p className="text-xs text-slate-500 font-medium mt-0.5">
-                              Review, edit, publish or reject parent feedback submitted via QR code or sent to info@shristiacademy.edu.np.
+                              Review parent feedback, approve testimonials for the school homepage, or add new verified reviews.
                             </p>
                           </div>
                         </div>
                       </div>
 
                       <div className="flex items-center space-x-2 shrink-0">
-                        <div className="px-3 py-2 bg-indigo-50 rounded-xl border border-indigo-100 font-mono text-xs font-black text-indigo-900">
-                          {reviews.filter((r) => !r.isApproved).length} Pending • {reviews.length} Total
+                        <div className="px-3 py-2 bg-indigo-50 rounded-xl border border-indigo-100 text-xs font-semibold text-indigo-900">
+                          {reviews.filter((r) => !r.isApproved).length} Pending Review • {reviews.length} Total
                         </div>
                         <button
                           type="button"
                           onClick={() => setIsAddReviewModalOpen(true)}
-                          className="px-4 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white rounded-xl font-mono text-xs font-black flex items-center space-x-1.5 shadow-sm transition-all cursor-pointer"
+                          className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-semibold flex items-center space-x-1.5 shadow-xs transition-colors cursor-pointer"
                         >
                           <Plus className="w-4 h-4" />
-                          <span>+ ADD REVIEW MANUALLY</span>
+                          <span>+ Add Parent Review</span>
                         </button>
                       </div>
                     </div>
@@ -3350,13 +3444,13 @@ export default function AdminPortal({
                                     );
                                     onUpdateReviews(updated);
                                   }}
-                                  className={`flex-1 py-2 rounded-xl text-xs font-mono font-bold transition-colors cursor-pointer ${
+                                  className={`flex-1 py-2 rounded-xl text-xs font-semibold transition-colors cursor-pointer ${
                                     rev.isApproved
                                       ? "bg-slate-200 text-slate-700 hover:bg-slate-300"
-                                      : "bg-emerald-600 text-white hover:bg-emerald-700 shadow-sm"
+                                      : "bg-emerald-600 text-white hover:bg-emerald-700 shadow-xs"
                                   }`}
                                 >
-                                  {rev.isApproved ? "⏸ UNPUBLISH" : "✓ APPROVE & PUBLISH"}
+                                  {rev.isApproved ? "Unpublish from Site" : "Approve & Publish"}
                                 </button>
 
                                 <button
@@ -3367,10 +3461,10 @@ export default function AdminPortal({
                                     onUpdateReviews(updated);
                                     showAdminToast(`🗑️ Review by ${rev.reviewerName} deleted.`);
                                   }}
-                                  className="px-3 py-2 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-xl text-xs font-mono font-bold flex items-center justify-center space-x-1 transition-colors cursor-pointer"
+                                  className="px-3 py-2 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-xl text-xs font-semibold flex items-center justify-center space-x-1 transition-colors cursor-pointer"
                                 >
                                   <Trash2 className="w-3.5 h-3.5" />
-                                  <span>DELETE</span>
+                                  <span>Delete</span>
                                 </button>
                               </div>
                             </div>
@@ -3405,10 +3499,10 @@ export default function AdminPortal({
                           </div>
                           <div>
                             <h3 className="font-display font-black text-xl text-slate-900 leading-tight">
-                              School Academic Calendar & Routine Manager
+                              School Academic Calendar & Routine
                             </h3>
                             <p className="text-xs text-slate-500 font-medium mt-0.5">
-                              Upload your official printed school calendar poster (Image/PDF), run Gemini AI extraction, or manage single & multi-day vacation dates.
+                              Upload your official printed school calendar poster (Image or PDF), scan dates, or add individual exam and vacation dates.
                             </p>
                           </div>
                         </div>
@@ -3416,17 +3510,17 @@ export default function AdminPortal({
 
                       <a
                         href="#tools"
-                        className="px-4 py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-mono text-xs font-black flex items-center space-x-1.5 shrink-0 transition-colors shadow-sm cursor-pointer"
+                        className="px-4 py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold flex items-center space-x-1.5 shrink-0 transition-colors shadow-sm cursor-pointer"
                       >
                         <Eye className="w-4 h-4 text-emerald-400" />
-                        <span>PREVIEW LIVE CALENDAR BOARD (#tools)</span>
+                        <span>Preview Calendar on Website</span>
                       </a>
                     </div>
 
                     {/* POSTER / IMAGE UPLOAD SECTION */}
                     <div className="bg-slate-50/80 p-6 rounded-2xl border border-slate-200/80 space-y-4">
                       {calSaveNotice && (
-                        <div className="p-3 bg-indigo-50 border border-indigo-200 text-indigo-900 rounded-xl text-xs font-mono font-bold flex items-center justify-between animate-fadeIn">
+                        <div className="p-3 bg-indigo-50 border border-indigo-200 text-indigo-900 rounded-xl text-xs font-semibold flex items-center justify-between animate-fadeIn">
                           <span>{calSaveNotice}</span>
                           <button
                             type="button"
@@ -3441,14 +3535,14 @@ export default function AdminPortal({
                       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                         <div>
                           <h4 className="font-extrabold text-sm text-slate-900 flex items-center space-x-2">
-                            <span>📄 Official Print Calendar Poster</span>
+                            <span>Official Printed Calendar Poster</span>
                             {adminCalImage && (
-                              <span className="px-2 py-0.5 bg-emerald-100 text-emerald-700 text-[10px] font-mono font-bold rounded-full">
-                                ✓ LIVE ON SITE
+                              <span className="px-2 py-0.5 bg-emerald-100 text-emerald-700 text-[10px] font-bold rounded-full">
+                                ✓ Live on Website
                               </span>
                             )}
                           </h4>
-                          <p className="text-xs text-slate-500">Upload JPG, PNG or PDF document poster for the current academic session.</p>
+                          <p className="text-xs text-slate-500">Upload a JPG, PNG, or PDF document of the official calendar for this academic session.</p>
                         </div>
 
                         <div className="flex flex-wrap items-center gap-2">
@@ -3457,29 +3551,29 @@ export default function AdminPortal({
                               <button
                                 type="button"
                                 onClick={handleSaveAdminCalPoster}
-                                className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-mono font-black rounded-xl flex items-center space-x-1.5 transition-all shadow-sm cursor-pointer"
+                                className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl flex items-center space-x-1.5 transition-all shadow-sm cursor-pointer"
                               >
                                 <Save className="w-3.5 h-3.5 text-emerald-200" />
-                                <span>💾 SAVE POSTER TO WEBSITE</span>
+                                <span>Save Calendar Poster</span>
                               </button>
 
                               <button
                                 type="button"
                                 onClick={() => handleAIParseInAdmin()}
                                 disabled={adminCalIsParsing}
-                                className="px-3 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-mono font-bold rounded-xl flex items-center space-x-1.5 transition-colors cursor-pointer disabled:opacity-50"
+                                className="px-3.5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl flex items-center space-x-1.5 transition-colors cursor-pointer disabled:opacity-50"
                               >
                                 <Sparkles className="w-3.5 h-3.5 text-amber-300" />
-                                <span>{adminCalIsParsing ? "Parsing via Gemini..." : "✨ AI SYNC EVENTS"}</span>
+                                <span>{adminCalIsParsing ? "Scanning Dates..." : "Auto-Scan Dates with AI"}</span>
                               </button>
 
                               <button
                                 type="button"
                                 onClick={handleRemoveAdminCalImage}
-                                className="px-3 py-2 bg-rose-50 hover:bg-rose-100 text-rose-600 text-xs font-mono font-bold rounded-xl flex items-center space-x-1 transition-colors cursor-pointer"
+                                className="px-3 py-2 bg-rose-50 hover:bg-rose-100 text-rose-600 text-xs font-bold rounded-xl flex items-center space-x-1 transition-colors cursor-pointer"
                               >
                                 <Trash2 className="w-3.5 h-3.5" />
-                                <span>REMOVE</span>
+                                <span>Remove Poster</span>
                               </button>
                             </>
                           )}
@@ -3499,11 +3593,11 @@ export default function AdminPortal({
                           <div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-3.5 bg-emerald-50 rounded-2xl border border-emerald-100">
                             <p className="text-xs text-emerald-800 font-medium flex items-center space-x-2">
                               <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                              <span>This poster is published on the live website. Click <strong>SAVE POSTER TO WEBSITE</strong> or <strong>AI SYNC EVENTS</strong> to extract dates.</span>
+                              <span>This poster is visible to parents and students. You can also use <strong>Auto-Scan Dates with AI</strong> to extract key events into the list below.</span>
                             </p>
 
-                            <label className="px-3 py-1.5 bg-white hover:bg-slate-50 text-slate-800 border border-slate-300 text-xs font-mono font-bold rounded-xl cursor-pointer shrink-0 transition-colors">
-                              <span>🔄 REPLACE POSTER FILE</span>
+                            <label className="px-3.5 py-1.5 bg-white hover:bg-slate-50 text-slate-800 border border-slate-300 text-xs font-semibold rounded-xl cursor-pointer shrink-0 transition-colors">
+                              <span>Replace Poster File</span>
                               <input
                                 type="file"
                                 accept="image/*,application/pdf"
@@ -3521,12 +3615,12 @@ export default function AdminPortal({
                           <div>
                             <h5 className="font-extrabold text-sm text-slate-900">Upload School Calendar Poster (Image / PDF)</h5>
                             <p className="text-xs text-slate-500 max-w-md mx-auto mt-1">
-                              Select or drop your official printed calendar poster file. Gemini AI will automatically extract key dates and populate the interactive timeline.
+                              Select or drop your official printed calendar poster file. You can also auto-scan key dates into the interactive timeline.
                             </p>
                           </div>
-                          <label className="inline-flex items-center space-x-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-mono text-xs font-extrabold cursor-pointer transition-colors shadow-sm">
+                          <label className="inline-flex items-center space-x-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold cursor-pointer transition-colors shadow-sm">
                             <Upload className="w-4 h-4" />
-                            <span>SELECT FILE TO UPLOAD</span>
+                            <span>Choose Calendar Poster</span>
                             <input
                               type="file"
                               accept="image/*,application/pdf"
@@ -3542,28 +3636,28 @@ export default function AdminPortal({
                     <div className="space-y-4 pt-4 border-t border-slate-100">
                       <h4 className="font-extrabold text-sm text-slate-900 flex items-center space-x-2">
                         <Plus className="w-4 h-4 text-indigo-600" />
-                        <span>Add New Academic Event / Holiday Schedule</span>
+                        <span>Add New Academic Event or Holiday</span>
                       </h4>
 
                       <form onSubmit={handleAddCalEventInAdmin} className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 bg-slate-50/50 p-5 rounded-2xl border border-slate-200/60">
                         <div className="space-y-1 md:col-span-2">
-                          <label className="text-[11px] font-mono font-bold text-slate-500 uppercase">Event Title</label>
+                          <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Event Title</label>
                           <input
                             type="text"
                             required
                             placeholder="e.g. First Terminal Examination 2083"
                             value={calEventTitle}
                             onChange={(e) => setCalEventTitle(e.target.value)}
-                            className="w-full px-3 py-2 bg-white rounded-xl border border-slate-200 text-xs font-extrabold focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                            className="w-full px-3 py-2 bg-white rounded-xl border border-slate-200 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500"
                           />
                         </div>
 
                         <div className="space-y-1">
-                          <label className="text-[11px] font-mono font-bold text-slate-500 uppercase">Category</label>
+                          <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Category</label>
                           <select
                             value={calEventType}
                             onChange={(e) => setCalEventType(e.target.value as any)}
-                            className="w-full px-3 py-2 bg-white rounded-xl border border-slate-200 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                            className="w-full px-3 py-2 bg-white rounded-xl border border-slate-200 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500"
                           >
                             <option value="Academic">Academic</option>
                             <option value="Sports">Sports</option>
@@ -3573,52 +3667,52 @@ export default function AdminPortal({
                         </div>
 
                         <div className="space-y-1">
-                          <label className="text-[11px] font-mono font-bold text-slate-500 uppercase">Start Date *</label>
+                          <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Start Date *</label>
                           <input
                             type="text"
                             required
                             placeholder="e.g. August 20, 2026"
                             value={calEventDate}
                             onChange={(e) => setCalEventDate(e.target.value)}
-                            className="w-full px-3 py-2 bg-white rounded-xl border border-slate-200 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                            className="w-full px-3 py-2 bg-white rounded-xl border border-slate-200 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500"
                           />
                         </div>
 
                         <div className="space-y-1">
-                          <label className="text-[11px] font-mono font-bold text-slate-500 uppercase">End Date (Optional for Vacation)</label>
+                          <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">End Date (Optional for Vacations)</label>
                           <input
                             type="text"
                             placeholder="e.g. August 28, 2026"
                             value={calEventEndDate}
                             onChange={(e) => setCalEventEndDate(e.target.value)}
-                            className="w-full px-3 py-2 bg-white rounded-xl border border-slate-200 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                            className="w-full px-3 py-2 bg-white rounded-xl border border-slate-200 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500"
                           />
                         </div>
 
                         <div className="space-y-1">
-                          <label className="text-[11px] font-mono font-bold text-slate-500 uppercase">Time</label>
+                          <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Time</label>
                           <input
                             type="text"
                             placeholder="e.g. 10:00 AM - 02:00 PM"
                             value={calEventTime}
                             onChange={(e) => setCalEventTime(e.target.value)}
-                            className="w-full px-3 py-2 bg-white rounded-xl border border-slate-200 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                            className="w-full px-3 py-2 bg-white rounded-xl border border-slate-200 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500"
                           />
                         </div>
 
                         <div className="space-y-1">
-                          <label className="text-[11px] font-mono font-bold text-slate-500 uppercase">Location</label>
+                          <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Location</label>
                           <input
                             type="text"
                             placeholder="e.g. Main Examination Hall"
                             value={calEventLocation}
                             onChange={(e) => setCalEventLocation(e.target.value)}
-                            className="w-full px-3 py-2 bg-white rounded-xl border border-slate-200 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                            className="w-full px-3 py-2 bg-white rounded-xl border border-slate-200 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500"
                           />
                         </div>
 
                         <div className="space-y-1 md:col-span-3">
-                          <label className="text-[11px] font-mono font-bold text-slate-500 uppercase">Brief Description</label>
+                          <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Brief Description</label>
                           <input
                             type="text"
                             placeholder="Optional short note regarding exam routine or dress code..."
@@ -3631,10 +3725,10 @@ export default function AdminPortal({
                         <div className="md:col-span-3 pt-2">
                           <button
                             type="submit"
-                            className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-mono text-xs font-black rounded-xl transition-colors cursor-pointer flex items-center justify-center space-x-2 shadow-sm"
+                            className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl transition-colors cursor-pointer flex items-center justify-center space-x-2 shadow-sm"
                           >
                             <Plus className="w-4 h-4" />
-                            <span>ADD EVENT TO CALENDAR SCHEDULE</span>
+                            <span>Add Event to Calendar</span>
                           </button>
                         </div>
                       </form>
