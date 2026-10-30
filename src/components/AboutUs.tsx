@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Award, Target, Landmark, Quote, PhoneCall, Check, X, Maximize2, FileText, Eye, Download, Sparkles, ArrowRight, Image as ImageIcon } from "lucide-react";
+import React, { useState } from "react";
+import { Award, Target, Landmark, Quote, PhoneCall, Check, X, Maximize2, FileText, Eye, Download, Sparkles, ArrowRight, Image as ImageIcon, ChevronLeft, ChevronRight } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { SchoolProfileConfig, GalleryItem } from "../types";
 import vaniImage from "../assets/images/vani_pradhan.png";
@@ -67,6 +67,26 @@ interface AboutUsProps {
 export default function AboutUs({ onOpenSchoolProfile, schoolProfileConfig, galleryItems }: AboutUsProps) {
   const activeGallery = galleryItems !== undefined ? galleryItems : DEFAULT_GALLERY_ITEMS;
   const [selectedImage, setSelectedImage] = useState<GalleryItem | null>(null);
+  const [galleryCategoryFilter, setGalleryCategoryFilter] = useState<string>("All");
+
+  const categories = ["All", ...Array.from(new Set(activeGallery.map(item => item.category).filter(Boolean)))];
+  const filteredGallery = activeGallery.filter(
+    item => galleryCategoryFilter === "All" || item.category === galleryCategoryFilter
+  );
+
+  const currentLightboxIndex = selectedImage ? filteredGallery.findIndex(i => i.id === selectedImage.id) : -1;
+  const handleNextPhoto = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (currentLightboxIndex < filteredGallery.length - 1) {
+      setSelectedImage(filteredGallery[currentLightboxIndex + 1]);
+    }
+  };
+  const handlePrevPhoto = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (currentLightboxIndex > 0) {
+      setSelectedImage(filteredGallery[currentLightboxIndex - 1]);
+    }
+  };
 
   const values = [
     { 
@@ -320,7 +340,7 @@ export default function AboutUs({ onOpenSchoolProfile, schoolProfileConfig, gall
 
         {/* Campus Gallery Section - DENSE & LARGE PICTORIAL SHOWCASE */}
         <div className="space-y-8 pt-16 border-t border-slate-150">
-          <div className="text-left space-y-2">
+          <div className="text-left space-y-3">
             <span className="text-xs font-mono font-bold uppercase tracking-wider text-indigo-600 bg-indigo-50 px-3.5 py-1.5 rounded-full inline-block">
               School Life In Action
             </span>
@@ -328,14 +348,36 @@ export default function AboutUs({ onOpenSchoolProfile, schoolProfileConfig, gall
               Moments of Joy, Discovery, & Academic Progress
             </h3>
             <p className="text-slate-600 text-sm sm:text-base font-bold">
-              Take an interactive look inside Shristi Academy. <strong>Click any photo to open full-screen view</strong> to see our vibrant campus activities, science laboratory setups, and classroom playgroups.
+              Take an interactive look inside Shristi Academy. <strong>Click any photo to open full-screen view</strong> to see our vibrant campus activities, sports events, science laboratory setups, and classroom playgroups.
             </p>
+
+            {/* Category Filter Pills */}
+            {categories.length > 2 && (
+              <div className="flex flex-wrap items-center gap-2 pt-2">
+                <span className="text-xs font-mono font-bold text-slate-400 uppercase tracking-wider mr-1">
+                  Filter by Activity:
+                </span>
+                {categories.map((cat) => (
+                  <button
+                    key={cat}
+                    onClick={() => setGalleryCategoryFilter(cat)}
+                    className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                      galleryCategoryFilter === cat
+                        ? "bg-indigo-600 text-white shadow-xs"
+                        : "bg-slate-100 hover:bg-slate-200/80 text-slate-700"
+                    }`}
+                  >
+                    {cat} {cat === "All" ? `(${activeGallery.length})` : `(${activeGallery.filter(i => i.category === cat).length})`}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
 
-          {/* GIGANTIC RESPONSIVE GRID FOR VIVID GRAPHICS (DYNAMIC - ONLY UPLOADED PHOTOS DISPLAYED, MAX 10) */}
-          {activeGallery.length > 0 ? (
+          {/* GIGANTIC RESPONSIVE GRID FOR VIVID GRAPHICS (DYNAMIC - UP TO 60 PHOTOS) */}
+          {filteredGallery.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {activeGallery.slice(0, 10).map((item) => (
+              {filteredGallery.slice(0, 60).map((item) => (
                 <motion.div
                   key={item.id || item.title}
                   whileHover={{ y: -8 }}
@@ -371,7 +413,7 @@ export default function AboutUs({ onOpenSchoolProfile, schoolProfileConfig, gall
                     <h4 className="font-black text-lg text-slate-950 group-hover:text-indigo-600 transition-colors leading-snug">
                       {item.title}
                     </h4>
-                    <p className="text-xs text-slate-600 font-bold leading-relaxed">
+                    <p className="text-xs text-slate-600 font-bold leading-relaxed line-clamp-2">
                       {item.description}
                     </p>
                   </div>
@@ -381,8 +423,8 @@ export default function AboutUs({ onOpenSchoolProfile, schoolProfileConfig, gall
           ) : (
             <div className="bg-slate-50 border border-dashed border-slate-200 rounded-3xl p-12 text-center text-slate-400 space-y-2">
               <ImageIcon className="w-10 h-10 text-slate-300 mx-auto" />
-              <p className="font-bold text-sm text-slate-600">No Campus Photos Currently Displayed</p>
-              <p className="text-xs text-slate-400">School administration can upload campus photos through the Admin Portal.</p>
+              <p className="font-bold text-sm text-slate-600">No Photos In This Category</p>
+              <p className="text-xs text-slate-400">Select "All" to view all school campus and event photos.</p>
             </div>
           )}
         </div>
@@ -455,11 +497,36 @@ export default function AboutUs({ onOpenSchoolProfile, schoolProfileConfig, gall
               {/* Close Button */}
               <button
                 onClick={() => setSelectedImage(null)}
-                className="absolute top-4 right-4 z-10 w-10 h-10 rounded-full bg-black/60 hover:bg-black text-white flex items-center justify-center transition-colors border border-white/10 cursor-pointer"
+                className="absolute top-4 right-4 z-20 w-10 h-10 rounded-full bg-black/60 hover:bg-black text-white flex items-center justify-center transition-colors border border-white/10 cursor-pointer"
                 aria-label="Close image"
               >
                 <X className="w-5 h-5" />
               </button>
+
+              {/* Prev / Next Navigation Arrows */}
+              {filteredGallery.length > 1 && (
+                <>
+                  {currentLightboxIndex > 0 && (
+                    <button
+                      onClick={handlePrevPhoto}
+                      className="absolute left-4 top-1/2 -translate-y-1/2 z-20 w-11 h-11 rounded-full bg-black/60 hover:bg-black text-white flex items-center justify-center transition-colors border border-white/10 cursor-pointer shadow-lg"
+                      title="Previous Photo"
+                    >
+                      <ChevronLeft className="w-6 h-6" />
+                    </button>
+                  )}
+
+                  {currentLightboxIndex < filteredGallery.length - 1 && (
+                    <button
+                      onClick={handleNextPhoto}
+                      className="absolute right-4 top-1/2 -translate-y-1/2 z-20 w-11 h-11 rounded-full bg-black/60 hover:bg-black text-white flex items-center justify-center transition-colors border border-white/10 cursor-pointer shadow-lg"
+                      title="Next Photo"
+                    >
+                      <ChevronRight className="w-6 h-6" />
+                    </button>
+                  )}
+                </>
+              )}
 
               {/* Big Image Section */}
               <div className="relative aspect-[16/10] bg-black select-none">
@@ -472,8 +539,15 @@ export default function AboutUs({ onOpenSchoolProfile, schoolProfileConfig, gall
                     e.currentTarget.src = (selectedImage as any).fallbackImage || montessoriImg;
                   }}
                 />
-                <div className="absolute top-4 left-4 bg-indigo-600 text-white text-xs font-mono font-bold uppercase py-1 px-3 rounded-lg shadow">
-                  {selectedImage.category}
+                <div className="absolute top-4 left-4 flex items-center space-x-2">
+                  <span className="bg-indigo-600 text-white text-xs font-mono font-bold uppercase py-1 px-3 rounded-lg shadow">
+                    {selectedImage.category}
+                  </span>
+                  {filteredGallery.length > 1 && currentLightboxIndex >= 0 && (
+                    <span className="bg-black/70 text-slate-200 text-xs font-mono font-bold py-1 px-2.5 rounded-lg shadow border border-white/10">
+                      {currentLightboxIndex + 1} / {filteredGallery.length}
+                    </span>
+                  )}
                 </div>
               </div>
 

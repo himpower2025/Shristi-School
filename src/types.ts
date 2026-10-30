@@ -113,3 +113,11 @@ export interface ParentReview {
   avatarColor?: string;
 }
 
+export interface SiteBackgroundConfig {
+  enabled: boolean;
+  imageUrl: string | null;
+  fileName?: string;
+  opacity: number; // 0.05 to 0.35 (default 0.12)
+  blur: number; // 0 to 16 px (default 6)
+  updatedAt?: string;
+}

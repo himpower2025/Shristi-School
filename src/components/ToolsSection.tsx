@@ -1,10 +1,18 @@
 import React, { useState, useEffect } from "react";
 import { 
   Calendar, Clock, MapPin, Upload, Trash2, Plus, 
-  FileText, CalendarDays, Eye, RefreshCw, AlertCircle, Info, Download, Trash, Sparkles, ChevronLeft, ChevronRight, X
+  FileText, CalendarDays, Eye, RefreshCw, AlertCircle, Info, Download, Trash, Sparkles, ChevronLeft, ChevronRight, X,
+  Grid, ListFilter, CheckCircle2
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { SchoolEvent } from "../types";
+import { 
+  parseSchoolEventDate, 
+  isEventActiveOnDay, 
+  MONTH_NAMES, 
+  MONTH_SHORT_NAMES, 
+  DAYS_OF_WEEK 
+} from "../utils/calendarDateUtils";
 
 interface ToolsSectionProps {
   isAdmin?: boolean;
@@ -13,78 +21,17 @@ interface ToolsSectionProps {
   onDeleteEvent?: (id: string) => void;
 }
 
-export const DEFAULT_EVENTS: SchoolEvent[] = [
-  {
-    id: "evt-1",
-    title: "First Terminal Examination Reviews",
-    date: "July 10, 2026",
-    time: "10:00 AM - 1:00 PM",
-    location: "Active Block A Halls",
-    description: "Compulsory term review starting for Grade 1 up to Class 10 (SEE batches).",
-    type: "Academic"
-  },
-  {
-    id: "evt-2",
-    title: "Science & Robotics Exhibition 2026",
-    date: "July 22, 2026",
-    time: "9:30 AM onwards",
-    location: "Main Ground Exhibition Tent",
-    description: "Interactive projects, coding, chemistry visual tests by our Senior School science students.",
-    type: "Excursion"
-  },
-  {
-    id: "evt-3",
-    title: "Inter-House Volleyball & Athletics Finals",
-    date: "July 28, 2026",
-    time: "1:30 PM - 4:00 PM",
-    location: "Mid-Baneshwor Campus Sports Court",
-    description: "The peak final athletic faceoff between Mount Everest House and Annapurna House.",
-    type: "Sports"
-  },
-  {
-    id: "evt-4",
-    title: "Bhanu Jayanti & Cultural Poetry Meet",
-    date: "August 04, 2026",
-    time: "11:00 AM - 2:00 PM",
-    location: "Auditorium Hall Building B",
-    description: "Nepalese kavya, poetry competitions, dramatic plays marking literary achievements.",
-    type: "Ceremony"
-  },
-  {
-    id: "evt-5",
-    title: "Second Terminal Parent Teacher Conference (PTM)",
-    date: "August 18, 2026",
-    time: "10:00 AM - 3:00 PM",
-    location: "Academic Block B",
-    description: "Individual academic progress reviews and student growth portfolio discussions.",
-    type: "Academic"
-  },
-  {
-    id: "evt-6",
-    title: "Dashain & Tihar Festive Cultural Program",
-    date: "October 14, 2026",
-    time: "11:00 AM - 3:00 PM",
-    location: "Main Assembly Square",
-    description: "Annual cultural performances, music, and seasonal holiday celebration before term vacation.",
-    type: "Ceremony"
-  }
-];
-
-const MONTHS_2026 = [
-  "January", "February", "March", "April", "May", "June",
-  "July", "August", "September", "October", "November", "December"
-];
-
-const DAYS_OF_WEEK = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+// Default events are empty as requested ("가짜 데이터는 넣지 맙시다")
+export const DEFAULT_EVENTS: SchoolEvent[] = [];
 
 export default function ToolsSection({ isAdmin = false, events: propsEvents, onAddEvent, onDeleteEvent }: ToolsSectionProps) {
   const [events, setEvents] = useState<SchoolEvent[]>(() => {
     if (propsEvents !== undefined) return propsEvents;
     const cached = localStorage.getItem("shristi_calendar_events");
     try {
-      return cached ? JSON.parse(cached) : DEFAULT_EVENTS;
+      return cached ? JSON.parse(cached) : [];
     } catch {
-      return DEFAULT_EVENTS;
+      return [];
     }
   });
 
@@ -93,14 +40,15 @@ export default function ToolsSection({ isAdmin = false, events: propsEvents, onA
       setEvents(propsEvents);
     }
   }, [propsEvents]);
+
   const [calendarImage, setCalendarImage] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<"grid" | "poster">("grid");
   const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
   
-  // Auto-detect real-world current month (e.g. July = 6) and current year
+  // Real-world current month and year
   const [currentMonthIndex, setCurrentMonthIndex] = useState<number>(() => new Date().getMonth());
   const [currentYear, setCurrentYear] = useState<number>(() => new Date().getFullYear());
-  const [filterMode, setFilterMode] = useState<"month" | "all">("month");
+  const [filterMode, setFilterMode] = useState<"month" | "by-month" | "all">("month");
 
   const [selectedDayEvents, setSelectedDayEvents] = useState<SchoolEvent[]>([]);
   const [selectedDayNumber, setSelectedDayNumber] = useState<number | null>(null);
@@ -125,13 +73,13 @@ export default function ToolsSection({ isAdmin = false, events: propsEvents, onA
 
       if (cachedEvents) {
         try {
-          setEvents(JSON.parse(cachedEvents));
+          const parsed = JSON.parse(cachedEvents);
+          setEvents(Array.isArray(parsed) ? parsed : []);
         } catch (_) {
-          setEvents(DEFAULT_EVENTS);
+          setEvents([]);
         }
       } else {
-        setEvents(DEFAULT_EVENTS);
-        localStorage.setItem("shristi_calendar_events", JSON.stringify(DEFAULT_EVENTS));
+        setEvents([]);
       }
 
       if (cachedCalImage) {
@@ -378,48 +326,7 @@ export default function ToolsSection({ isAdmin = false, events: propsEvents, onA
 
   // Helper function to check if a specific day falls within a single-day or multi-day event / vacation
   const isEventOnDay = (evt: SchoolEvent, day: number) => {
-    const cellDate = new Date(currentYear, currentMonthIndex, day, 12, 0, 0);
-
-    // 1. Explicit endDate
-    if (evt.endDate) {
-      try {
-        const start = new Date(evt.date);
-        start.setHours(0, 0, 0, 0);
-        const end = new Date(evt.endDate);
-        end.setHours(23, 59, 59, 999);
-        if (!isNaN(start.getTime()) && !isNaN(end.getTime())) {
-          return cellDate >= start && cellDate <= end;
-        }
-      } catch (_) {}
-    }
-
-    // 2. Date string range (e.g. "July 20, 2026 - July 28, 2026", "2026-07-20 ~ 2026-07-28")
-    const rawDate = evt.date || "";
-    const rangeSeps = [" - ", " ~ ", " to ", " – "];
-    for (const sep of rangeSeps) {
-      if (rawDate.includes(sep)) {
-        const parts = rawDate.split(sep);
-        if (parts.length === 2) {
-          try {
-            const start = new Date(parts[0].trim());
-            start.setHours(0, 0, 0, 0);
-            const end = new Date(parts[1].trim());
-            end.setHours(23, 59, 59, 999);
-            if (!isNaN(start.getTime()) && !isNaN(end.getTime())) {
-              return cellDate >= start && cellDate <= end;
-            }
-          } catch (_) {}
-        }
-      }
-    }
-
-    // 3. Single-day fallback
-    try {
-      const d = new Date(evt.date);
-      return d.getFullYear() === currentYear && d.getMonth() === currentMonthIndex && d.getDate() === day;
-    } catch (_) {
-      return false;
-    }
+    return isEventActiveOnDay(evt.date, evt.endDate, currentYear, currentMonthIndex, day);
   };
 
   // Get events on a specific day
@@ -433,27 +340,77 @@ export default function ToolsSection({ isAdmin = false, events: propsEvents, onA
     setSelectedDayEvents(getEventsOnDay(day));
   };
 
-  // Sort events chronologically for the Timeline
+  // Count events active in a given month
+  const getEventCountForMonth = (monthIdx: number, yearNum = currentYear) => {
+    return events.filter(evt => {
+      const p = parseSchoolEventDate(evt.date);
+      if (!p) return false;
+      if (evt.endDate) {
+        const pend = parseSchoolEventDate(evt.endDate);
+        if (pend) {
+          const startMonth = p.year * 12 + p.month;
+          const endMonth = pend.year * 12 + pend.month;
+          const cur = yearNum * 12 + monthIdx;
+          return cur >= startMonth && cur <= endMonth;
+        }
+      }
+      return p.year === yearNum && p.month === monthIdx;
+    }).length;
+  };
+
+  // Sort events chronologically
   const sortedEvents = [...events].sort((a, b) => {
-    try {
-      return new Date(a.date).getTime() - new Date(b.date).getTime();
-    } catch {
-      return 0;
+    const da = parseSchoolEventDate(a.date);
+    const db = parseSchoolEventDate(b.date);
+    if (da && db) {
+      if (da.year !== db.year) return da.year - db.year;
+      if (da.month !== db.month) return da.month - db.month;
+      return da.day - db.day;
     }
+    return 0;
   });
 
-  // Filter events for the right column based on active mode
-  const displayedEvents = sortedEvents.filter(evt => {
-    if (filterMode === "month") {
-      try {
-        const d = new Date(evt.date);
-        return d.getMonth() === currentMonthIndex;
-      } catch {
-        return true;
+  // Filter events for active month
+  const currentMonthEvents = sortedEvents.filter(evt => {
+    const p = parseSchoolEventDate(evt.date);
+    if (!p) return false;
+    if (evt.endDate) {
+      const pend = parseSchoolEventDate(evt.endDate);
+      if (pend) {
+        const startMonth = p.year * 12 + p.month;
+        const endMonth = pend.year * 12 + pend.month;
+        const cur = currentYear * 12 + currentMonthIndex;
+        return cur >= startMonth && cur <= endMonth;
       }
     }
-    return true;
+    return p.year === currentYear && p.month === currentMonthIndex;
   });
+
+  // Group events by month for the "by-month" view mode
+  const eventsByMonth: { [key: string]: { label: string; monthIndex: number; year: number; events: SchoolEvent[] } } = {};
+  sortedEvents.forEach(evt => {
+    const p = parseSchoolEventDate(evt.date);
+    const mIdx = p ? p.month : 0;
+    const y = p ? p.year : currentYear;
+    const key = `${y}-${mIdx}`;
+    if (!eventsByMonth[key]) {
+      eventsByMonth[key] = {
+        label: `${MONTH_NAMES[mIdx]} ${y}`,
+        monthIndex: mIdx,
+        year: y,
+        events: []
+      };
+    }
+    eventsByMonth[key].events.push(evt);
+  });
+
+  // List of other months that currently have events
+  const otherMonthsWithEvents = MONTH_SHORT_NAMES.map((name, idx) => ({
+    name,
+    fullName: MONTH_NAMES[idx],
+    monthIndex: idx,
+    count: getEventCountForMonth(idx, currentYear)
+  })).filter(m => m.count > 0 && m.monthIndex !== currentMonthIndex);
 
   return (
     <section className="py-20 px-4 sm:px-8 lg:px-12 xl:px-16 2xl:px-20 bg-white relative overflow-hidden" id="portal-tools">
@@ -541,20 +498,74 @@ export default function ToolsSection({ isAdmin = false, events: propsEvents, onA
 
               {/* Interactive Monthly Grid View */}
               <div className="space-y-4">
-                {/* Calendar Navigation */}
+                
+                {/* 12-Month Ribbon Navigator with Live Event Badges */}
+                <div className="bg-white p-2.5 rounded-2xl border border-indigo-100/70 shadow-sm space-y-2">
+                  <div className="flex items-center justify-between px-1 text-[11px] font-bold text-slate-600">
+                    <span className="flex items-center gap-1.5 text-indigo-700 font-display">
+                      <Calendar className="w-3.5 h-3.5" />
+                      <span>12-Month Calendar Bar:</span>
+                    </span>
+                    <span className="text-[10px] font-mono text-slate-400">
+                      Click any month to inspect events
+                    </span>
+                  </div>
+                  <div className="flex items-center space-x-1.5 overflow-x-auto pb-1 scrollbar-thin">
+                    {MONTH_SHORT_NAMES.map((name, idx) => {
+                      const count = getEventCountForMonth(idx, currentYear);
+                      const isSelected = currentMonthIndex === idx;
+                      return (
+                        <button
+                          key={name}
+                          type="button"
+                          onClick={() => {
+                            setCurrentMonthIndex(idx);
+                            setSelectedDayNumber(null);
+                            setSelectedDayEvents([]);
+                          }}
+                          className={`px-3 py-1.5 rounded-xl text-xs font-mono font-bold flex items-center space-x-1.5 shrink-0 transition-all cursor-pointer ${
+                            isSelected
+                              ? "bg-indigo-600 text-white shadow-md shadow-indigo-200 font-black scale-[1.02]"
+                              : count > 0
+                              ? "bg-indigo-50/90 text-indigo-900 hover:bg-indigo-100 border border-indigo-200/60"
+                              : "text-slate-500 hover:bg-slate-100 hover:text-slate-800 bg-slate-50/70"
+                          }`}
+                        >
+                          <span>{name}</span>
+                          {count > 0 && (
+                            <span className={`text-[9.5px] px-1.5 py-0.2 rounded-full font-black ${
+                              isSelected ? "bg-white text-indigo-700" : "bg-indigo-600 text-white"
+                            }`}>
+                              {count}
+                            </span>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Calendar Month Navigation Header */}
                 <div className="flex items-center justify-between bg-white px-4 py-3 rounded-2xl border border-indigo-100/40 shadow-sm">
                   <button
                     onClick={prevMonth}
                     className="p-1.5 hover:bg-slate-50 text-slate-600 rounded-lg transition-colors cursor-pointer"
+                    title="Previous Month"
                   >
                     <ChevronLeft className="w-5 h-5" />
                   </button>
-                  <span className="font-display font-black text-sm sm:text-base text-slate-900">
-                    {MONTHS_2026[currentMonthIndex]} {currentYear}
-                  </span>
+                  <div className="text-center">
+                    <span className="font-display font-black text-sm sm:text-base text-slate-900 block">
+                      {MONTH_NAMES[currentMonthIndex]} {currentYear}
+                    </span>
+                    <span className="text-[10px] font-mono text-indigo-600 font-bold">
+                      {getEventCountForMonth(currentMonthIndex, currentYear)} Scheduled Event(s)
+                    </span>
+                  </div>
                   <button
                     onClick={nextMonth}
                     className="p-1.5 hover:bg-slate-50 text-slate-600 rounded-lg transition-colors cursor-pointer"
+                    title="Next Month"
                   >
                     <ChevronRight className="w-5 h-5" />
                   </button>
@@ -627,7 +638,7 @@ export default function ToolsSection({ isAdmin = false, events: propsEvents, onA
                     >
                       <div className="flex justify-between items-center border-b border-indigo-50 pb-2">
                         <h4 className="font-display font-black text-xs sm:text-sm text-slate-900">
-                          Schedule on {MONTHS_2026[currentMonthIndex]} {selectedDayNumber}, {currentYear}
+                          Schedule on {MONTH_NAMES[currentMonthIndex]} {selectedDayNumber}, {currentYear}
                         </h4>
                         <span className="text-[9px] font-mono font-bold bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded-full">
                           {selectedDayEvents.length} Event(s)
@@ -747,7 +758,7 @@ export default function ToolsSection({ isAdmin = false, events: propsEvents, onA
                 </div>
 
                 {/* Filter toggle */}
-                <div className="flex bg-indigo-50 p-1 rounded-xl border border-indigo-100/40 select-none text-[11px] font-bold">
+                <div className="flex flex-wrap bg-indigo-50 p-1 rounded-xl border border-indigo-100/40 select-none text-[11px] font-bold gap-1">
                   <button
                     onClick={() => setFilterMode("month")}
                     className={`px-2.5 py-1 rounded-lg transition-all cursor-pointer ${
@@ -756,7 +767,17 @@ export default function ToolsSection({ isAdmin = false, events: propsEvents, onA
                         : "text-slate-500 hover:text-slate-800"
                     }`}
                   >
-                    {MONTHS_2026[currentMonthIndex]}
+                    {MONTH_SHORT_NAMES[currentMonthIndex]} ({currentMonthEvents.length})
+                  </button>
+                  <button
+                    onClick={() => setFilterMode("by-month")}
+                    className={`px-2.5 py-1 rounded-lg transition-all cursor-pointer ${
+                      filterMode === "by-month"
+                        ? "bg-white text-indigo-700 shadow-sm"
+                        : "text-slate-500 hover:text-slate-800"
+                    }`}
+                  >
+                    By Month
                   </button>
                   <button
                     onClick={() => setFilterMode("all")}
@@ -772,61 +793,219 @@ export default function ToolsSection({ isAdmin = false, events: propsEvents, onA
               </div>
 
               {/* Event Lists with scroll */}
-              <div className="space-y-3.5 max-h-[380px] overflow-y-auto pr-1">
-                {displayedEvents.length > 0 ? (
-                  displayedEvents.map((evt) => (
-                    <div 
-                      key={evt.id}
-                      className="bg-[#FAF9F6] border border-indigo-50/80 p-4 rounded-2xl space-y-2 hover:border-indigo-150 transition-all duration-300 relative group"
-                    >
-                      <div className="flex justify-between items-start">
-                        <span className="text-[9px] font-mono text-indigo-700 font-black bg-indigo-50 border border-indigo-100/50 py-0.5 px-2 rounded uppercase tracking-wider">
-                          {evt.type}
-                        </span>
-                        
-                        <div className="flex items-center space-x-1 text-[10px] text-slate-500 font-mono font-bold">
-                          <Calendar className="w-3.5 h-3.5 text-indigo-500" />
-                          <span>{evt.endDate ? `${evt.date} ~ ${evt.endDate}` : evt.date}</span>
-                          {evt.endDate && (
-                            <span className="ml-1 px-1.5 py-0.2 bg-amber-100 text-amber-800 rounded font-black text-[9px]">
-                              Vacation / Multi-day
-                            </span>
-                          )}
+              <div className="space-y-3.5 max-h-[440px] overflow-y-auto pr-1">
+                {filterMode === "by-month" ? (
+                  /* GROUPED BY MONTH VIEW */
+                  Object.keys(eventsByMonth).length > 0 ? (
+                    Object.values(eventsByMonth).map(group => (
+                      <div key={group.label} className="space-y-2 pb-2">
+                        <div className="sticky top-0 z-10 bg-indigo-50/95 backdrop-blur-xs py-1.5 px-3 rounded-xl border border-indigo-100 flex items-center justify-between text-xs font-black text-indigo-950">
+                          <span className="flex items-center gap-1.5">
+                            <Calendar className="w-3.5 h-3.5 text-indigo-600" />
+                            <span>{group.label}</span>
+                          </span>
+                          <span className="text-[10px] font-mono bg-white text-indigo-700 border border-indigo-100 px-2 py-0.5 rounded-full font-bold">
+                            {group.events.length} Event{group.events.length > 1 ? "s" : ""}
+                          </span>
+                        </div>
+                        <div className="space-y-2.5">
+                          {group.events.map(evt => (
+                            <div 
+                              key={evt.id}
+                              className="bg-[#FAF9F6] border border-indigo-50/80 p-3.5 rounded-2xl space-y-2 hover:border-indigo-150 transition-all duration-300 relative group"
+                            >
+                              <div className="flex justify-between items-start">
+                                <span className="text-[9px] font-mono text-indigo-700 font-black bg-indigo-50 border border-indigo-100/50 py-0.5 px-2 rounded uppercase tracking-wider">
+                                  {evt.type}
+                                </span>
+                                <div className="flex items-center space-x-1 text-[10px] text-slate-500 font-mono font-bold">
+                                  <Calendar className="w-3.5 h-3.5 text-indigo-500" />
+                                  <span>{evt.endDate ? `${evt.date} ~ ${evt.endDate}` : evt.date}</span>
+                                  {evt.endDate && (
+                                    <span className="ml-1 px-1.5 py-0.2 bg-amber-100 text-amber-800 rounded font-black text-[9px]">
+                                      Vacation / Multi-day
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                              <h4 className="font-black text-xs sm:text-sm text-slate-900">
+                                {evt.title}
+                              </h4>
+                              <p className="text-[11px] text-slate-500 leading-relaxed font-semibold">
+                                {evt.description}
+                              </p>
+                              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 pt-1.5 text-[10px] text-slate-400 border-t border-indigo-50/40 font-mono font-bold">
+                                <div className="flex items-center space-x-1">
+                                  <Clock className="w-3.5 h-3.5 text-indigo-500" />
+                                  <span>{evt.time}</span>
+                                </div>
+                                <div className="flex items-center space-x-1">
+                                  <MapPin className="w-3.5 h-3.5 text-pink-500 shrink-0" />
+                                  <span className="truncate max-w-[130px]">{evt.location}</span>
+                                </div>
+                              </div>
+                              {isAdmin && (
+                                <button
+                                  onClick={() => handleDeleteEvent(evt.id)}
+                                  className="absolute top-2 right-2 p-1.5 bg-rose-50 text-rose-500 hover:bg-rose-100 hover:text-rose-700 rounded-lg transition-colors opacity-0 group-hover:opacity-100 cursor-pointer border border-rose-100 shadow-sm"
+                                  title="Delete Event"
+                                >
+                                  <Trash className="w-3 h-3" />
+                                </button>
+                              )}
+                            </div>
+                          ))}
                         </div>
                       </div>
-
-                      <h4 className="font-black text-xs sm:text-sm text-slate-900">
-                        {evt.title}
-                      </h4>
-                      <p className="text-[11px] text-slate-500 leading-relaxed font-semibold">
-                        {evt.description}
-                      </p>
-
-                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 pt-1.5 text-[10px] text-slate-400 border-t border-indigo-50/40 font-mono font-bold">
-                        <div className="flex items-center space-x-1">
-                          <Clock className="w-3.5 h-3.5 text-indigo-500" />
-                          <span>{evt.time}</span>
+                    ))
+                  ) : (
+                    <div className="text-center py-10 text-slate-400 text-xs font-semibold">
+                      No upcoming school events registered yet.
+                    </div>
+                  )
+                ) : filterMode === "month" ? (
+                  /* SELECTED MONTH VIEW */
+                  currentMonthEvents.length > 0 ? (
+                    currentMonthEvents.map((evt) => (
+                      <div 
+                        key={evt.id}
+                        className="bg-[#FAF9F6] border border-indigo-50/80 p-4 rounded-2xl space-y-2 hover:border-indigo-150 transition-all duration-300 relative group"
+                      >
+                        <div className="flex justify-between items-start">
+                          <span className="text-[9px] font-mono text-indigo-700 font-black bg-indigo-50 border border-indigo-100/50 py-0.5 px-2 rounded uppercase tracking-wider">
+                            {evt.type}
+                          </span>
+                          
+                          <div className="flex items-center space-x-1 text-[10px] text-slate-500 font-mono font-bold">
+                            <Calendar className="w-3.5 h-3.5 text-indigo-500" />
+                            <span>{evt.endDate ? `${evt.date} ~ ${evt.endDate}` : evt.date}</span>
+                            {evt.endDate && (
+                              <span className="ml-1 px-1.5 py-0.2 bg-amber-100 text-amber-800 rounded font-black text-[9px]">
+                                Vacation / Multi-day
+                              </span>
+                            )}
+                          </div>
                         </div>
-                        <div className="flex items-center space-x-1">
-                          <MapPin className="w-3.5 h-3.5 text-pink-500 shrink-0" />
-                          <span className="truncate max-w-[130px]">{evt.location}</span>
+
+                        <h4 className="font-black text-xs sm:text-sm text-slate-900">
+                          {evt.title}
+                        </h4>
+                        <p className="text-[11px] text-slate-500 leading-relaxed font-semibold">
+                          {evt.description}
+                        </p>
+
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 pt-1.5 text-[10px] text-slate-400 border-t border-indigo-50/40 font-mono font-bold">
+                          <div className="flex items-center space-x-1">
+                            <Clock className="w-3.5 h-3.5 text-indigo-500" />
+                            <span>{evt.time}</span>
+                          </div>
+                          <div className="flex items-center space-x-1">
+                            <MapPin className="w-3.5 h-3.5 text-pink-500 shrink-0" />
+                            <span className="truncate max-w-[130px]">{evt.location}</span>
+                          </div>
                         </div>
+
+                        {isAdmin && (
+                          <button
+                            onClick={() => handleDeleteEvent(evt.id)}
+                            className="absolute top-2 right-2 p-1.5 bg-rose-50 text-rose-500 hover:bg-rose-100 hover:text-rose-700 rounded-lg transition-colors opacity-0 group-hover:opacity-100 cursor-pointer border border-rose-100 shadow-sm"
+                            title="Delete Event"
+                          >
+                            <Trash className="w-3 h-3" />
+                          </button>
+                        )}
                       </div>
-
-                      {/* Admin deletion trigger on event row */}
-                      {isAdmin && (
-                        <button
-                          onClick={() => handleDeleteEvent(evt.id)}
-                          className="absolute top-2 right-2 p-1.5 bg-rose-50 text-rose-500 hover:bg-rose-100 hover:text-rose-700 rounded-lg transition-colors opacity-0 group-hover:opacity-100 cursor-pointer border border-rose-100 shadow-sm"
-                          title="Delete Event"
-                        >
-                          <Trash className="w-3 h-3" />
-                        </button>
+                    ))
+                  ) : (
+                    <div className="text-center py-8 px-4 bg-slate-50/70 rounded-2xl border border-dashed border-slate-200 space-y-3">
+                      <Calendar className="w-8 h-8 text-slate-300 mx-auto" />
+                      <div>
+                        <p className="text-xs font-bold text-slate-700">No events scheduled in {MONTH_NAMES[currentMonthIndex]} {currentYear}</p>
+                        <p className="text-[11px] text-slate-400 mt-0.5">Jump to months with scheduled events below:</p>
+                      </div>
+                      {otherMonthsWithEvents.length > 0 ? (
+                        <div className="flex flex-wrap justify-center gap-1.5 pt-1">
+                          {otherMonthsWithEvents.map(m => (
+                            <button
+                              key={m.name}
+                              type="button"
+                              onClick={() => {
+                                setCurrentMonthIndex(m.monthIndex);
+                                setSelectedDayNumber(null);
+                                setSelectedDayEvents([]);
+                              }}
+                              className="px-2.5 py-1 bg-white hover:bg-indigo-50 text-indigo-700 border border-indigo-200 rounded-lg text-[10.5px] font-mono font-bold flex items-center space-x-1 cursor-pointer transition-colors shadow-xs"
+                            >
+                              <span>{m.name}</span>
+                              <span className="bg-indigo-100 text-indigo-800 text-[9px] px-1 rounded-full font-black">
+                                {m.count}
+                              </span>
+                            </button>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-[10.5px] text-slate-400 italic">No academic events registered yet in this session.</p>
                       )}
                     </div>
-                  ))
+                  )
                 ) : (
-                  <div className="text-center py-10 text-slate-400 text-xs font-semibold">No upcoming events are currently mapped. Add custom ones below.</div>
+                  /* ALL EVENTS VIEW */
+                  sortedEvents.length > 0 ? (
+                    sortedEvents.map((evt) => (
+                      <div 
+                        key={evt.id}
+                        className="bg-[#FAF9F6] border border-indigo-50/80 p-4 rounded-2xl space-y-2 hover:border-indigo-150 transition-all duration-300 relative group"
+                      >
+                        <div className="flex justify-between items-start">
+                          <span className="text-[9px] font-mono text-indigo-700 font-black bg-indigo-50 border border-indigo-100/50 py-0.5 px-2 rounded uppercase tracking-wider">
+                            {evt.type}
+                          </span>
+                          
+                          <div className="flex items-center space-x-1 text-[10px] text-slate-500 font-mono font-bold">
+                            <Calendar className="w-3.5 h-3.5 text-indigo-500" />
+                            <span>{evt.endDate ? `${evt.date} ~ ${evt.endDate}` : evt.date}</span>
+                            {evt.endDate && (
+                              <span className="ml-1 px-1.5 py-0.2 bg-amber-100 text-amber-800 rounded font-black text-[9px]">
+                                Vacation / Multi-day
+                              </span>
+                            )}
+                          </div>
+                        </div>
+
+                        <h4 className="font-black text-xs sm:text-sm text-slate-900">
+                          {evt.title}
+                        </h4>
+                        <p className="text-[11px] text-slate-500 leading-relaxed font-semibold">
+                          {evt.description}
+                        </p>
+
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 pt-1.5 text-[10px] text-slate-400 border-t border-indigo-50/40 font-mono font-bold">
+                          <div className="flex items-center space-x-1">
+                            <Clock className="w-3.5 h-3.5 text-indigo-500" />
+                            <span>{evt.time}</span>
+                          </div>
+                          <div className="flex items-center space-x-1">
+                            <MapPin className="w-3.5 h-3.5 text-pink-500 shrink-0" />
+                            <span className="truncate max-w-[130px]">{evt.location}</span>
+                          </div>
+                        </div>
+
+                        {isAdmin && (
+                          <button
+                            onClick={() => handleDeleteEvent(evt.id)}
+                            className="absolute top-2 right-2 p-1.5 bg-rose-50 text-rose-500 hover:bg-rose-100 hover:text-rose-700 rounded-lg transition-colors opacity-0 group-hover:opacity-100 cursor-pointer border border-rose-100 shadow-sm"
+                            title="Delete Event"
+                          >
+                            <Trash className="w-3 h-3" />
+                          </button>
+                        )}
+                      </div>
+                    ))
+                  ) : (
+                    <div className="text-center py-10 text-slate-400 text-xs font-semibold">
+                      No upcoming events are currently mapped. Add custom ones below.
+                    </div>
+                  )
                 )}
               </div>
             </div>
@@ -848,15 +1027,19 @@ export default function ToolsSection({ isAdmin = false, events: propsEvents, onA
                       className="bg-white border border-indigo-100 p-2 rounded-lg text-slate-850 font-bold focus:outline-none col-span-1 sm:col-span-2"
                     />
                     <input 
-                      type="text" 
-                      placeholder="Start Date (e.g. August 20, 2026)..."
+                      type="date" 
+                      placeholder="Start Date"
                       value={newEventDate}
-                      onChange={(e) => setNewEventDate(e.target.value)}
+                      onChange={(e) => {
+                        setNewEventDate(e.target.value);
+                        const p = parseSchoolEventDate(e.target.value);
+                        if (p) setCurrentMonthIndex(p.month);
+                      }}
                       className="bg-white border border-indigo-100 p-2 rounded-lg text-slate-850 font-bold focus:outline-none"
                     />
                     <input 
-                      type="text" 
-                      placeholder="End Date (Optional for Vacation e.g. August 28, 2026)..."
+                      type="date" 
+                      placeholder="End Date (Optional)"
                       value={newEventEndDate}
                       onChange={(e) => setNewEventEndDate(e.target.value)}
                       className="bg-white border border-indigo-100 p-2 rounded-lg text-slate-850 font-bold focus:outline-none"

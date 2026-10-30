@@ -3,15 +3,22 @@ import {
   Lock, Unlock, ShieldAlert, Sparkles, Send, FileEdit, 
   Trash2, Plus, Megaphone, Users, Calendar, ArrowRight, ArrowLeft, UserCheck, CheckCircle2, Bookmark, Info, CircleAlert, HelpCircle,
   BellRing, Image as ImageIcon, LayoutTemplate, Eye, Upload, Check, Power, Download, FileText, Edit3, X, Star, Save,
-  LayoutDashboard, GraduationCap, Search, Filter, MessageSquareQuote, ChevronRight, SlidersHorizontal, Clock, Layers
+  LayoutDashboard, GraduationCap, Search, Filter, MessageSquareQuote, ChevronRight, SlidersHorizontal, Clock, Layers, ExternalLink
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
-import { Notice, NoticeCategory, AdmissionQuery, SuggestionInquiry, PopupNoticeConfig, SchoolProfileConfig, GalleryItem, ParentReview, SchoolEvent } from "../types";
+import { Notice, NoticeCategory, AdmissionQuery, SuggestionInquiry, PopupNoticeConfig, SchoolProfileConfig, GalleryItem, ParentReview, SchoolEvent, SiteBackgroundConfig } from "../types";
 import PopupModal from "./PopupModal";
 import SchoolProfileModal from "./SchoolProfileModal";
+import CalendarPreviewModal from "./CalendarPreviewModal";
+import defaultStudentBgImg from "../assets/images/school_activities_1782145063241.jpg";
+import montessoriImg from "../assets/images/montessori_learning_1782145030889.jpg";
+import scienceLabImg from "../assets/images/science_lab_1782145047179.jpg";
+import sportsDayImg from "../assets/images/sports_day_relay_1785494481636.jpg";
+import outdoorImg from "../assets/images/outdoor_excursion_1785494441208.jpg";
 
 interface AdminPortalProps {
   onExitAdmin?: () => void;
+  onNavigateToSection?: (section: string) => void;
   notices: Notice[];
   onAddNotice: (notice: Notice) => void;
   onUpdateNotice: (notice: Notice) => void;
@@ -41,10 +48,13 @@ interface AdminPortalProps {
   onClearSampleEvents?: () => void;
   onClearSamplePhotos?: () => void;
   onClearAllSampleData?: () => void;
+  siteBackgroundConfig?: SiteBackgroundConfig;
+  onUpdateSiteBackgroundConfig?: (config: SiteBackgroundConfig) => void;
 }
 
 export default function AdminPortal({ 
   onExitAdmin,
+  onNavigateToSection,
   notices, 
   onAddNotice, 
   onUpdateNotice, 
@@ -74,6 +84,8 @@ export default function AdminPortal({
   onClearSampleEvents,
   onClearSamplePhotos,
   onClearAllSampleData,
+  siteBackgroundConfig,
+  onUpdateSiteBackgroundConfig,
 }: AdminPortalProps) {
   // Login Gate State variables
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -94,7 +106,8 @@ export default function AdminPortal({
     | "SchoolProfile" 
     | "CampusGallery" 
     | "ParentReviews" 
-    | "AcademicCalendar";
+    | "AcademicCalendar"
+    | "SiteBackground";
 
   const [cmsTab, setCmsTab] = useState<CmsTab>("Overview");
 
@@ -430,62 +443,118 @@ export default function AdminPortal({
   const [spTitle, setSpTitle] = useState<string>(schoolProfileConfig?.title ?? "Shristi Academy • School Profile Prospectus 2083 BS");
   const [spDescription, setSpDescription] = useState<string>(schoolProfileConfig?.description ?? "Official institutional prospectus detailing academic programs, facilities, and campus history.");
 
-  // Campus Gallery Management States
+  // Campus Gallery Management States (Supports Batch Upload up to 20 Photos per School Event)
+  interface PendingEventPhoto {
+    id: string;
+    file: File;
+    previewUrl: string;
+    name: string;
+    sizeMb: string;
+  }
+  const [pendingEventPhotos, setPendingEventPhotos] = useState<PendingEventPhoto[]>([]);
+  const [isUploadingBatch, setIsUploadingBatch] = useState(false);
+  const [uploadProgressStatus, setUploadProgressStatus] = useState("");
   const [galTitle, setGalTitle] = useState("");
-  const [galCategory, setGalCategory] = useState("");
+  const [galCategory, setGalCategory] = useState("Sports Day");
   const [galDescription, setGalDescription] = useState("");
-  const [galImage, setGalImage] = useState<string | null>(null);
+  const [galleryFilterCategory, setGalleryFilterCategory] = useState("All");
 
   // Live Admin Preview States
   const [showLivePreview, setShowLivePreview] = useState(false);
   const [showSpPreview, setShowSpPreview] = useState(false);
+  const [isCalendarPreviewOpen, setIsCalendarPreviewOpen] = useState(false);
 
-  // File upload handler for Campus Gallery Photo with automatic compression
-  const handleGalleryFileUpload = async (e: ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    if (galleryItems.length >= 10) {
-      showAdminToast("⚠️ Maximum limit of 10 photos reached! Please delete an existing photo before uploading a new one.");
+  // File upload handler for School Event Photos (up to 20 photos at once)
+  const handleGalleryBatchSelect = (e: ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files) return;
+    const files: File[] = Array.from(e.target.files);
+    if (files.length === 0) return;
+
+    const currentCount = pendingEventPhotos.length;
+    const availableSlots = 20 - currentCount;
+    if (availableSlots <= 0) {
+      showAdminToast("⚠️ Maximum limit of 20 photos per school event reached.");
       return;
     }
-    try {
-      showAdminToast("⏳ Optimizing image for web display...");
-      const base64 = await compressImageFile(file, 1200, 0.82);
-      setGalImage(base64);
-      showAdminToast("✓ Photo ready for upload!");
-    } catch (err) {
-      console.error(err);
-      showAdminToast("⚠️ Could not process image. Please try a different JPG or PNG.");
+
+    if (files.length > availableSlots) {
+      showAdminToast(`⚠️ You can select up to 20 photos per school event. Added the first ${availableSlots} photos.`);
     }
+
+    const allowedFiles = files.slice(0, availableSlots);
+    const newPending: PendingEventPhoto[] = allowedFiles.map((file: File, idx: number) => ({
+      id: `pending-${Date.now()}-${idx}-${Math.random().toString(36).substring(2, 7)}`,
+      file,
+      previewUrl: URL.createObjectURL(file),
+      name: file.name,
+      sizeMb: (file.size / (1024 * 1024)).toFixed(1) + " MB"
+    }));
+
+    setPendingEventPhotos(prev => [...prev, ...newPending]);
+    e.target.value = "";
+    showAdminToast(`✓ ${newPending.length} photo(s) selected for this event!`);
   };
 
-  const handleAddGalleryPhoto = (e: FormEvent) => {
+  const handleRemovePendingPhoto = (id: string) => {
+    setPendingEventPhotos(prev => {
+      const target = prev.find(p => p.id === id);
+      if (target) URL.revokeObjectURL(target.previewUrl);
+      return prev.filter(p => p.id !== id);
+    });
+  };
+
+  const handleClearAllPendingPhotos = () => {
+    pendingEventPhotos.forEach(p => URL.revokeObjectURL(p.previewUrl));
+    setPendingEventPhotos([]);
+  };
+
+  const handleAddGalleryEventPhotos = async (e: FormEvent) => {
     e.preventDefault();
-    if (galleryItems.length >= 10) {
-      showAdminToast("⚠️ Maximum limit of 10 photos reached! Please delete an existing photo before uploading a new one.");
+    if (pendingEventPhotos.length === 0) {
+      showAdminToast("⚠️ Please select at least one photo for this event.");
       return;
     }
-    if (!galImage) {
-      showAdminToast("⚠️ Please select an image file to upload.");
-      return;
+
+    const title = galTitle.trim() || "School Event Activity";
+    const category = galCategory.trim() || "Campus Life";
+    const description = galDescription.trim() || "Moments of learning, discovery, and student achievement at Shristi Academy.";
+    const uploadDate = new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+
+    setIsUploadingBatch(true);
+    try {
+      const newItems: GalleryItem[] = [];
+      const total = pendingEventPhotos.length;
+      for (let i = 0; i < total; i++) {
+        const p = pendingEventPhotos[i];
+        setUploadProgressStatus(`Optimizing photo ${i + 1} of ${total}...`);
+        const base64 = await compressImageFile(p.file, 1000, 0.78);
+        newItems.push({
+          id: `gal-${Date.now()}-${i}`,
+          image: base64,
+          title: total > 1 ? `${title} (Photo ${i + 1}/${total})` : title,
+          category: category,
+          description: description,
+          uploadedAt: uploadDate
+        });
+      }
+
+      const updated = [...newItems, ...galleryItems].slice(0, 60);
+      if (onUpdateGalleryItems) {
+        onUpdateGalleryItems(updated);
+      }
+
+      pendingEventPhotos.forEach(p => URL.revokeObjectURL(p.previewUrl));
+      setPendingEventPhotos([]);
+      setGalTitle("");
+      setGalDescription("");
+      showAdminToast(`🎉 Successfully published ${newItems.length} photos for "${title}"!`);
+    } catch (err) {
+      console.error(err);
+      showAdminToast("⚠️ Error processing photos. Please try again.");
+    } finally {
+      setIsUploadingBatch(false);
+      setUploadProgressStatus("");
     }
-    const newItem: GalleryItem = {
-      id: "gal-" + Date.now(),
-      image: galImage,
-      title: galTitle.trim() || "Campus Life Photo",
-      category: galCategory.trim() || "Campus Activity",
-      description: galDescription.trim() || "Moments of learning and discovery at Shristi Academy.",
-      uploadedAt: new Date().toLocaleDateString("en-US", { month: "short", year: "numeric" }),
-    };
-    const updated = [...galleryItems, newItem];
-    if (onUpdateGalleryItems) {
-      onUpdateGalleryItems(updated);
-    }
-    setGalTitle("");
-    setGalCategory("");
-    setGalDescription("");
-    setGalImage(null);
-    showAdminToast("🎉 Campus photo added to gallery!");
   };
 
   const handleDeleteGalleryPhoto = (id: string) => {
@@ -494,6 +563,18 @@ export default function AdminPortal({
       onUpdateGalleryItems(updated);
     }
     showAdminToast("🗑️ Photo removed from campus gallery.");
+  };
+
+  const handleDeleteCategoryPhotos = (categoryToDelete: string) => {
+    if (categoryToDelete === "All") return;
+    if (!window.confirm(`Are you sure you want to delete all photos in "${categoryToDelete}"?`)) {
+      return;
+    }
+    const updated = galleryItems.filter(item => item.category !== categoryToDelete);
+    if (onUpdateGalleryItems) {
+      onUpdateGalleryItems(updated);
+    }
+    showAdminToast(`🗑️ Removed all photos from "${categoryToDelete}".`);
   };
 
   // File upload handler for School Profile PDF
@@ -574,6 +655,63 @@ export default function AdminPortal({
       ? "🎉 Pop-up notice activated! Visitors on the website will now see this pop-up."
       : "💾 Pop-up settings saved successfully (Currently inactive)."
     );
+  };
+
+  // Website Background Management States (Blurred Student Photo)
+  const [bgEnabled, setBgEnabled] = useState<boolean>(siteBackgroundConfig?.enabled ?? true);
+  const [bgImageUrl, setBgImageUrl] = useState<string | null>(siteBackgroundConfig?.imageUrl ?? defaultStudentBgImg);
+  const [bgFileName, setBgFileName] = useState<string>(siteBackgroundConfig?.fileName ?? "school_activities.jpg");
+  const [bgOpacity, setBgOpacity] = useState<number>(siteBackgroundConfig?.opacity ?? 0.12);
+  const [bgBlur, setBgBlur] = useState<number>(siteBackgroundConfig?.blur ?? 6);
+  const [bgSaveNotice, setBgSaveNotice] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (siteBackgroundConfig) {
+      setBgEnabled(siteBackgroundConfig.enabled);
+      setBgImageUrl(siteBackgroundConfig.imageUrl);
+      setBgFileName(siteBackgroundConfig.fileName || "");
+      setBgOpacity(siteBackgroundConfig.opacity ?? 0.12);
+      setBgBlur(siteBackgroundConfig.blur ?? 6);
+    }
+  }, [siteBackgroundConfig]);
+
+  const handleBgFileUpload = async (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const compressed = await compressImageFile(file, 1600, 0.85);
+      setBgImageUrl(compressed);
+      setBgFileName(file.name);
+      setBgEnabled(true);
+      showAdminToast("📸 Student photo loaded! Click 'Save Website Background' to apply.");
+    } catch (err) {
+      alert("Failed to load image file. Please try another image.");
+    }
+  };
+
+  const handleSaveSiteBackground = (e?: FormEvent) => {
+    if (e) e.preventDefault();
+    if (!onUpdateSiteBackgroundConfig) return;
+    const updated: SiteBackgroundConfig = {
+      enabled: bgEnabled,
+      imageUrl: bgImageUrl,
+      fileName: bgFileName,
+      opacity: bgOpacity,
+      blur: bgBlur,
+      updatedAt: new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
+    };
+    onUpdateSiteBackgroundConfig(updated);
+    setBgSaveNotice("✅ Website background saved successfully! Visit the website to see the subtle ambience.");
+    showAdminToast("✅ Website background saved successfully!");
+  };
+
+  const handleResetSiteBackground = () => {
+    setBgEnabled(true);
+    setBgImageUrl(defaultStudentBgImg);
+    setBgFileName("school_activities.jpg");
+    setBgOpacity(0.12);
+    setBgBlur(6);
+    showAdminToast("🔄 Restored default student activity photo.");
   };
 
   // Dynamic admin add input field
@@ -1185,6 +1323,29 @@ export default function AdminPortal({
                               {reviews.length}
                             </span>
                           </button>
+
+                          <button
+                            onClick={() => setCmsTab("SiteBackground")}
+                            className={`w-full flex items-center justify-between px-3.5 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+                              cmsTab === "SiteBackground"
+                                ? "bg-indigo-600 text-white shadow-xs"
+                                : "text-slate-700 hover:text-slate-900 hover:bg-slate-200/60"
+                            }`}
+                          >
+                            <div className="flex items-center space-x-2.5">
+                              <Layers className="w-4 h-4" />
+                              <span>Website Background</span>
+                            </div>
+                            <span className={`text-[10px] px-1.5 py-0.5 rounded-md font-mono font-bold ${
+                              cmsTab === "SiteBackground" 
+                                ? "bg-indigo-700 text-white" 
+                                : bgEnabled
+                                ? "bg-emerald-100 text-emerald-800"
+                                : "bg-slate-200 text-slate-600"
+                            }`}>
+                              {bgEnabled ? "Active" : "Off"}
+                            </span>
+                          </button>
                         </div>
                       </div>
 
@@ -1299,6 +1460,15 @@ export default function AdminPortal({
                           >
                             <Calendar className="w-4 h-4 text-emerald-400" />
                             <span>Add Event</span>
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => setCmsTab("SiteBackground")}
+                            className="px-3.5 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold rounded-xl border border-slate-700 transition-colors cursor-pointer flex items-center space-x-1.5"
+                          >
+                            <Layers className="w-4 h-4 text-purple-300" />
+                            <span>Background ({bgEnabled ? "Active" : "Off"})</span>
                           </button>
                         </div>
                       </div>
@@ -3169,10 +3339,10 @@ export default function AdminPortal({
                           </div>
                           <div>
                             <h3 className="font-display font-black text-xl text-slate-900 leading-tight">
-                              Campus Photo Gallery
+                              Campus Photo Gallery & Event Albums
                             </h3>
                             <p className="text-xs text-slate-500 font-medium mt-0.5">
-                              Upload up to 10 campus photos to showcase classrooms, science laboratories, library, and student activities.
+                              Upload up to 20 photos per school event (Sports Days, Science Exhibitions, Cultural Festivals, Classrooms) to showcase on the website.
                             </p>
                           </div>
                         </div>
@@ -3180,135 +3350,277 @@ export default function AdminPortal({
 
                       <div className="flex items-center space-x-2 bg-indigo-50 px-4 py-2 rounded-xl border border-indigo-100 text-xs font-bold text-indigo-900 shrink-0">
                         <Sparkles className="w-4 h-4 text-pink-500" />
-                        <span>{galleryItems.length} / 10 Photos Published</span>
+                        <span>{galleryItems.length} Photos in Gallery (Max 60)</span>
                       </div>
                     </div>
 
-                    {/* Photo Upload Form */}
-                    {galleryItems.length < 10 ? (
-                      <form onSubmit={handleAddGalleryPhoto} className="p-6 bg-slate-50 border border-slate-200/80 rounded-2xl space-y-5">
+                    {/* Batch Photo Upload Form for School Events (Up to 20 Photos) */}
+                    <form onSubmit={handleAddGalleryEventPhotos} className="p-6 bg-slate-50 border border-slate-200/80 rounded-2xl space-y-5">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200/60 pb-3">
                         <h4 className="font-extrabold text-sm text-slate-900 flex items-center space-x-2">
                           <Plus className="w-4 h-4 text-indigo-600" />
-                          <span>Upload New Campus Photo</span>
+                          <span>Upload School Event Photos (Up to 20 Photos at once)</span>
                         </h4>
+                        <span className="text-[11px] font-mono font-semibold text-slate-500">
+                          Supports multiple selection (JPG, PNG, WebP)
+                        </span>
+                      </div>
 
-                        {/* File Picker */}
-                        <div className="flex flex-col sm:flex-row items-center gap-4">
-                          <label className="w-full sm:w-auto px-5 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-semibold flex items-center justify-center space-x-2 cursor-pointer shadow-xs transition-colors select-none">
+                      {/* File Picker & Previews */}
+                      <div className="space-y-3">
+                        <div className="flex flex-col sm:flex-row items-center gap-3">
+                          <label className="w-full sm:w-auto px-5 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold flex items-center justify-center space-x-2 cursor-pointer shadow-xs transition-colors select-none">
                             <Upload className="w-4 h-4" />
-                            <span>Choose Image File</span>
+                            <span>Choose School Event Photos (Select up to 20)</span>
                             <input
                               type="file"
+                              multiple
                               accept="image/*"
-                              onChange={handleGalleryFileUpload}
+                              onChange={handleGalleryBatchSelect}
                               className="hidden"
                             />
                           </label>
 
-                          {galImage ? (
-                            <div className="flex items-center space-x-3 bg-white px-4 py-2 rounded-xl border border-indigo-100">
-                              <img src={galImage} alt="Preview" className="w-10 h-10 object-cover rounded-lg" />
-                              <span className="text-xs font-bold text-emerald-600">✓ Image Loaded</span>
-                            </div>
+                          {pendingEventPhotos.length === 0 ? (
+                            <span className="text-xs text-slate-400 font-medium">
+                              No photos selected yet. You can select 1 to 20 photos together from your computer or phone.
+                            </span>
                           ) : (
-                            <span className="text-xs text-slate-400 font-medium">No image selected yet.</span>
+                            <div className="flex items-center space-x-2 text-xs font-bold text-emerald-700 bg-emerald-50 px-3 py-1.5 rounded-xl border border-emerald-200">
+                              <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                              <span>{pendingEventPhotos.length} / 20 Photos Selected</span>
+                            </div>
                           )}
                         </div>
 
-                        {/* Form Inputs */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div className="space-y-1">
-                            <label className="block text-xs font-semibold text-slate-700">
-                              Photo Title
-                            </label>
-                            <input
-                              type="text"
-                              required
-                              placeholder="e.g. Science Laboratory Project"
-                              value={galTitle}
-                              onChange={(e) => setGalTitle(e.target.value)}
-                              className="w-full bg-white border border-slate-200 p-2.5 rounded-xl text-xs font-medium focus:outline-none focus:border-indigo-600"
-                            />
-                          </div>
+                        {/* Visual Thumbnail Grid for Selected Photos */}
+                        {pendingEventPhotos.length > 0 && (
+                          <div className="p-4 bg-white border border-indigo-150 rounded-2xl space-y-3">
+                            <div className="flex items-center justify-between">
+                              <span className="text-xs font-bold text-indigo-900">
+                                Selected Photos for this Event:
+                              </span>
+                              <div className="flex items-center space-x-2">
+                                {pendingEventPhotos.length < 20 && (
+                                  <label className="text-[11px] font-bold text-indigo-600 hover:text-indigo-800 bg-indigo-50 hover:bg-indigo-100 px-3 py-1 rounded-lg border border-indigo-200 cursor-pointer transition-colors">
+                                    + Add More ({20 - pendingEventPhotos.length} left)
+                                    <input
+                                      type="file"
+                                      multiple
+                                      accept="image/*"
+                                      onChange={handleGalleryBatchSelect}
+                                      className="hidden"
+                                    />
+                                  </label>
+                                )}
+                                <button
+                                  type="button"
+                                  onClick={handleClearAllPendingPhotos}
+                                  className="text-[11px] font-bold text-rose-600 hover:text-rose-800 bg-rose-50 hover:bg-rose-100 px-3 py-1 rounded-lg border border-rose-200 transition-colors cursor-pointer"
+                                >
+                                  Clear Selection
+                                </button>
+                              </div>
+                            </div>
 
-                          <div className="space-y-1">
-                            <label className="block text-xs font-semibold text-slate-700">
-                              Category (e.g. Science Lab, Sports, Classrooms)
-                            </label>
-                            <input
-                              type="text"
-                              required
-                              placeholder="e.g. Science Lab / Sports / Campus"
-                              value={galCategory}
-                              onChange={(e) => setGalCategory(e.target.value)}
-                              className="w-full bg-white border border-slate-200 p-2.5 rounded-xl text-xs font-medium focus:outline-none focus:border-indigo-600"
-                            />
+                            <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2.5 max-h-64 overflow-y-auto p-1">
+                              {pendingEventPhotos.map((photo, idx) => (
+                                <div
+                                  key={photo.id}
+                                  className="relative group rounded-xl overflow-hidden border border-slate-200 aspect-square bg-slate-100 shadow-2xs"
+                                >
+                                  <img
+                                    src={photo.previewUrl}
+                                    alt={photo.name}
+                                    className="w-full h-full object-cover"
+                                  />
+                                  <span className="absolute top-1 left-1 bg-black/70 text-white text-[9px] font-mono font-black px-1.5 py-0.5 rounded">
+                                    #{idx + 1}
+                                  </span>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleRemovePendingPhoto(photo.id)}
+                                    className="absolute top-1 right-1 w-5 h-5 bg-rose-600 hover:bg-rose-700 text-white rounded-full flex items-center justify-center text-[10px] shadow-sm cursor-pointer transition-transform hover:scale-110"
+                                    title="Remove this photo"
+                                  >
+                                    ✕
+                                  </button>
+                                  <div className="absolute inset-x-0 bottom-0 bg-black/60 text-[9px] text-white px-1 py-0.5 truncate text-center font-mono">
+                                    {photo.name}
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
                           </div>
-                        </div>
+                        )}
+                      </div>
 
+                      {/* Event Form Inputs */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-1">
                           <label className="block text-xs font-semibold text-slate-700">
-                            Caption / Description
+                            School Event / Album Title *
                           </label>
                           <input
                             type="text"
                             required
-                            placeholder="e.g. Students engaging in hands-on physics experiments in our modern laboratory."
-                            value={galDescription}
-                            onChange={(e) => setGalDescription(e.target.value)}
+                            placeholder="e.g. Annual Sports Meet 2026"
+                            value={galTitle}
+                            onChange={(e) => setGalTitle(e.target.value)}
                             className="w-full bg-white border border-slate-200 p-2.5 rounded-xl text-xs font-medium focus:outline-none focus:border-indigo-600"
                           />
                         </div>
 
+                        <div className="space-y-1">
+                          <label className="block text-xs font-semibold text-slate-700">
+                            Event Category
+                          </label>
+                          <div className="flex flex-wrap gap-1.5 mb-1.5">
+                            {["Sports Day", "Science Lab & STEM", "Cultural & Arts", "Classrooms", "Ceremony", "Excursions"].map((cat) => (
+                              <button
+                                key={cat}
+                                type="button"
+                                onClick={() => setGalCategory(cat)}
+                                className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
+                                  galCategory === cat
+                                    ? "bg-indigo-600 text-white shadow-2xs"
+                                    : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-100"
+                                }`}
+                              >
+                                {cat}
+                              </button>
+                            ))}
+                          </div>
+                          <input
+                            type="text"
+                            required
+                            placeholder="e.g. Sports Day / Science Lab / Cultural Event"
+                            value={galCategory}
+                            onChange={(e) => setGalCategory(e.target.value)}
+                            className="w-full bg-white border border-slate-200 p-2 rounded-xl text-xs font-medium focus:outline-none focus:border-indigo-600"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="space-y-1">
+                        <label className="block text-xs font-semibold text-slate-700">
+                          Event Description / Caption (Story shown on website)
+                        </label>
+                        <input
+                          type="text"
+                          required
+                          placeholder="e.g. Students participating with energy and sportsmanship in sprint relays, volleyball, and award distribution."
+                          value={galDescription}
+                          onChange={(e) => setGalDescription(e.target.value)}
+                          className="w-full bg-white border border-slate-200 p-2.5 rounded-xl text-xs font-medium focus:outline-none focus:border-indigo-600"
+                        />
+                      </div>
+
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2">
                         <button
                           type="submit"
-                          className="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow-xs transition-colors cursor-pointer flex items-center space-x-2"
+                          disabled={isUploadingBatch || pendingEventPhotos.length === 0}
+                          className="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white rounded-xl text-xs font-bold shadow-xs transition-colors cursor-pointer flex items-center justify-center space-x-2"
                         >
                           <Plus className="w-4 h-4" />
-                          <span>Upload Photo to Gallery</span>
+                          <span>
+                            {isUploadingBatch
+                              ? (uploadProgressStatus || "Uploading Photos...")
+                              : pendingEventPhotos.length > 0
+                              ? `Upload ${pendingEventPhotos.length} Event Photos to Gallery`
+                              : "Select Photos Above to Upload"}
+                          </span>
                         </button>
-                      </form>
-                    ) : (
-                      <div className="p-4 bg-amber-50 border border-amber-200 rounded-2xl text-amber-900 text-xs font-medium flex items-center space-x-2">
-                        <Info className="w-4 h-4 text-amber-600 shrink-0" />
-                        <span>Maximum limit of 10 photos reached. Remove an existing photo below to upload a new one.</span>
-                      </div>
-                    )}
 
-                    {/* Gallery Grid List */}
-                    <div className="space-y-4">
-                      <h4 className="font-bold text-xs text-slate-700">
-                        Published Campus Photos ({galleryItems.length} of 10)
-                      </h4>
+                        {isUploadingBatch && (
+                          <span className="text-xs font-mono font-bold text-indigo-700 animate-pulse">
+                            ⏳ {uploadProgressStatus}
+                          </span>
+                        )}
+                      </div>
+                    </form>
+
+                    {/* Gallery Grid List with Category Filtering */}
+                    <div className="space-y-4 pt-2">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <h4 className="font-bold text-xs text-slate-700 flex items-center space-x-2">
+                          <span>Published Campus & Event Photos ({galleryItems.length} Photos)</span>
+                        </h4>
+
+                        {/* Category Filter Pills in Admin */}
+                        {galleryItems.length > 0 && (
+                          <div className="flex flex-wrap items-center gap-1.5">
+                            <span className="text-[11px] font-mono font-bold text-slate-400 mr-1 uppercase">Filter:</span>
+                            {["All", ...Array.from(new Set(galleryItems.map((i) => i.category).filter(Boolean)))].map((cat) => (
+                              <button
+                                key={cat}
+                                type="button"
+                                onClick={() => setGalleryFilterCategory(cat)}
+                                className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
+                                  galleryFilterCategory === cat
+                                    ? "bg-slate-900 text-white shadow-2xs"
+                                    : "bg-slate-100 hover:bg-slate-200 text-slate-600"
+                                }`}
+                              >
+                                {cat}
+                              </button>
+                            ))}
+
+                            {galleryFilterCategory !== "All" && (
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteCategoryPhotos(galleryFilterCategory)}
+                                className="px-2.5 py-1 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-lg text-[11px] font-bold transition-colors cursor-pointer ml-1"
+                                title="Delete all photos in this category"
+                              >
+                                Delete All in "{galleryFilterCategory}"
+                              </button>
+                            )}
+                          </div>
+                        )}
+                      </div>
 
                       {galleryItems.length === 0 ? (
                         <div className="p-8 text-center text-slate-400 font-bold text-xs bg-slate-50 rounded-2xl border border-dashed border-slate-200">
-                          No campus photos uploaded yet. Upload your first photo above!
+                          No campus photos uploaded yet. Select up to 20 event photos above to publish!
                         </div>
                       ) : (
                         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                          {galleryItems.map((item) => (
-                            <div key={item.id} className="bg-slate-50 p-3.5 rounded-2xl border border-slate-200 space-y-3 flex flex-col justify-between">
-                              <div className="relative aspect-[16/10] overflow-hidden rounded-xl bg-slate-200">
-                                <img src={item.image} alt={item.title} className="w-full h-full object-cover" />
-                                <span className="absolute top-2 left-2 bg-indigo-900/90 text-white text-[9px] font-mono font-black uppercase px-2 py-1 rounded-md">
-                                  {item.category}
-                                </span>
-                              </div>
-                              <div className="space-y-1 text-left">
-                                <h5 className="font-extrabold text-xs text-slate-900 truncate">{item.title}</h5>
-                                <p className="text-[11px] text-slate-500 line-clamp-2">{item.description}</p>
-                              </div>
-                              <button
-                                type="button"
-                                onClick={() => handleDeleteGalleryPhoto(item.id)}
-                                className="w-full py-2 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-xl text-xs font-mono font-bold flex items-center justify-center space-x-1 transition-colors"
+                          {galleryItems
+                            .filter((item) => galleryFilterCategory === "All" || item.category === galleryFilterCategory)
+                            .map((item) => (
+                              <div
+                                key={item.id}
+                                className="bg-slate-50 p-3.5 rounded-2xl border border-slate-200 space-y-3 flex flex-col justify-between hover:border-indigo-200 transition-colors"
                               >
-                                <Trash2 className="w-3.5 h-3.5" />
-                                <span>Delete Photo</span>
-                              </button>
-                            </div>
-                          ))}
+                                <div className="relative aspect-[16/10] overflow-hidden rounded-xl bg-slate-200">
+                                  <img
+                                    src={item.image}
+                                    alt={item.title}
+                                    className="w-full h-full object-cover"
+                                  />
+                                  <span className="absolute top-2 left-2 bg-indigo-900/90 text-white text-[9px] font-mono font-black uppercase px-2 py-1 rounded-md">
+                                    {item.category}
+                                  </span>
+                                </div>
+                                <div className="space-y-1 text-left">
+                                  <h5 className="font-extrabold text-xs text-slate-900 truncate">
+                                    {item.title}
+                                  </h5>
+                                  <p className="text-[11px] text-slate-500 line-clamp-2">
+                                    {item.description}
+                                  </p>
+                                </div>
+                                <button
+                                  type="button"
+                                  onClick={() => handleDeleteGalleryPhoto(item.id)}
+                                  className="w-full py-2 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-xl text-xs font-mono font-bold flex items-center justify-center space-x-1 transition-colors cursor-pointer"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                  <span>Delete Photo</span>
+                                </button>
+                              </div>
+                            ))}
                         </div>
                       )}
                     </div>
@@ -3508,13 +3820,28 @@ export default function AdminPortal({
                         </div>
                       </div>
 
-                      <a
-                        href="#tools"
-                        className="px-4 py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold flex items-center space-x-1.5 shrink-0 transition-colors shadow-sm cursor-pointer"
-                      >
-                        <Eye className="w-4 h-4 text-emerald-400" />
-                        <span>Preview Calendar on Website</span>
-                      </a>
+                      <div className="flex items-center space-x-2 shrink-0">
+                        <button
+                          type="button"
+                          onClick={() => setIsCalendarPreviewOpen(true)}
+                          className="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold flex items-center space-x-1.5 shrink-0 transition-all shadow-sm cursor-pointer hover:shadow-md"
+                        >
+                          <Eye className="w-4 h-4 text-emerald-300" />
+                          <span>Preview Calendar on Website</span>
+                        </button>
+
+                        {onNavigateToSection && (
+                          <button
+                            type="button"
+                            onClick={() => onNavigateToSection("tools")}
+                            className="hidden sm:flex items-center space-x-1.5 px-3.5 py-2.5 bg-slate-900 hover:bg-slate-800 text-slate-200 hover:text-white rounded-xl text-xs font-bold shrink-0 transition-colors cursor-pointer"
+                            title="Go directly to live calendar page on website"
+                          >
+                            <span>Live Website Page</span>
+                            <ExternalLink className="w-3.5 h-3.5 text-indigo-300" />
+                          </button>
+                        )}
+                      </div>
                     </div>
 
                     {/* POSTER / IMAGE UPLOAD SECTION */}
@@ -3669,9 +3996,8 @@ export default function AdminPortal({
                         <div className="space-y-1">
                           <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Start Date *</label>
                           <input
-                            type="text"
+                            type="date"
                             required
-                            placeholder="e.g. August 20, 2026"
                             value={calEventDate}
                             onChange={(e) => setCalEventDate(e.target.value)}
                             className="w-full px-3 py-2 bg-white rounded-xl border border-slate-200 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500"
@@ -3681,8 +4007,7 @@ export default function AdminPortal({
                         <div className="space-y-1">
                           <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">End Date (Optional for Vacations)</label>
                           <input
-                            type="text"
-                            placeholder="e.g. August 28, 2026"
+                            type="date"
                             value={calEventEndDate}
                             onChange={(e) => setCalEventEndDate(e.target.value)}
                             className="w-full px-3 py-2 bg-white rounded-xl border border-slate-200 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500"
@@ -3786,6 +4111,424 @@ export default function AdminPortal({
                         </div>
                       )}
                     </div>
+                  </div>
+                )}
+
+                {/* TAB: WEBSITE AMBIENCE & BLURRED STUDENT BACKGROUND */}
+                {cmsTab === "SiteBackground" && (
+                  <div className="space-y-6">
+                    {/* Header */}
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100">
+                      <div className="space-y-1">
+                        <div className="flex items-center space-x-2 text-xs font-semibold text-slate-400">
+                          <button
+                            type="button"
+                            onClick={() => setCmsTab("Overview")}
+                            className="hover:text-indigo-600 transition-colors flex items-center space-x-1 cursor-pointer"
+                          >
+                            <ArrowLeft className="w-3.5 h-3.5" />
+                            <span>Dashboard Hub</span>
+                          </button>
+                          <span>/</span>
+                          <span className="text-slate-700 font-medium">Website Background</span>
+                        </div>
+
+                        <div className="flex items-center space-x-3">
+                          <div className="p-3 bg-purple-50 text-purple-600 border border-purple-100 rounded-2xl">
+                            <Layers className="w-6 h-6" />
+                          </div>
+                          <div>
+                            <h3 className="font-display font-black text-xl text-slate-900 leading-tight">
+                              Website Ambience & Student Photo Background
+                            </h3>
+                            <p className="text-xs text-slate-500 font-medium mt-0.5">
+                              Subtly display an authentic student photo gently blurred behind the website. Enhance the school's warm educational atmosphere without interfering with menus, text, or readability.
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center space-x-2 shrink-0">
+                        {onNavigateToSection && (
+                          <button
+                            type="button"
+                            onClick={() => onNavigateToSection("home")}
+                            className="flex items-center space-x-1.5 px-3.5 py-2.5 bg-slate-900 hover:bg-slate-800 text-slate-200 hover:text-white rounded-xl text-xs font-bold transition-colors cursor-pointer"
+                            title="Go to website homepage to see live background"
+                          >
+                            <span>Live Website</span>
+                            <ExternalLink className="w-3.5 h-3.5 text-indigo-300" />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Notice Toast */}
+                    {bgSaveNotice && (
+                      <div className="p-3.5 bg-emerald-50 border border-emerald-200 text-emerald-900 rounded-2xl text-xs font-semibold flex items-center justify-between animate-fadeIn">
+                        <div className="flex items-center space-x-2">
+                          <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                          <span>{bgSaveNotice}</span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setBgSaveNotice(null)}
+                          className="text-slate-400 hover:text-slate-600 text-xs px-1"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    )}
+
+                    {/* 1. MASTER TOGGLE CARD */}
+                    <div className="bg-slate-50/80 p-5 sm:p-6 rounded-2xl border border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                      <div className="space-y-1">
+                        <div className="flex items-center space-x-2">
+                          <h4 className="font-extrabold text-sm text-slate-900">Enable Blurred Student Photo Background</h4>
+                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                            bgEnabled ? "bg-emerald-100 text-emerald-800" : "bg-slate-200 text-slate-600"
+                          }`}>
+                            {bgEnabled ? "✓ Active on Website" : "Hidden (Solid Color Background)"}
+                          </span>
+                        </div>
+                        <p className="text-xs text-slate-500">
+                          When enabled, the photo is rendered softly blurred behind all sections with a gentle translucent scrim so text stays 100% legible.
+                        </p>
+                      </div>
+
+                      <div className="flex items-center space-x-3">
+                        <button
+                          type="button"
+                          onClick={() => setBgEnabled(!bgEnabled)}
+                          className={`relative inline-flex h-7 w-13 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                            bgEnabled ? "bg-indigo-600" : "bg-slate-300"
+                          }`}
+                          role="switch"
+                          aria-checked={bgEnabled}
+                        >
+                          <span
+                            aria-hidden="true"
+                            className={`pointer-events-none inline-block h-6 w-6 transform rounded-full bg-white shadow-md ring-0 transition duration-200 ease-in-out ${
+                              bgEnabled ? "translate-x-6" : "translate-x-0"
+                            }`}
+                          />
+                        </button>
+                        <span className="text-xs font-bold text-slate-700 min-w-[50px]">
+                          {bgEnabled ? "ENABLED" : "DISABLED"}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* 2. LIVE INTERACTIVE SIMULATOR CARD */}
+                    <div className="bg-white p-5 sm:p-6 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h4 className="font-extrabold text-sm text-slate-900 flex items-center space-x-2">
+                            <Eye className="w-4 h-4 text-indigo-600" />
+                            <span>Live Background Preview Simulator</span>
+                          </h4>
+                          <p className="text-xs text-slate-500">
+                            Simulated website card with current opacity ({Math.round(bgOpacity * 100)}%) and blur ({bgBlur}px).
+                          </p>
+                        </div>
+                        <span className="text-[10px] font-mono font-bold bg-indigo-50 text-indigo-700 px-2.5 py-1 rounded-full border border-indigo-100">
+                          Zero Impact on Text Readability
+                        </span>
+                      </div>
+
+                      {/* Simulator Frame */}
+                      <div className="relative rounded-2xl overflow-hidden border border-slate-200 min-h-[220px] bg-[#FAF9F6] p-6 flex flex-col justify-between">
+                        {/* Simulated Blurred Student Photo Layer */}
+                        {bgEnabled && bgImageUrl && (
+                          <div
+                            className="absolute inset-0 bg-cover bg-center pointer-events-none transition-all duration-300"
+                            style={{
+                              backgroundImage: `url(${bgImageUrl})`,
+                              filter: `blur(${bgBlur}px)`,
+                              opacity: bgOpacity,
+                              transform: "scale(1.08)",
+                            }}
+                          />
+                        )}
+                        {/* Simulated Scrim */}
+                        {bgEnabled && (
+                          <div className="absolute inset-0 bg-gradient-to-b from-white/70 via-[#FAF9F6]/60 to-[#FAF9F6]/80 pointer-events-none" />
+                        )}
+
+                        {/* Foreground Mock Card (Ensuring perfect contrast) */}
+                        <div className="relative z-10 max-w-lg bg-white/90 backdrop-blur-xs p-4 sm:p-5 rounded-2xl border border-indigo-100/80 shadow-md space-y-2">
+                          <div className="flex items-center space-x-2">
+                            <span className="px-2 py-0.5 bg-indigo-50 text-indigo-700 text-[10px] font-bold rounded-md uppercase font-mono">
+                              Preview Card
+                            </span>
+                            <span className="text-xs text-slate-400 font-mono">• Mid-Baneshwor, Kathmandu</span>
+                          </div>
+                          <h5 className="font-display font-black text-base text-slate-900 leading-tight">
+                            Shristi Academy Secondary School
+                          </h5>
+                          <p className="text-xs text-slate-600 font-medium leading-relaxed">
+                            "Education for Character" — Notice how clearly this text is read while the authentic students photo provides subtle warmth in the background.
+                          </p>
+                          <div className="pt-1 flex items-center space-x-2">
+                            <span className="px-3 py-1 bg-indigo-600 text-white rounded-lg text-[11px] font-bold">
+                              Sample Button
+                            </span>
+                            <span className="text-[11px] text-slate-500 font-semibold">
+                              Background photo remains behind all content
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="relative z-10 flex items-center justify-between text-[11px] text-slate-500 pt-3">
+                          <span className="font-mono text-[10px]">Photo: {bgFileName || "Selected Image"}</span>
+                          <span className="font-mono text-[10px]">Opacity: {Math.round(bgOpacity * 100)}% | Blur: {bgBlur}px</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* 3. PHOTO SELECTION: PRESETS & UPLOAD */}
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+                      
+                      {/* Presets from School Student Activities */}
+                      <div className="bg-slate-50/80 p-5 sm:p-6 rounded-2xl border border-slate-200/80 space-y-3">
+                        <div>
+                          <h4 className="font-extrabold text-sm text-slate-900 flex items-center space-x-2">
+                            <Sparkles className="w-4 h-4 text-pink-500" />
+                            <span>1-Click Student Photo Presets</span>
+                          </h4>
+                          <p className="text-xs text-slate-500">
+                            Pick an authentic campus activity photograph with 1 click:
+                          </p>
+                        </div>
+
+                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 pt-1">
+                          {[
+                            { name: "Student Activities", url: defaultStudentBgImg, tag: "Default" },
+                            { name: "Science Lab", url: scienceLabImg, tag: "Academic" },
+                            { name: "Montessori Class", url: montessoriImg, tag: "Early Edu" },
+                            { name: "Sports Day", url: sportsDayImg, tag: "Athletics" },
+                            { name: "Campus Excursion", url: outdoorImg, tag: "Activities" },
+                          ].map(preset => {
+                            const isChosen = bgImageUrl === preset.url;
+                            return (
+                              <button
+                                key={preset.name}
+                                type="button"
+                                onClick={() => {
+                                  setBgImageUrl(preset.url);
+                                  setBgFileName(preset.name + ".jpg");
+                                  setBgEnabled(true);
+                                  showAdminToast(`Selected preset: ${preset.name}`);
+                                }}
+                                className={`relative group rounded-xl overflow-hidden border-2 text-left transition-all cursor-pointer p-1 ${
+                                  isChosen 
+                                    ? "border-indigo-600 ring-2 ring-indigo-200 shadow-md bg-indigo-50" 
+                                    : "border-slate-200 hover:border-indigo-300 bg-white"
+                                }`}
+                              >
+                                <div className="aspect-4/3 rounded-lg overflow-hidden bg-slate-100 relative">
+                                  <img
+                                    src={preset.url}
+                                    alt={preset.name}
+                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                                  />
+                                  {isChosen && (
+                                    <div className="absolute top-1 right-1 bg-indigo-600 text-white p-0.5 rounded-full shadow-xs">
+                                      <Check className="w-3 h-3" />
+                                    </div>
+                                  )}
+                                </div>
+                                <div className="pt-1.5 px-1">
+                                  <p className="font-bold text-[11px] text-slate-900 truncate">{preset.name}</p>
+                                  <span className="text-[9px] font-mono text-slate-400">{preset.tag}</span>
+                                </div>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+
+                      {/* Custom Upload Box */}
+                      <div className="bg-slate-50/80 p-5 sm:p-6 rounded-2xl border border-slate-200/80 space-y-4 flex flex-col justify-between">
+                        <div className="space-y-2">
+                          <h4 className="font-extrabold text-sm text-slate-900 flex items-center space-x-2">
+                            <Upload className="w-4 h-4 text-indigo-600" />
+                            <span>Upload Custom Student Photograph</span>
+                          </h4>
+                          <p className="text-xs text-slate-500">
+                            Upload your school's newest students photo (JPG, PNG, WEBP). Photos will automatically be compressed to preserve storage and performance.
+                          </p>
+
+                          <div className="border-2 border-dashed border-slate-300 hover:border-indigo-400 bg-white p-6 rounded-2xl text-center space-y-3 transition-colors">
+                            <div className="w-10 h-10 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center mx-auto">
+                              <ImageIcon className="w-5 h-5" />
+                            </div>
+                            <div>
+                              <p className="text-xs font-bold text-slate-800">
+                                {bgFileName ? `Current: ${bgFileName}` : "Upload School Photo"}
+                              </p>
+                              <p className="text-[11px] text-slate-400 mt-0.5">
+                                Recommended: Landscape ratio (16:9 or 4:3), sharp focus
+                              </p>
+                            </div>
+                            <label className="inline-flex items-center space-x-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold cursor-pointer transition-colors shadow-xs">
+                              <Upload className="w-3.5 h-3.5" />
+                              <span>Select Student Photo File</span>
+                              <input
+                                type="file"
+                                accept="image/*"
+                                onChange={handleBgFileUpload}
+                                className="hidden"
+                              />
+                            </label>
+                          </div>
+                        </div>
+
+                        <div className="pt-2">
+                          <button
+                            type="button"
+                            onClick={handleResetSiteBackground}
+                            className="text-xs text-slate-500 hover:text-slate-800 underline font-semibold cursor-pointer"
+                          >
+                            Reset to Default Activity Photo
+                          </button>
+                        </div>
+                      </div>
+
+                    </div>
+
+                    {/* 4. BLUR & OPACITY FINE-TUNING */}
+                    <div className="bg-white p-5 sm:p-6 rounded-2xl border border-slate-200 shadow-sm space-y-5">
+                      <div className="space-y-1">
+                        <h4 className="font-extrabold text-sm text-slate-900 flex items-center space-x-2">
+                          <SlidersHorizontal className="w-4 h-4 text-indigo-600" />
+                          <span>Opacity & Blur Adjustment</span>
+                        </h4>
+                        <p className="text-xs text-slate-500">
+                          Calibrate how subtly the background photo appears. The recommended defaults (12% opacity, 6px blur) create an elegant, warm ambience without ever straining parent or student eyes.
+                        </p>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        
+                        {/* Opacity Control */}
+                        <div className="space-y-3 bg-slate-50/70 p-4 rounded-xl border border-slate-200/60">
+                          <div className="flex items-center justify-between">
+                            <label className="text-xs font-bold text-slate-800">Photo Opacity (투명도)</label>
+                            <span className="text-xs font-mono font-black text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-md">
+                              {Math.round(bgOpacity * 100)}%
+                            </span>
+                          </div>
+
+                          <input
+                            type="range"
+                            min="0.04"
+                            max="0.30"
+                            step="0.02"
+                            value={bgOpacity}
+                            onChange={(e) => setBgOpacity(parseFloat(e.target.value))}
+                            className="w-full accent-indigo-600 cursor-pointer"
+                          />
+
+                          {/* Opacity Presets */}
+                          <div className="grid grid-cols-4 gap-1.5 pt-1">
+                            {[
+                              { label: "6% Subtle", val: 0.06 },
+                              { label: "12% Rec.", val: 0.12 },
+                              { label: "18% Warm", val: 0.18 },
+                              { label: "25% Visible", val: 0.25 },
+                            ].map(p => (
+                              <button
+                                key={p.label}
+                                type="button"
+                                onClick={() => setBgOpacity(p.val)}
+                                className={`py-1 px-1 text-[10px] font-mono font-bold rounded-lg border transition-colors cursor-pointer text-center ${
+                                  Math.abs(bgOpacity - p.val) < 0.015
+                                    ? "bg-indigo-600 text-white border-indigo-600"
+                                    : "bg-white text-slate-600 border-slate-200 hover:bg-slate-100"
+                                }`}
+                              >
+                                {p.label}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Blur Control */}
+                        <div className="space-y-3 bg-slate-50/70 p-4 rounded-xl border border-slate-200/60">
+                          <div className="flex items-center justify-between">
+                            <label className="text-xs font-bold text-slate-800">Blur Softness (흐림 정도)</label>
+                            <span className="text-xs font-mono font-black text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-md">
+                              {bgBlur}px
+                            </span>
+                          </div>
+
+                          <input
+                            type="range"
+                            min="0"
+                            max="16"
+                            step="1"
+                            value={bgBlur}
+                            onChange={(e) => setBgBlur(parseInt(e.target.value, 10))}
+                            className="w-full accent-indigo-600 cursor-pointer"
+                          />
+
+                          {/* Blur Presets */}
+                          <div className="grid grid-cols-4 gap-1.5 pt-1">
+                            {[
+                              { label: "3px Light", val: 3 },
+                              { label: "6px Rec.", val: 6 },
+                              { label: "10px Soft", val: 10 },
+                              { label: "14px Heavy", val: 14 },
+                            ].map(p => (
+                              <button
+                                key={p.label}
+                                type="button"
+                                onClick={() => setBgBlur(p.val)}
+                                className={`py-1 px-1 text-[10px] font-mono font-bold rounded-lg border transition-colors cursor-pointer text-center ${
+                                  bgBlur === p.val
+                                    ? "bg-indigo-600 text-white border-indigo-600"
+                                    : "bg-white text-slate-600 border-slate-200 hover:bg-slate-100"
+                                }`}
+                              >
+                                {p.label}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+
+                      </div>
+                    </div>
+
+                    {/* 5. BOTTOM SAVE ACTION BAR */}
+                    <div className="bg-slate-900 text-white p-5 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-3 shadow-md">
+                      <div>
+                        <h5 className="font-bold text-sm">Ready to apply changes?</h5>
+                        <p className="text-xs text-slate-300">
+                          Click Save to apply your background configuration across the entire school website.
+                        </p>
+                      </div>
+
+                      <div className="flex items-center space-x-2.5">
+                        <button
+                          type="button"
+                          onClick={handleResetSiteBackground}
+                          className="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-bold transition-colors cursor-pointer"
+                        >
+                          Reset Default
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => handleSaveSiteBackground()}
+                          className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold flex items-center space-x-1.5 transition-all shadow-sm hover:shadow-md cursor-pointer"
+                        >
+                          <Save className="w-4 h-4" />
+                          <span>Save Website Background</span>
+                        </button>
+                      </div>
+                    </div>
+
                   </div>
                 )}
 
@@ -4031,6 +4774,21 @@ export default function AdminPortal({
                     </div>
                   </div>
                 )}
+
+                {/* CALENDAR WEBSITE LIVE PREVIEW MODAL */}
+                <CalendarPreviewModal
+                  isOpen={isCalendarPreviewOpen}
+                  onClose={() => setIsCalendarPreviewOpen(false)}
+                  events={adminCalEvents}
+                  calendarPoster={adminCalImage}
+                  onOpenLiveWebsite={() => {
+                    if (onNavigateToSection) {
+                      onNavigateToSection("tools");
+                    } else if (onExitAdmin) {
+                      onExitAdmin();
+                    }
+                  }}
+                />
                 </main>
               </div>
 

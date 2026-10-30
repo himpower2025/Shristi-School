@@ -4,7 +4,8 @@ import {
   MapPin, CheckCircle, HelpCircle, ArrowUp, Calendar, Inbox
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
-import { Notice, AdmissionQuery, SuggestionInquiry, PopupNoticeConfig, SchoolProfileConfig, GalleryItem } from "./types";
+import { Notice, AdmissionQuery, SuggestionInquiry, PopupNoticeConfig, SchoolProfileConfig, GalleryItem, SiteBackgroundConfig, ParentReview, SchoolEvent } from "./types";
+import defaultStudentBgImg from "./assets/images/school_activities_1782145063241.jpg";
 
 // Import modular subcomponents
 import Header from "./components/Header";
@@ -22,7 +23,16 @@ import SuggestionsSection from "./components/SuggestionsSection";
 import PopupModal from "./components/PopupModal";
 import SchoolProfileModal from "./components/SchoolProfileModal";
 import ParentReviews, { DEFAULT_PARENT_REVIEWS } from "./components/ParentReviews";
-import { ParentReview, SchoolEvent } from "./types";
+
+// DEFAULT SITE BACKGROUND CONFIGURATION (BLURRED STUDENT PHOTO)
+export const DEFAULT_SITE_BACKGROUND_CONFIG: SiteBackgroundConfig = {
+  enabled: true,
+  imageUrl: defaultStudentBgImg,
+  fileName: "school_activities_1782145063241.jpg",
+  opacity: 0.12,
+  blur: 6,
+  updatedAt: "Default Campus Ambience"
+};
 
 // DEFAULT SCHOOL PROFILE CONFIGURATION
 const DEFAULT_SCHOOL_PROFILE_CONFIG: SchoolProfileConfig = {
@@ -143,6 +153,15 @@ export default function App() {
   const [galleryItems, setGalleryItems] = useState<GalleryItem[]>([]);
   const [parentReviews, setParentReviews] = useState<ParentReview[]>([]);
   const [schoolEvents, setSchoolEvents] = useState<SchoolEvent[]>([]);
+  const [siteBackgroundConfig, setSiteBackgroundConfig] = useState<SiteBackgroundConfig>(() => {
+    const cached = localStorage.getItem("shristi_site_background_cache");
+    if (cached) {
+      try {
+        return JSON.parse(cached);
+      } catch (_) {}
+    }
+    return DEFAULT_SITE_BACKGROUND_CONFIG;
+  });
 
   // Load from local storage or initialize realistic mock templates
   useEffect(() => {
@@ -154,6 +173,15 @@ export default function App() {
     const cachedProfile = localStorage.getItem("shristi_school_profile_cache");
     const cachedGallery = localStorage.getItem("shristi_gallery_items_cache");
     const cachedReviews = localStorage.getItem("shristi_parent_reviews_cache");
+    const cachedBg = localStorage.getItem("shristi_site_background_cache");
+
+    if (cachedBg) {
+      try {
+        setSiteBackgroundConfig(JSON.parse(cachedBg));
+      } catch (_) {
+        setSiteBackgroundConfig(DEFAULT_SITE_BACKGROUND_CONFIG);
+      }
+    }
 
     if (cachedNotices) {
       setNotices(JSON.parse(cachedNotices));
@@ -250,7 +278,6 @@ export default function App() {
       try {
         let parsed: ParentReview[] = JSON.parse(cachedReviews);
         if (Array.isArray(parsed) && parsed.length > 0) {
-          // Fix spelling typo "Christi" -> "Shristi" in any existing cached reviews
           parsed = parsed.map(rev => {
             if (rev.reviewerName === "Krishna Joshi" && rev.comment.includes("Christi Academy")) {
               return {
@@ -275,16 +302,23 @@ export default function App() {
       localStorage.setItem("shristi_parent_reviews_cache", JSON.stringify(DEFAULT_PARENT_REVIEWS));
     }
 
+    // Load calendar events without re-injecting fake mock data
     const cachedEvents = localStorage.getItem("shristi_calendar_events");
     if (cachedEvents) {
       try {
-        setSchoolEvents(JSON.parse(cachedEvents));
+        const parsed = JSON.parse(cachedEvents);
+        // Exclude legacy mock events (evt-1 to evt-6) if user wants no fake data
+        const cleaned = Array.isArray(parsed) 
+          ? parsed.filter(e => !["evt-1", "evt-2", "evt-3", "evt-4", "evt-5", "evt-6"].includes(e.id))
+          : [];
+        setSchoolEvents(cleaned);
+        localStorage.setItem("shristi_calendar_events", JSON.stringify(cleaned));
       } catch (_) {
-        setSchoolEvents(DEFAULT_EVENTS);
+        setSchoolEvents([]);
       }
     } else {
-      setSchoolEvents(DEFAULT_EVENTS);
-      localStorage.setItem("shristi_calendar_events", JSON.stringify(DEFAULT_EVENTS));
+      setSchoolEvents([]);
+      localStorage.setItem("shristi_calendar_events", JSON.stringify([]));
     }
   }, []);
 
@@ -321,10 +355,20 @@ export default function App() {
   };
 
   const handleUpdateGalleryItems = (updated: GalleryItem[]) => {
-    const limited = updated.slice(0, 10);
+    const limited = updated.slice(0, 60);
     setGalleryItems(limited);
     localStorage.setItem("shristi_gallery_items_cache", JSON.stringify(limited));
     showToast("🖼️ Campus photo gallery updated!");
+  };
+
+  const handleUpdateSiteBackgroundConfig = (updated: SiteBackgroundConfig) => {
+    setSiteBackgroundConfig(updated);
+    try {
+      localStorage.setItem("shristi_site_background_cache", JSON.stringify(updated));
+    } catch (err) {
+      console.warn("Storage quota hit", err);
+    }
+    showToast("🖼️ Website background updated!");
   };
 
 
@@ -542,7 +586,27 @@ export default function App() {
   const lastNoticeTitle = notices.length > 0 ? notices[0].title : "";
 
   return (
-    <div className="min-h-screen bg-[#FAF9F6] flex flex-col font-sans overflow-x-hidden">
+    <div className="min-h-screen bg-[#FAF9F6] flex flex-col font-sans overflow-x-hidden relative">
+      
+      {/* Blurred Student / Campus Ambience Background (Configurable via Admin Portal) */}
+      {siteBackgroundConfig?.enabled && siteBackgroundConfig?.imageUrl && (
+        <div 
+          className="fixed inset-0 pointer-events-none z-0 overflow-hidden select-none" 
+          aria-hidden="true"
+        >
+          <div
+            className="absolute inset-0 bg-cover bg-center bg-no-repeat transition-all duration-700"
+            style={{
+              backgroundImage: `url(${siteBackgroundConfig.imageUrl})`,
+              filter: `blur(${siteBackgroundConfig.blur ?? 6}px)`,
+              opacity: siteBackgroundConfig.opacity ?? 0.12,
+              transform: "scale(1.08)",
+            }}
+          />
+          {/* Subtle translucent scrim so text & navigation contrast remains crisp and pristine */}
+          <div className="absolute inset-0 bg-gradient-to-b from-white/75 via-[#FAF9F6]/60 to-[#FAF9F6]/80 pointer-events-none" />
+        </div>
+      )}
       
       {/* Visitor Site-Wide Popup Modal */}
       <PopupModal
@@ -607,6 +671,11 @@ export default function App() {
             >
               <AdminPortal 
                 onExitAdmin={() => setIsAdminMode(false)}
+                onNavigateToSection={(section: string) => {
+                  setIsAdminMode(false);
+                  setCurrentSection(section);
+                  window.scrollTo({ top: 0, behavior: "smooth" });
+                }}
                 notices={notices}
                 onAddNotice={handleAddNotice}
                 onUpdateNotice={handleUpdateNotice}
@@ -636,6 +705,8 @@ export default function App() {
                 onClearSampleEvents={handleClearSampleEvents}
                 onClearSamplePhotos={handleClearSamplePhotos}
                 onClearAllSampleData={handleClearAllSampleData}
+                siteBackgroundConfig={siteBackgroundConfig}
+                onUpdateSiteBackgroundConfig={handleUpdateSiteBackgroundConfig}
               />
             </motion.div>
 
