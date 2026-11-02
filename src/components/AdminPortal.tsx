@@ -11,10 +11,6 @@ import PopupModal from "./PopupModal";
 import SchoolProfileModal from "./SchoolProfileModal";
 import CalendarPreviewModal from "./CalendarPreviewModal";
 import defaultStudentBgImg from "../assets/images/school_activities_1782145063241.jpg";
-import montessoriImg from "../assets/images/montessori_learning_1782145030889.jpg";
-import scienceLabImg from "../assets/images/science_lab_1782145047179.jpg";
-import sportsDayImg from "../assets/images/sports_day_relay_1785494481636.jpg";
-import outdoorImg from "../assets/images/outdoor_excursion_1785494441208.jpg";
 
 interface AdminPortalProps {
   onExitAdmin?: () => void;
@@ -658,11 +654,12 @@ export default function AdminPortal({
   };
 
   // Website Background Management States (Blurred Student Photo)
+  // Warm & soft defaults fixed per user request: opacity 0.12, blur 6px
+  const FIXED_BG_OPACITY = 0.12;
+  const FIXED_BG_BLUR = 6;
   const [bgEnabled, setBgEnabled] = useState<boolean>(siteBackgroundConfig?.enabled ?? true);
   const [bgImageUrl, setBgImageUrl] = useState<string | null>(siteBackgroundConfig?.imageUrl ?? defaultStudentBgImg);
   const [bgFileName, setBgFileName] = useState<string>(siteBackgroundConfig?.fileName ?? "school_activities.jpg");
-  const [bgOpacity, setBgOpacity] = useState<number>(siteBackgroundConfig?.opacity ?? 0.12);
-  const [bgBlur, setBgBlur] = useState<number>(siteBackgroundConfig?.blur ?? 6);
   const [bgSaveNotice, setBgSaveNotice] = useState<string | null>(null);
 
   useEffect(() => {
@@ -670,10 +667,26 @@ export default function AdminPortal({
       setBgEnabled(siteBackgroundConfig.enabled);
       setBgImageUrl(siteBackgroundConfig.imageUrl);
       setBgFileName(siteBackgroundConfig.fileName || "");
-      setBgOpacity(siteBackgroundConfig.opacity ?? 0.12);
-      setBgBlur(siteBackgroundConfig.blur ?? 6);
     }
   }, [siteBackgroundConfig]);
+
+  const handleToggleBgEnabled = () => {
+    const nextState = !bgEnabled;
+    setBgEnabled(nextState);
+    const updated: SiteBackgroundConfig = {
+      enabled: nextState,
+      imageUrl: bgImageUrl,
+      fileName: bgFileName,
+      opacity: FIXED_BG_OPACITY,
+      blur: FIXED_BG_BLUR,
+      updatedAt: new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
+    };
+    if (onUpdateSiteBackgroundConfig) {
+      onUpdateSiteBackgroundConfig(updated);
+    }
+    setBgSaveNotice(nextState ? "Website background photo turned ON." : "Website background photo turned OFF (clean background).");
+    showAdminToast(nextState ? "Background turned ON." : "Background turned OFF.");
+  };
 
   const handleBgFileUpload = async (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -683,7 +696,19 @@ export default function AdminPortal({
       setBgImageUrl(compressed);
       setBgFileName(file.name);
       setBgEnabled(true);
-      showAdminToast("📸 Student photo loaded! Click 'Save Website Background' to apply.");
+      const updated: SiteBackgroundConfig = {
+        enabled: true,
+        imageUrl: compressed,
+        fileName: file.name,
+        opacity: FIXED_BG_OPACITY,
+        blur: FIXED_BG_BLUR,
+        updatedAt: new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
+      };
+      if (onUpdateSiteBackgroundConfig) {
+        onUpdateSiteBackgroundConfig(updated);
+      }
+      setBgSaveNotice("Student photo uploaded and saved! It will appear softly in the website background.");
+      showAdminToast("Student photo uploaded and saved!");
     } catch (err) {
       alert("Failed to load image file. Please try another image.");
     }
@@ -696,22 +721,32 @@ export default function AdminPortal({
       enabled: bgEnabled,
       imageUrl: bgImageUrl,
       fileName: bgFileName,
-      opacity: bgOpacity,
-      blur: bgBlur,
+      opacity: FIXED_BG_OPACITY,
+      blur: FIXED_BG_BLUR,
       updatedAt: new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
     };
     onUpdateSiteBackgroundConfig(updated);
-    setBgSaveNotice("✅ Website background saved successfully! Visit the website to see the subtle ambience.");
-    showAdminToast("✅ Website background saved successfully!");
+    setBgSaveNotice("Website background saved successfully! Visit the website to see the subtle ambience.");
+    showAdminToast("Website background saved successfully!");
   };
 
   const handleResetSiteBackground = () => {
     setBgEnabled(true);
     setBgImageUrl(defaultStudentBgImg);
     setBgFileName("school_activities.jpg");
-    setBgOpacity(0.12);
-    setBgBlur(6);
-    showAdminToast("🔄 Restored default student activity photo.");
+    const updated: SiteBackgroundConfig = {
+      enabled: true,
+      imageUrl: defaultStudentBgImg,
+      fileName: "school_activities.jpg",
+      opacity: FIXED_BG_OPACITY,
+      blur: FIXED_BG_BLUR,
+      updatedAt: new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
+    };
+    if (onUpdateSiteBackgroundConfig) {
+      onUpdateSiteBackgroundConfig(updated);
+    }
+    setBgSaveNotice("Restored default school student photo.");
+    showAdminToast("Restored default school student photo.");
   };
 
   // Dynamic admin add input field
@@ -4139,10 +4174,10 @@ export default function AdminPortal({
                           </div>
                           <div>
                             <h3 className="font-display font-black text-xl text-slate-900 leading-tight">
-                              Website Ambience & Student Photo Background
+                              Website Background Photo
                             </h3>
                             <p className="text-xs text-slate-500 font-medium mt-0.5">
-                              Subtly display an authentic student photo gently blurred behind the website. Enhance the school's warm educational atmosphere without interfering with menus, text, or readability.
+                              Turn on or off a gentle student photo background. Opacity and softness are automatically set so text is always easy to read.
                             </p>
                           </div>
                         </div>
@@ -4180,352 +4215,160 @@ export default function AdminPortal({
                       </div>
                     )}
 
-                    {/* 1. MASTER TOGGLE CARD */}
-                    <div className="bg-slate-50/80 p-5 sm:p-6 rounded-2xl border border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                      <div className="space-y-1">
-                        <div className="flex items-center space-x-2">
-                          <h4 className="font-extrabold text-sm text-slate-900">Enable Blurred Student Photo Background</h4>
-                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                            bgEnabled ? "bg-emerald-100 text-emerald-800" : "bg-slate-200 text-slate-600"
+                    {/* Teacher Quick Helper Callout */}
+                    <div className="bg-amber-50/80 border border-amber-200/90 rounded-2xl p-4 sm:p-5 flex items-start space-x-3 text-amber-900">
+                      <Sparkles className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+                      <div className="text-xs space-y-1">
+                        <p className="font-bold text-slate-900">
+                          Teacher-Friendly Setup (No complex adjustments required)
+                        </p>
+                        <p className="text-slate-600 leading-relaxed">
+                          As a teacher managing the website alongside your teaching duties, you only need to <strong>turn this ON or OFF</strong> and <strong>upload a photo</strong>. A gentle warm blur (6px) and subtle opacity (12%) are applied automatically so your students' photo looks lovely behind the site without interfering with menus or notices.
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* 1. MASTER TOGGLE CARD (ON / OFF ONLY) */}
+                    <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-5">
+                      <div className="space-y-1.5 max-w-xl">
+                        <div className="flex items-center space-x-2.5">
+                          <Power className={`w-5 h-5 ${bgEnabled ? "text-emerald-600" : "text-slate-400"}`} />
+                          <h4 className="font-extrabold text-base text-slate-900">
+                            Website Background Photo: {bgEnabled ? "Turned ON" : "Turned OFF"}
+                          </h4>
+                          <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${
+                            bgEnabled ? "bg-emerald-100 text-emerald-800" : "bg-slate-100 text-slate-600"
                           }`}>
-                            {bgEnabled ? "✓ Active on Website" : "Hidden (Solid Color Background)"}
+                            {bgEnabled ? "Active on Website" : "Turned Off"}
                           </span>
                         </div>
-                        <p className="text-xs text-slate-500">
-                          When enabled, the photo is rendered softly blurred behind all sections with a gentle translucent scrim so text stays 100% legible.
+                        <p className="text-xs text-slate-600 leading-relaxed">
+                          {bgEnabled 
+                            ? "The student activity photograph is currently active and softly visible across all pages of the website."
+                            : "The background photo is turned off. The website displays the default clean warm background."}
                         </p>
                       </div>
 
-                      <div className="flex items-center space-x-3">
+                      <div className="flex items-center space-x-3 shrink-0">
                         <button
                           type="button"
-                          onClick={() => setBgEnabled(!bgEnabled)}
-                          className={`relative inline-flex h-7 w-13 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-                            bgEnabled ? "bg-indigo-600" : "bg-slate-300"
+                          onClick={handleToggleBgEnabled}
+                          className={`relative inline-flex h-8 w-15 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none shadow-inner ${
+                            bgEnabled ? "bg-emerald-600" : "bg-slate-300"
                           }`}
                           role="switch"
                           aria-checked={bgEnabled}
+                          aria-label="Toggle background photo"
                         >
                           <span
                             aria-hidden="true"
-                            className={`pointer-events-none inline-block h-6 w-6 transform rounded-full bg-white shadow-md ring-0 transition duration-200 ease-in-out ${
-                              bgEnabled ? "translate-x-6" : "translate-x-0"
+                            className={`pointer-events-none inline-block h-7 w-7 transform rounded-full bg-white shadow-md ring-0 transition duration-200 ease-in-out ${
+                              bgEnabled ? "translate-x-7" : "translate-x-0"
                             }`}
                           />
                         </button>
-                        <span className="text-xs font-bold text-slate-700 min-w-[50px]">
-                          {bgEnabled ? "ENABLED" : "DISABLED"}
+                        <span className="text-xs font-bold text-slate-800 min-w-[55px]">
+                          {bgEnabled ? "ON" : "OFF"}
                         </span>
                       </div>
                     </div>
 
-                    {/* 2. LIVE INTERACTIVE SIMULATOR CARD */}
-                    <div className="bg-white p-5 sm:p-6 rounded-2xl border border-slate-200 shadow-sm space-y-3">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <h4 className="font-extrabold text-sm text-slate-900 flex items-center space-x-2">
-                            <Eye className="w-4 h-4 text-indigo-600" />
-                            <span>Live Background Preview Simulator</span>
-                          </h4>
-                          <p className="text-xs text-slate-500">
-                            Simulated website card with current opacity ({Math.round(bgOpacity * 100)}%) and blur ({bgBlur}px).
-                          </p>
-                        </div>
-                        <span className="text-[10px] font-mono font-bold bg-indigo-50 text-indigo-700 px-2.5 py-1 rounded-full border border-indigo-100">
-                          Zero Impact on Text Readability
-                        </span>
-                      </div>
-
-                      {/* Simulator Frame */}
-                      <div className="relative rounded-2xl overflow-hidden border border-slate-200 min-h-[220px] bg-[#FAF9F6] p-6 flex flex-col justify-between">
-                        {/* Simulated Blurred Student Photo Layer */}
-                        {bgEnabled && bgImageUrl && (
-                          <div
-                            className="absolute inset-0 bg-cover bg-center pointer-events-none transition-all duration-300"
-                            style={{
-                              backgroundImage: `url(${bgImageUrl})`,
-                              filter: `blur(${bgBlur}px)`,
-                              opacity: bgOpacity,
-                              transform: "scale(1.08)",
-                            }}
-                          />
-                        )}
-                        {/* Simulated Scrim */}
-                        {bgEnabled && (
-                          <div className="absolute inset-0 bg-gradient-to-b from-white/70 via-[#FAF9F6]/60 to-[#FAF9F6]/80 pointer-events-none" />
-                        )}
-
-                        {/* Foreground Mock Card (Ensuring perfect contrast) */}
-                        <div className="relative z-10 max-w-lg bg-white/90 backdrop-blur-xs p-4 sm:p-5 rounded-2xl border border-indigo-100/80 shadow-md space-y-2">
-                          <div className="flex items-center space-x-2">
-                            <span className="px-2 py-0.5 bg-indigo-50 text-indigo-700 text-[10px] font-bold rounded-md uppercase font-mono">
-                              Preview Card
-                            </span>
-                            <span className="text-xs text-slate-400 font-mono">• Mid-Baneshwor, Kathmandu</span>
-                          </div>
-                          <h5 className="font-display font-black text-base text-slate-900 leading-tight">
-                            Shristi Academy Secondary School
-                          </h5>
-                          <p className="text-xs text-slate-600 font-medium leading-relaxed">
-                            "Education for Character" — Notice how clearly this text is read while the authentic students photo provides subtle warmth in the background.
-                          </p>
-                          <div className="pt-1 flex items-center space-x-2">
-                            <span className="px-3 py-1 bg-indigo-600 text-white rounded-lg text-[11px] font-bold">
-                              Sample Button
-                            </span>
-                            <span className="text-[11px] text-slate-500 font-semibold">
-                              Background photo remains behind all content
-                            </span>
-                          </div>
-                        </div>
-
-                        <div className="relative z-10 flex items-center justify-between text-[11px] text-slate-500 pt-3">
-                          <span className="font-mono text-[10px]">Photo: {bgFileName || "Selected Image"}</span>
-                          <span className="font-mono text-[10px]">Opacity: {Math.round(bgOpacity * 100)}% | Blur: {bgBlur}px</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* 3. PHOTO SELECTION: PRESETS & UPLOAD */}
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-                      
-                      {/* Presets from School Student Activities */}
-                      <div className="bg-slate-50/80 p-5 sm:p-6 rounded-2xl border border-slate-200/80 space-y-3">
-                        <div>
-                          <h4 className="font-extrabold text-sm text-slate-900 flex items-center space-x-2">
-                            <Sparkles className="w-4 h-4 text-pink-500" />
-                            <span>1-Click Student Photo Presets</span>
-                          </h4>
-                          <p className="text-xs text-slate-500">
-                            Pick an authentic campus activity photograph with 1 click:
-                          </p>
-                        </div>
-
-                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 pt-1">
-                          {[
-                            { name: "Student Activities", url: defaultStudentBgImg, tag: "Default" },
-                            { name: "Science Lab", url: scienceLabImg, tag: "Academic" },
-                            { name: "Montessori Class", url: montessoriImg, tag: "Early Edu" },
-                            { name: "Sports Day", url: sportsDayImg, tag: "Athletics" },
-                            { name: "Campus Excursion", url: outdoorImg, tag: "Activities" },
-                          ].map(preset => {
-                            const isChosen = bgImageUrl === preset.url;
-                            return (
-                              <button
-                                key={preset.name}
-                                type="button"
-                                onClick={() => {
-                                  setBgImageUrl(preset.url);
-                                  setBgFileName(preset.name + ".jpg");
-                                  setBgEnabled(true);
-                                  showAdminToast(`Selected preset: ${preset.name}`);
-                                }}
-                                className={`relative group rounded-xl overflow-hidden border-2 text-left transition-all cursor-pointer p-1 ${
-                                  isChosen 
-                                    ? "border-indigo-600 ring-2 ring-indigo-200 shadow-md bg-indigo-50" 
-                                    : "border-slate-200 hover:border-indigo-300 bg-white"
-                                }`}
-                              >
-                                <div className="aspect-4/3 rounded-lg overflow-hidden bg-slate-100 relative">
-                                  <img
-                                    src={preset.url}
-                                    alt={preset.name}
-                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-                                  />
-                                  {isChosen && (
-                                    <div className="absolute top-1 right-1 bg-indigo-600 text-white p-0.5 rounded-full shadow-xs">
-                                      <Check className="w-3 h-3" />
-                                    </div>
-                                  )}
-                                </div>
-                                <div className="pt-1.5 px-1">
-                                  <p className="font-bold text-[11px] text-slate-900 truncate">{preset.name}</p>
-                                  <span className="text-[9px] font-mono text-slate-400">{preset.tag}</span>
-                                </div>
-                              </button>
-                            );
-                          })}
-                        </div>
-                      </div>
-
-                      {/* Custom Upload Box */}
-                      <div className="bg-slate-50/80 p-5 sm:p-6 rounded-2xl border border-slate-200/80 space-y-4 flex flex-col justify-between">
-                        <div className="space-y-2">
-                          <h4 className="font-extrabold text-sm text-slate-900 flex items-center space-x-2">
-                            <Upload className="w-4 h-4 text-indigo-600" />
-                            <span>Upload Custom Student Photograph</span>
-                          </h4>
-                          <p className="text-xs text-slate-500">
-                            Upload your school's newest students photo (JPG, PNG, WEBP). Photos will automatically be compressed to preserve storage and performance.
-                          </p>
-
-                          <div className="border-2 border-dashed border-slate-300 hover:border-indigo-400 bg-white p-6 rounded-2xl text-center space-y-3 transition-colors">
-                            <div className="w-10 h-10 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center mx-auto">
-                              <ImageIcon className="w-5 h-5" />
-                            </div>
-                            <div>
-                              <p className="text-xs font-bold text-slate-800">
-                                {bgFileName ? `Current: ${bgFileName}` : "Upload School Photo"}
-                              </p>
-                              <p className="text-[11px] text-slate-400 mt-0.5">
-                                Recommended: Landscape ratio (16:9 or 4:3), sharp focus
-                              </p>
-                            </div>
-                            <label className="inline-flex items-center space-x-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold cursor-pointer transition-colors shadow-xs">
-                              <Upload className="w-3.5 h-3.5" />
-                              <span>Select Student Photo File</span>
-                              <input
-                                type="file"
-                                accept="image/*"
-                                onChange={handleBgFileUpload}
-                                className="hidden"
-                              />
-                            </label>
-                          </div>
-                        </div>
-
-                        <div className="pt-2">
-                          <button
-                            type="button"
-                            onClick={handleResetSiteBackground}
-                            className="text-xs text-slate-500 hover:text-slate-800 underline font-semibold cursor-pointer"
-                          >
-                            Reset to Default Activity Photo
-                          </button>
-                        </div>
-                      </div>
-
-                    </div>
-
-                    {/* 4. BLUR & OPACITY FINE-TUNING */}
-                    <div className="bg-white p-5 sm:p-6 rounded-2xl border border-slate-200 shadow-sm space-y-5">
-                      <div className="space-y-1">
+                    {/* 2. PHOTO UPLOAD CARD */}
+                    <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+                      <div>
                         <h4 className="font-extrabold text-sm text-slate-900 flex items-center space-x-2">
-                          <SlidersHorizontal className="w-4 h-4 text-indigo-600" />
-                          <span>Opacity & Blur Adjustment</span>
+                          <ImageIcon className="w-4 h-4 text-indigo-600" />
+                          <span>School Student Photo</span>
                         </h4>
-                        <p className="text-xs text-slate-500">
-                          Calibrate how subtly the background photo appears. The recommended defaults (12% opacity, 6px blur) create an elegant, warm ambience without ever straining parent or student eyes.
+                        <p className="text-xs text-slate-500 mt-0.5">
+                          Upload any photo of students or school activities. Photos are automatically resized and protected against storage limits.
                         </p>
                       </div>
 
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        
-                        {/* Opacity Control */}
-                        <div className="space-y-3 bg-slate-50/70 p-4 rounded-xl border border-slate-200/60">
-                          <div className="flex items-center justify-between">
-                            <label className="text-xs font-bold text-slate-800">Photo Opacity (투명도)</label>
-                            <span className="text-xs font-mono font-black text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-md">
-                              {Math.round(bgOpacity * 100)}%
-                            </span>
+                      {/* Current photo thumbnail & info */}
+                      <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200/80 flex flex-col sm:flex-row items-center justify-between gap-4">
+                        <div className="flex items-center space-x-4 w-full sm:w-auto">
+                          <div className="w-20 h-16 rounded-xl overflow-hidden bg-slate-200 shrink-0 border border-slate-300 relative shadow-xs">
+                            {bgImageUrl ? (
+                              <img
+                                src={bgImageUrl}
+                                alt="Current background"
+                                className="w-full h-full object-cover"
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center text-slate-400">
+                                <ImageIcon className="w-6 h-6" />
+                              </div>
+                            )}
                           </div>
-
-                          <input
-                            type="range"
-                            min="0.04"
-                            max="0.30"
-                            step="0.02"
-                            value={bgOpacity}
-                            onChange={(e) => setBgOpacity(parseFloat(e.target.value))}
-                            className="w-full accent-indigo-600 cursor-pointer"
-                          />
-
-                          {/* Opacity Presets */}
-                          <div className="grid grid-cols-4 gap-1.5 pt-1">
-                            {[
-                              { label: "6% Subtle", val: 0.06 },
-                              { label: "12% Rec.", val: 0.12 },
-                              { label: "18% Warm", val: 0.18 },
-                              { label: "25% Visible", val: 0.25 },
-                            ].map(p => (
-                              <button
-                                key={p.label}
-                                type="button"
-                                onClick={() => setBgOpacity(p.val)}
-                                className={`py-1 px-1 text-[10px] font-mono font-bold rounded-lg border transition-colors cursor-pointer text-center ${
-                                  Math.abs(bgOpacity - p.val) < 0.015
-                                    ? "bg-indigo-600 text-white border-indigo-600"
-                                    : "bg-white text-slate-600 border-slate-200 hover:bg-slate-100"
-                                }`}
-                              >
-                                {p.label}
-                              </button>
-                            ))}
+                          <div>
+                            <p className="text-xs font-bold text-slate-900">
+                              {bgFileName || "school_activities.jpg"}
+                            </p>
+                            <p className="text-[11px] text-slate-500 mt-0.5">
+                              Status: {bgEnabled ? "Showing softly on website" : "Background is turned off"}
+                            </p>
+                            <p className="text-[10px] text-slate-400 font-mono mt-0.5">
+                              Auto-blended with soft warmth (opacity: 12%, blur: 6px)
+                            </p>
                           </div>
                         </div>
 
-                        {/* Blur Control */}
-                        <div className="space-y-3 bg-slate-50/70 p-4 rounded-xl border border-slate-200/60">
-                          <div className="flex items-center justify-between">
-                            <label className="text-xs font-bold text-slate-800">Blur Softness (흐림 정도)</label>
-                            <span className="text-xs font-mono font-black text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-md">
-                              {bgBlur}px
-                            </span>
-                          </div>
+                        <div className="flex items-center space-x-2 w-full sm:w-auto justify-end">
+                          <label className="inline-flex items-center space-x-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold cursor-pointer transition-colors shadow-sm">
+                            <Upload className="w-3.5 h-3.5" />
+                            <span>Upload New Photo</span>
+                            <input
+                              type="file"
+                              accept="image/*"
+                              onChange={handleBgFileUpload}
+                              className="hidden"
+                            />
+                          </label>
 
-                          <input
-                            type="range"
-                            min="0"
-                            max="16"
-                            step="1"
-                            value={bgBlur}
-                            onChange={(e) => setBgBlur(parseInt(e.target.value, 10))}
-                            className="w-full accent-indigo-600 cursor-pointer"
-                          />
-
-                          {/* Blur Presets */}
-                          <div className="grid grid-cols-4 gap-1.5 pt-1">
-                            {[
-                              { label: "3px Light", val: 3 },
-                              { label: "6px Rec.", val: 6 },
-                              { label: "10px Soft", val: 10 },
-                              { label: "14px Heavy", val: 14 },
-                            ].map(p => (
-                              <button
-                                key={p.label}
-                                type="button"
-                                onClick={() => setBgBlur(p.val)}
-                                className={`py-1 px-1 text-[10px] font-mono font-bold rounded-lg border transition-colors cursor-pointer text-center ${
-                                  bgBlur === p.val
-                                    ? "bg-indigo-600 text-white border-indigo-600"
-                                    : "bg-white text-slate-600 border-slate-200 hover:bg-slate-100"
-                                }`}
-                              >
-                                {p.label}
-                              </button>
-                            ))}
-                          </div>
+                          <button
+                            type="button"
+                            onClick={handleResetSiteBackground}
+                            className="px-3.5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-colors cursor-pointer"
+                            title="Reset to the default student activity photo"
+                          >
+                            Reset Default
+                          </button>
                         </div>
-
                       </div>
                     </div>
 
-                    {/* 5. BOTTOM SAVE ACTION BAR */}
+                    {/* 3. BOTTOM ACTION BAR */}
                     <div className="bg-slate-900 text-white p-5 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-3 shadow-md">
                       <div>
-                        <h5 className="font-bold text-sm">Ready to apply changes?</h5>
+                        <h5 className="font-bold text-sm">Background settings ready</h5>
                         <p className="text-xs text-slate-300">
-                          Click Save to apply your background configuration across the entire school website.
+                          {bgEnabled 
+                            ? "Background photo is active with automatic soft blur."
+                            : "Background photo is currently turned off."}
                         </p>
                       </div>
 
                       <div className="flex items-center space-x-2.5">
                         <button
                           type="button"
-                          onClick={handleResetSiteBackground}
-                          className="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-bold transition-colors cursor-pointer"
-                        >
-                          Reset Default
-                        </button>
-
-                        <button
-                          type="button"
                           onClick={() => handleSaveSiteBackground()}
                           className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold flex items-center space-x-1.5 transition-all shadow-sm hover:shadow-md cursor-pointer"
                         >
                           <Save className="w-4 h-4" />
-                          <span>Save Website Background</span>
+                          <span>Save Settings</span>
                         </button>
+
+                        {onNavigateToSection && (
+                          <button
+                            type="button"
+                            onClick={() => onNavigateToSection("home")}
+                            className="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-bold flex items-center space-x-1.5 transition-colors cursor-pointer"
+                          >
+                            <span>Check Live Website</span>
+                            <ExternalLink className="w-3.5 h-3.5 text-indigo-300" />
+                          </button>
+                        )}
                       </div>
                     </div>
 
