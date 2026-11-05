@@ -130,11 +130,11 @@ export default function SuggestionsSection({
   };
 
   return (
-    <section className="py-20 px-4 sm:px-8 lg:px-12 xl:px-16 2xl:px-20 bg-[#FAF9F6] font-sans">
+    <section className="py-20 px-4 sm:px-8 lg:px-12 xl:px-16 2xl:px-20 bg-transparent font-sans">
       <div className="max-w-[1600px] xl:max-w-[1720px] 2xl:max-w-[1800px] mx-auto space-y-12">
         
         {/* SECTION HEADER */}
-        <div className="text-center space-y-4 max-w-2xl mx-auto">
+        <div className="text-center space-y-4 max-w-2xl mx-auto bg-white/70 backdrop-blur-xs p-6 rounded-3xl border border-white/80 shadow-xs">
           <span className="text-xs font-semibold uppercase tracking-wider text-indigo-700 bg-indigo-50 border border-indigo-100 px-3.5 py-1.5 rounded-full inline-block">
             👪 Community Voice Board
           </span>

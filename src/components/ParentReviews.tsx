@@ -215,9 +215,9 @@ export default function ParentReviews({ reviews, onAddReview }: ParentReviewsPro
   const qrCodeImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(reviewPageUrl)}&color=4f46e5`;
 
   return (
-    <section id="parent-reviews" className="py-16 sm:py-24 bg-gradient-to-b from-slate-50 via-indigo-50/20 to-white relative overflow-hidden">
+    <section id="parent-reviews" className="py-16 sm:py-24 bg-transparent relative overflow-hidden">
       {/* Decorative background glow */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-gradient-to-r from-amber-200/20 via-pink-200/20 to-indigo-200/20 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-gradient-to-r from-amber-200/10 via-pink-200/10 to-indigo-200/10 rounded-full blur-3xl pointer-events-none" />
 
       <div className="max-w-[1720px] 2xl:max-w-[1800px] mx-auto px-4 sm:px-8 lg:px-12 xl:px-16 2xl:px-20 relative z-10 space-y-12">
         

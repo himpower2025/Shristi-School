@@ -49,11 +49,11 @@ export default function NoticeBoard({ notices, onOpenAdminMode, isAdminMode }: N
   };
 
   return (
-    <section className="py-24 px-4 sm:px-8 lg:px-12 xl:px-16 2xl:px-20 bg-white/70 backdrop-blur-md bg-dot-grid" id="notice-board">
+    <section className="py-24 px-4 sm:px-8 lg:px-12 xl:px-16 2xl:px-20 bg-transparent" id="notice-board">
       <div className="max-w-[1720px] 2xl:max-w-[1800px] mx-auto space-y-12">
         
         {/* Header Block */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-4 border-b border-indigo-50/50">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-4 border-b border-indigo-100/60 bg-white/70 backdrop-blur-xs p-6 rounded-3xl border border-white/80 shadow-xs">
           <div className="text-left space-y-2">
             <span className="text-xs font-mono font-bold uppercase tracking-wider text-indigo-600 bg-indigo-50 px-3.5 py-1.5 rounded-full inline-block">
               Notice Board
@@ -61,7 +61,7 @@ export default function NoticeBoard({ notices, onOpenAdminMode, isAdminMode }: N
             <h2 className="font-display font-black text-3xl sm:text-4xl text-slate-900 tracking-tight">
               Announcements & Notices Center
             </h2>
-            <p className="text-slate-500 font-medium text-sm max-w-xl leading-normal">
+            <p className="text-slate-600 font-medium text-sm max-w-xl leading-normal">
               Browse public directives, terminal exam schedules, student results, and cultural calendars published directly by Shristi Academy school administration.
             </p>
           </div>

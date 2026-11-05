@@ -76,10 +76,10 @@ export default function AdmissionForm({ onSubmitQuery }: AdmissionFormProps) {
   };
 
   return (
-    <section className="py-24 px-4 sm:px-8 lg:px-12 xl:px-16 2xl:px-20 bg-[#FAF9F6] text-slate-800 relative overflow-hidden" id="admission">
+    <section className="py-24 px-4 sm:px-8 lg:px-12 xl:px-16 2xl:px-20 bg-transparent text-slate-800 relative overflow-hidden" id="admission">
       {/* Background glare */}
-      <div className="absolute top-[20%] right-[-10%] w-[450px] h-[450px] rounded-full bg-indigo-200/40 blur-[120px] pointer-events-none" />
-      <div className="absolute bottom-[10%] left-[-10%] w-[450px] h-[450px] rounded-full bg-pink-200/30 blur-[120px] pointer-events-none" />
+      <div className="absolute top-[20%] right-[-10%] w-[450px] h-[450px] rounded-full bg-indigo-200/20 blur-[120px] pointer-events-none" />
+      <div className="absolute bottom-[10%] left-[-10%] w-[450px] h-[450px] rounded-full bg-pink-200/20 blur-[120px] pointer-events-none" />
 
       <div className="max-w-[1720px] 2xl:max-w-[1800px] mx-auto space-y-12 relative z-10 font-sans">
         

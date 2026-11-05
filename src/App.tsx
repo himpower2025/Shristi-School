@@ -815,9 +815,9 @@ export default function App() {
                   <WhyShristi />
 
                   {/* Latest Notices & Live Communication Hub Widget */}
-                  <section className="py-20 px-4 sm:px-8 lg:px-12 xl:px-16 2xl:px-20 bg-white font-sans" id="home-community-hub">
+                  <section className="py-20 px-4 sm:px-8 lg:px-12 xl:px-16 2xl:px-20 bg-transparent font-sans" id="home-community-hub">
                     <div className="max-w-[1720px] 2xl:max-w-[1800px] mx-auto space-y-12">
-                      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-slate-100 pb-8">
+                      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-slate-200/60 pb-8">
                         <div className="space-y-2">
                           <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-pink-600 bg-pink-50 border border-pink-100 px-3 py-1 rounded-md inline-block">
                             Live Communications Hub
@@ -825,7 +825,7 @@ export default function App() {
                           <h3 className="font-display font-black text-2xl sm:text-3xl text-slate-900 tracking-tight">
                             Recent Announcements & Event Alerts
                           </h3>
-                          <p className="text-slate-500 text-xs sm:text-sm font-medium">
+                          <p className="text-slate-600 text-xs sm:text-sm font-semibold">
                             Daily updates, emergency notifications, and exam routings from Principal Vani Pradhan's workspace.
                           </p>
                         </div>
@@ -843,7 +843,7 @@ export default function App() {
                         {notices.slice(0, 2).map((notice) => (
                           <div 
                             key={notice.id}
-                            className="p-6 bg-slate-50 hover:bg-slate-100/50 border border-slate-100 rounded-3xl space-y-4 transition-all duration-300 group flex flex-col justify-between"
+                            className="p-6 bg-white/95 hover:bg-white border border-slate-200/90 rounded-3xl space-y-4 shadow-sm hover:shadow-md transition-all duration-300 group flex flex-col justify-between"
                           >
                             <div className="space-y-3">
                               <div className="flex items-center justify-between">
@@ -893,7 +893,7 @@ export default function App() {
                 </>
               ) : currentSection === "about" ? (
                 <div className="animate-fade-in">
-                  <div className="relative overflow-hidden bg-gradient-to-b from-indigo-50/40 via-white to-[#FAF9F6] py-16 text-center border-b border-indigo-100/60">
+                  <div className="relative overflow-hidden bg-gradient-to-b from-white/75 via-white/55 to-transparent py-14 text-center border-b border-indigo-100/40 backdrop-blur-xs">
                     <div className="absolute top-0 left-1/4 w-[280px] h-[280px] rounded-full bg-pink-150/10 blur-[80px] pointer-events-none" />
                     <div className="absolute top-0 right-1/4 w-[280px] h-[280px] rounded-full bg-indigo-150/15 blur-[80px] pointer-events-none" />
                     <div className="relative z-10 max-w-4xl mx-auto px-4 space-y-3">
@@ -911,7 +911,7 @@ export default function App() {
                 </div>
               ) : currentSection === "academics" ? (
                 <div className="animate-fade-in">
-                  <div className="relative overflow-hidden bg-gradient-to-b from-indigo-50/40 via-white to-[#FAF9F6] py-16 text-center border-b border-indigo-100/60">
+                  <div className="relative overflow-hidden bg-gradient-to-b from-white/75 via-white/55 to-transparent py-14 text-center border-b border-indigo-100/40 backdrop-blur-xs">
                     <div className="absolute top-0 left-1/4 w-[280px] h-[280px] rounded-full bg-pink-150/10 blur-[80px] pointer-events-none" />
                     <div className="absolute top-0 right-1/4 w-[280px] h-[280px] rounded-full bg-indigo-150/15 blur-[80px] pointer-events-none" />
                     <div className="relative z-10 max-w-4xl mx-auto px-4 space-y-3">
@@ -925,7 +925,7 @@ export default function App() {
                 </div>
               ) : currentSection === "notices" ? (
                 <div className="animate-fade-in">
-                  <div className="relative overflow-hidden bg-gradient-to-b from-indigo-50/40 via-white to-[#FAF9F6] py-16 text-center border-b border-indigo-100/60">
+                  <div className="relative overflow-hidden bg-gradient-to-b from-white/75 via-white/55 to-transparent py-14 text-center border-b border-indigo-100/40 backdrop-blur-xs">
                     <div className="absolute top-0 left-1/4 w-[280px] h-[280px] rounded-full bg-pink-150/10 blur-[80px] pointer-events-none" />
                     <div className="absolute top-0 right-1/4 w-[280px] h-[280px] rounded-full bg-indigo-150/15 blur-[80px] pointer-events-none" />
                     <div className="relative z-10 max-w-4xl mx-auto px-4 space-y-3">
@@ -943,7 +943,7 @@ export default function App() {
                 </div>
               ) : currentSection === "tools" ? (
                 <div className="animate-fade-in">
-                  <div className="relative overflow-hidden bg-gradient-to-b from-indigo-50/40 via-white to-[#FAF9F6] py-16 text-center border-b border-indigo-100/60">
+                  <div className="relative overflow-hidden bg-gradient-to-b from-white/75 via-white/55 to-transparent py-14 text-center border-b border-indigo-100/40 backdrop-blur-xs">
                     <div className="absolute top-0 left-1/4 w-[280px] h-[280px] rounded-full bg-pink-150/10 blur-[80px] pointer-events-none" />
                     <div className="absolute top-0 right-1/4 w-[280px] h-[280px] rounded-full bg-indigo-150/15 blur-[80px] pointer-events-none" />
                     <div className="relative z-10 max-w-4xl mx-auto px-4 space-y-3">
@@ -962,7 +962,7 @@ export default function App() {
                 </div>
               ) : currentSection === "suggestions" ? (
                 <div className="animate-fade-in">
-                  <div className="relative overflow-hidden bg-gradient-to-b from-indigo-50/40 via-white to-[#FAF9F6] py-16 text-center border-b border-indigo-100/60">
+                  <div className="relative overflow-hidden bg-gradient-to-b from-white/75 via-white/55 to-transparent py-14 text-center border-b border-indigo-100/40 backdrop-blur-xs">
                     <div className="absolute top-0 left-1/4 w-[280px] h-[280px] rounded-full bg-pink-150/10 blur-[80px] pointer-events-none" />
                     <div className="absolute top-0 right-1/4 w-[280px] h-[280px] rounded-full bg-indigo-150/15 blur-[80px] pointer-events-none" />
                     <div className="relative z-10 max-w-4xl mx-auto px-4 space-y-3">
@@ -980,7 +980,7 @@ export default function App() {
                 </div>
               ) : (
                 <div className="animate-fade-in">
-                  <div className="relative overflow-hidden bg-gradient-to-b from-indigo-50/40 via-white to-[#FAF9F6] py-16 text-center border-b border-indigo-100/60">
+                  <div className="relative overflow-hidden bg-gradient-to-b from-white/75 via-white/55 to-transparent py-14 text-center border-b border-indigo-100/40 backdrop-blur-xs">
                     <div className="absolute top-0 left-1/4 w-[280px] h-[280px] rounded-full bg-pink-150/10 blur-[80px] pointer-events-none" />
                     <div className="absolute top-0 right-1/4 w-[280px] h-[280px] rounded-full bg-indigo-150/15 blur-[80px] pointer-events-none" />
                     <div className="relative z-10 max-w-4xl mx-auto px-4 space-y-3">

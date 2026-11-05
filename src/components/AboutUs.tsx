@@ -121,7 +121,7 @@ export default function AboutUs({ onOpenSchoolProfile, schoolProfileConfig, gall
   ];
 
   return (
-    <section className="py-24 px-4 sm:px-8 lg:px-12 xl:px-16 2xl:px-20 bg-white border-y border-indigo-100/45" id="about-us">
+    <section className="py-24 px-4 sm:px-8 lg:px-12 xl:px-16 2xl:px-20 bg-transparent border-y border-indigo-100/45" id="about-us">
       <div className="max-w-[1720px] 2xl:max-w-[1800px] mx-auto space-y-20">
         
         {/* Section Heading */}

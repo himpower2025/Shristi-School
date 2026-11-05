@@ -66,10 +66,10 @@ export default function WhyShristi() {
   ];
 
   return (
-    <section className="py-24 px-4 bg-white border-y-2 border-indigo-100 relative overflow-hidden" id="why-shristi">
-      {/* Playful Floating Glow Blobs to make the section look extremely bright & popping */}
-      <div className="absolute top-1/4 -left-12 w-80 h-80 bg-indigo-200/30 rounded-full blur-3xl pointer-events-none animate-pulse" style={{ animationDuration: "6s" }} />
-      <div className="absolute bottom-1/4 -right-12 w-96 h-96 bg-pink-200/30 rounded-full blur-3xl pointer-events-none animate-pulse" style={{ animationDuration: "8s" }} />
+    <section className="py-24 px-4 bg-transparent border-y border-indigo-100/60 relative overflow-hidden" id="why-shristi">
+      {/* Playful Floating Glow Blobs */}
+      <div className="absolute top-1/4 -left-12 w-80 h-80 bg-indigo-200/20 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute bottom-1/4 -right-12 w-96 h-96 bg-pink-200/20 rounded-full blur-3xl pointer-events-none" />
       
       <div className="max-w-[1720px] 2xl:max-w-[1800px] mx-auto px-4 sm:px-8 lg:px-12 xl:px-16 2xl:px-20 space-y-16 relative z-10">
         
