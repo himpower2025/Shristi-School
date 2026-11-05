@@ -6,6 +6,8 @@ import {
 import { motion, AnimatePresence } from "motion/react";
 import { Notice, AdmissionQuery, SuggestionInquiry, PopupNoticeConfig, SchoolProfileConfig, GalleryItem, SiteBackgroundConfig, ParentReview, SchoolEvent } from "./types";
 import defaultStudentBgImg from "./assets/images/school_activities_1782145063241.jpg";
+import scienceLabImg from "./assets/images/science_lab_1782145047179.jpg";
+import sportsDayImg from "./assets/images/sports_day_relay_1785494481636.jpg";
 
 // Import modular subcomponents
 import Header from "./components/Header";
@@ -24,13 +26,37 @@ import PopupModal from "./components/PopupModal";
 import SchoolProfileModal from "./components/SchoolProfileModal";
 import ParentReviews, { DEFAULT_PARENT_REVIEWS } from "./components/ParentReviews";
 
-// DEFAULT SITE BACKGROUND CONFIGURATION (BLURRED STUDENT PHOTO)
+// DEFAULT SITE BACKGROUND CONFIGURATION (STUDENT PHOTO AMBIENCE WITH 4-HOUR ROTATION)
 export const DEFAULT_SITE_BACKGROUND_CONFIG: SiteBackgroundConfig = {
   enabled: true,
   imageUrl: defaultStudentBgImg,
-  fileName: "school_activities_1782145063241.jpg",
-  opacity: 0.12,
-  blur: 6,
+  fileName: "school_activities.jpg",
+  images: [
+    {
+      id: "bg-1",
+      url: defaultStudentBgImg,
+      fileName: "school_activities.jpg",
+      title: "Campus Life & Morning Assembly",
+      uploadedAt: "Default Campus Photo"
+    },
+    {
+      id: "bg-2",
+      url: scienceLabImg,
+      fileName: "science_lab.jpg",
+      title: "Science & Discovery Laboratory",
+      uploadedAt: "Default Campus Photo"
+    },
+    {
+      id: "bg-3",
+      url: sportsDayImg,
+      fileName: "sports_day.jpg",
+      title: "Sports Day Relay & Athletics",
+      uploadedAt: "Default Campus Photo"
+    }
+  ],
+  rotationIntervalHours: 4, // Rotates sequentially every 4 hours as requested
+  opacity: 0.32, // Clear, authentic student visibility (not washed out)
+  blur: 1.5, // 1.5px gentle contour softening (not a mosaic)
   updatedAt: "Default Campus Ambience"
 };
 
@@ -157,7 +183,16 @@ export default function App() {
     const cached = localStorage.getItem("shristi_site_background_cache");
     if (cached) {
       try {
-        return JSON.parse(cached);
+        const parsed = JSON.parse(cached);
+        if (parsed.opacity === 0.12) parsed.opacity = 0.32;
+        if (parsed.blur === 6) parsed.blur = 1.5;
+        if (!parsed.images || !Array.isArray(parsed.images) || parsed.images.length === 0) {
+          parsed.images = DEFAULT_SITE_BACKGROUND_CONFIG.images;
+        }
+        if (!parsed.rotationIntervalHours) {
+          parsed.rotationIntervalHours = 4;
+        }
+        return parsed;
       } catch (_) {}
     }
     return DEFAULT_SITE_BACKGROUND_CONFIG;
@@ -177,7 +212,16 @@ export default function App() {
 
     if (cachedBg) {
       try {
-        setSiteBackgroundConfig(JSON.parse(cachedBg));
+        const parsed = JSON.parse(cachedBg);
+        if (parsed.opacity === 0.12) parsed.opacity = 0.32;
+        if (parsed.blur === 6) parsed.blur = 1.5;
+        if (!parsed.images || !Array.isArray(parsed.images) || parsed.images.length === 0) {
+          parsed.images = DEFAULT_SITE_BACKGROUND_CONFIG.images;
+        }
+        if (!parsed.rotationIntervalHours) {
+          parsed.rotationIntervalHours = 4;
+        }
+        setSiteBackgroundConfig(parsed);
       } catch (_) {
         setSiteBackgroundConfig(DEFAULT_SITE_BACKGROUND_CONFIG);
       }
@@ -585,26 +629,61 @@ export default function App() {
   // Extract last notice title to display in Hero alert
   const lastNoticeTitle = notices.length > 0 ? notices[0].title : "";
 
+  // Multi-photo rotation logic (time-based index with smooth transition)
+  const [currentBgIndex, setCurrentBgIndex] = useState(0);
+
+  useEffect(() => {
+    const images = siteBackgroundConfig?.images;
+    if (!images || images.length <= 1) {
+      setCurrentBgIndex(0);
+      return;
+    }
+
+    const intervalHours = siteBackgroundConfig.rotationIntervalHours ?? 4;
+    // Calculate current slot based on epoch timestamp
+    const intervalMs = Math.max(0.01, intervalHours) * 3600 * 1000;
+    
+    const updateIndex = () => {
+      const slot = Math.floor(Date.now() / intervalMs);
+      const nextIndex = slot % images.length;
+      setCurrentBgIndex(nextIndex);
+    };
+
+    updateIndex();
+    const timer = setInterval(updateIndex, 30000); // Check every 30 seconds
+    return () => clearInterval(timer);
+  }, [siteBackgroundConfig?.images, siteBackgroundConfig?.rotationIntervalHours]);
+
+  const activeBgImage = (() => {
+    const images = siteBackgroundConfig?.images;
+    if (images && images.length > 0) {
+      const idx = Math.min(Math.max(0, currentBgIndex), images.length - 1);
+      return images[idx]?.url || siteBackgroundConfig.imageUrl;
+    }
+    return siteBackgroundConfig?.imageUrl || null;
+  })();
+
   return (
     <div className="min-h-screen bg-[#FAF9F6] flex flex-col font-sans overflow-x-hidden relative">
       
-      {/* Blurred Student / Campus Ambience Background (Configurable via Admin Portal) */}
-      {siteBackgroundConfig?.enabled && siteBackgroundConfig?.imageUrl && (
+      {/* Student & Campus Ambience Background with Sequential Rotation */}
+      {siteBackgroundConfig?.enabled && activeBgImage && (
         <div 
           className="fixed inset-0 pointer-events-none z-0 overflow-hidden select-none" 
           aria-hidden="true"
         >
           <div
-            className="absolute inset-0 bg-cover bg-center bg-no-repeat transition-all duration-700"
+            key={activeBgImage}
+            className="absolute inset-0 bg-cover bg-center bg-no-repeat transition-all duration-1000 ease-in-out"
             style={{
-              backgroundImage: `url(${siteBackgroundConfig.imageUrl})`,
-              filter: `blur(${siteBackgroundConfig.blur ?? 6}px)`,
-              opacity: siteBackgroundConfig.opacity ?? 0.12,
-              transform: "scale(1.08)",
+              backgroundImage: `url(${activeBgImage})`,
+              filter: `blur(${siteBackgroundConfig.blur ?? 1.5}px)`,
+              opacity: siteBackgroundConfig.opacity ?? 0.32,
+              transform: "scale(1.03)",
             }}
           />
-          {/* Subtle translucent scrim so text & navigation contrast remains crisp and pristine */}
-          <div className="absolute inset-0 bg-gradient-to-b from-white/75 via-[#FAF9F6]/60 to-[#FAF9F6]/80 pointer-events-none" />
+          {/* Natural gentle scrim protecting text contrast while leaving photos distinct and authentic */}
+          <div className="absolute inset-0 bg-gradient-to-b from-[#FAF9F6]/55 via-[#FAF9F6]/40 to-[#FAF9F6]/60 pointer-events-none" />
         </div>
       )}
       

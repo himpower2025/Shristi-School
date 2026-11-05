@@ -6,11 +6,13 @@ import {
   LayoutDashboard, GraduationCap, Search, Filter, MessageSquareQuote, ChevronRight, SlidersHorizontal, Clock, Layers, ExternalLink
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
-import { Notice, NoticeCategory, AdmissionQuery, SuggestionInquiry, PopupNoticeConfig, SchoolProfileConfig, GalleryItem, ParentReview, SchoolEvent, SiteBackgroundConfig } from "../types";
+import { Notice, NoticeCategory, AdmissionQuery, SuggestionInquiry, PopupNoticeConfig, SchoolProfileConfig, GalleryItem, ParentReview, SchoolEvent, SiteBackgroundConfig, BackgroundPhotoItem } from "../types";
 import PopupModal from "./PopupModal";
 import SchoolProfileModal from "./SchoolProfileModal";
 import CalendarPreviewModal from "./CalendarPreviewModal";
 import defaultStudentBgImg from "../assets/images/school_activities_1782145063241.jpg";
+import scienceLabImg from "../assets/images/science_lab_1782145047179.jpg";
+import sportsDayImg from "../assets/images/sports_day_relay_1785494481636.jpg";
 
 interface AdminPortalProps {
   onExitAdmin?: () => void;
@@ -653,32 +655,95 @@ export default function AdminPortal({
     );
   };
 
-  // Website Background Management States (Blurred Student Photo)
-  // Warm & soft defaults fixed per user request: opacity 0.12, blur 6px
-  const FIXED_BG_OPACITY = 0.12;
-  const FIXED_BG_BLUR = 6;
+  // Default authentic school photos for initial rotation
+  const DEFAULT_BG_IMAGES: BackgroundPhotoItem[] = [
+    {
+      id: "bg-1",
+      url: defaultStudentBgImg,
+      fileName: "school_activities.jpg",
+      title: "Campus Life & Morning Assembly",
+      uploadedAt: "Default Photo"
+    },
+    {
+      id: "bg-2",
+      url: scienceLabImg,
+      fileName: "science_lab.jpg",
+      title: "Science & Discovery Laboratory",
+      uploadedAt: "Default Photo"
+    },
+    {
+      id: "bg-3",
+      url: sportsDayImg,
+      fileName: "sports_day.jpg",
+      title: "Sports Day Relay & Athletics",
+      uploadedAt: "Default Photo"
+    }
+  ];
+
+  // Website Background Management States (Multi-Photo 4-Hour Rotation & Clarity)
   const [bgEnabled, setBgEnabled] = useState<boolean>(siteBackgroundConfig?.enabled ?? true);
-  const [bgImageUrl, setBgImageUrl] = useState<string | null>(siteBackgroundConfig?.imageUrl ?? defaultStudentBgImg);
-  const [bgFileName, setBgFileName] = useState<string>(siteBackgroundConfig?.fileName ?? "school_activities.jpg");
+  const [bgImages, setBgImages] = useState<BackgroundPhotoItem[]>(() => {
+    if (siteBackgroundConfig?.images && siteBackgroundConfig.images.length > 0) {
+      return siteBackgroundConfig.images;
+    }
+    if (siteBackgroundConfig?.imageUrl) {
+      return [{
+        id: "bg-init",
+        url: siteBackgroundConfig.imageUrl,
+        fileName: siteBackgroundConfig.fileName || "school_activities.jpg",
+        title: "School Photo",
+        uploadedAt: "Saved Photo"
+      }];
+    }
+    return DEFAULT_BG_IMAGES;
+  });
+  const [bgRotationHours, setBgRotationHours] = useState<number>(siteBackgroundConfig?.rotationIntervalHours ?? 4);
+  const [bgOpacity, setBgOpacity] = useState<number>(() => {
+    if (siteBackgroundConfig?.opacity === 0.12) return 0.32; // Upgrade old low opacity
+    return siteBackgroundConfig?.opacity ?? 0.32;
+  });
+  const [bgBlur, setBgBlur] = useState<number>(() => {
+    if (siteBackgroundConfig?.blur === 6) return 1.5; // Upgrade old mosaic blur
+    return siteBackgroundConfig?.blur ?? 1.5;
+  });
+  const [isUploadingBg, setIsUploadingBg] = useState(false);
   const [bgSaveNotice, setBgSaveNotice] = useState<string | null>(null);
 
+  // Sync with prop changes
   useEffect(() => {
     if (siteBackgroundConfig) {
       setBgEnabled(siteBackgroundConfig.enabled);
-      setBgImageUrl(siteBackgroundConfig.imageUrl);
-      setBgFileName(siteBackgroundConfig.fileName || "");
+      if (siteBackgroundConfig.images && siteBackgroundConfig.images.length > 0) {
+        setBgImages(siteBackgroundConfig.images);
+      }
+      if (siteBackgroundConfig.rotationIntervalHours) {
+        setBgRotationHours(siteBackgroundConfig.rotationIntervalHours);
+      }
+      if (siteBackgroundConfig.opacity !== undefined) {
+        setBgOpacity(siteBackgroundConfig.opacity === 0.12 ? 0.32 : siteBackgroundConfig.opacity);
+      }
+      if (siteBackgroundConfig.blur !== undefined) {
+        setBgBlur(siteBackgroundConfig.blur === 6 ? 1.5 : siteBackgroundConfig.blur);
+      }
     }
   }, [siteBackgroundConfig]);
+
+  // Compute currently active photo in rotation based on current timestamp
+  const currentSlotIndex = bgImages.length > 0
+    ? Math.floor(Date.now() / (Math.max(0.1, bgRotationHours) * 3600 * 1000)) % bgImages.length
+    : 0;
 
   const handleToggleBgEnabled = () => {
     const nextState = !bgEnabled;
     setBgEnabled(nextState);
     const updated: SiteBackgroundConfig = {
       enabled: nextState,
-      imageUrl: bgImageUrl,
-      fileName: bgFileName,
-      opacity: FIXED_BG_OPACITY,
-      blur: FIXED_BG_BLUR,
+      imageUrl: bgImages[0]?.url || defaultStudentBgImg,
+      fileName: bgImages[0]?.fileName || "school_activities.jpg",
+      images: bgImages,
+      rotationIntervalHours: bgRotationHours,
+      opacity: bgOpacity,
+      blur: bgBlur,
       updatedAt: new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
     };
     if (onUpdateSiteBackgroundConfig) {
@@ -688,30 +753,121 @@ export default function AdminPortal({
     showAdminToast(nextState ? "Background turned ON." : "Background turned OFF.");
   };
 
-  const handleBgFileUpload = async (e: ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  const handleBgMultiUpload = async (e: ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+    setIsUploadingBg(true);
+    setBgSaveNotice("Processing and optimizing photos for background rotation...");
     try {
-      const compressed = await compressImageFile(file, 1600, 0.85);
-      setBgImageUrl(compressed);
-      setBgFileName(file.name);
+      const newItems: BackgroundPhotoItem[] = [];
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        if (file.size > 15 * 1024 * 1024) continue;
+        const compressed = await compressImageFile(file, 1600, 0.85);
+        newItems.push({
+          id: `bg-${Date.now()}-${i}`,
+          url: compressed,
+          fileName: file.name,
+          title: file.name.replace(/\.[^/.]+$/, "").replace(/[-_]/g, " "),
+          uploadedAt: new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
+        });
+      }
+      const combined = [...bgImages, ...newItems].slice(0, 10);
+      setBgImages(combined);
       setBgEnabled(true);
       const updated: SiteBackgroundConfig = {
         enabled: true,
-        imageUrl: compressed,
-        fileName: file.name,
-        opacity: FIXED_BG_OPACITY,
-        blur: FIXED_BG_BLUR,
+        imageUrl: combined[0]?.url || defaultStudentBgImg,
+        fileName: combined[0]?.fileName || "school_activities.jpg",
+        images: combined,
+        rotationIntervalHours: bgRotationHours,
+        opacity: bgOpacity,
+        blur: bgBlur,
         updatedAt: new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
       };
       if (onUpdateSiteBackgroundConfig) {
         onUpdateSiteBackgroundConfig(updated);
       }
-      setBgSaveNotice("Student photo uploaded and saved! It will appear softly in the website background.");
-      showAdminToast("Student photo uploaded and saved!");
+      setBgSaveNotice(`🎉 Added ${newItems.length} photo(s)! Total: ${combined.length} photos sequentially rotating every ${bgRotationHours} hours.`);
+      showAdminToast(`Added ${newItems.length} photo(s) to rotation!`);
     } catch (err) {
-      alert("Failed to load image file. Please try another image.");
+      alert("Failed to process uploaded photos. Please try again with valid image files.");
+    } finally {
+      setIsUploadingBg(false);
     }
+  };
+
+  const handleDeleteBgPhoto = (id: string) => {
+    if (bgImages.length <= 1) {
+      alert("At least 1 photo is required for the background. You can upload a new photo to replace this one.");
+      return;
+    }
+    const updated = bgImages.filter(item => item.id !== id);
+    setBgImages(updated);
+    const updatedConfig: SiteBackgroundConfig = {
+      enabled: bgEnabled,
+      imageUrl: updated[0]?.url || defaultStudentBgImg,
+      fileName: updated[0]?.fileName || "school_activities.jpg",
+      images: updated,
+      rotationIntervalHours: bgRotationHours,
+      opacity: bgOpacity,
+      blur: bgBlur,
+      updatedAt: new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
+    };
+    if (onUpdateSiteBackgroundConfig) {
+      onUpdateSiteBackgroundConfig(updatedConfig);
+    }
+    showAdminToast("🗑️ Photo removed from rotation.");
+  };
+
+  const handleUpdateRotationHours = (hours: number) => {
+    setBgRotationHours(hours);
+    const updatedConfig: SiteBackgroundConfig = {
+      enabled: bgEnabled,
+      imageUrl: bgImages[0]?.url || defaultStudentBgImg,
+      fileName: bgImages[0]?.fileName || "school_activities.jpg",
+      images: bgImages,
+      rotationIntervalHours: hours,
+      opacity: bgOpacity,
+      blur: bgBlur,
+      updatedAt: new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
+    };
+    if (onUpdateSiteBackgroundConfig) {
+      onUpdateSiteBackgroundConfig(updatedConfig);
+    }
+    setBgSaveNotice(`⏰ Rotation interval updated to every ${hours} hours.`);
+    showAdminToast(`Rotation set to every ${hours} hours.`);
+  };
+
+  const handleSetClarityPreset = (preset: "clear" | "balanced" | "soft") => {
+    let newOpacity = 0.32;
+    let newBlur = 1.5;
+    if (preset === "clear") {
+      newOpacity = 0.32;
+      newBlur = 1.5;
+    } else if (preset === "balanced") {
+      newOpacity = 0.22;
+      newBlur = 3;
+    } else if (preset === "soft") {
+      newOpacity = 0.15;
+      newBlur = 5;
+    }
+    setBgOpacity(newOpacity);
+    setBgBlur(newBlur);
+    const updatedConfig: SiteBackgroundConfig = {
+      enabled: bgEnabled,
+      imageUrl: bgImages[0]?.url || defaultStudentBgImg,
+      fileName: bgImages[0]?.fileName || "school_activities.jpg",
+      images: bgImages,
+      rotationIntervalHours: bgRotationHours,
+      opacity: newOpacity,
+      blur: newBlur,
+      updatedAt: new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
+    };
+    if (onUpdateSiteBackgroundConfig) {
+      onUpdateSiteBackgroundConfig(updatedConfig);
+    }
+    showAdminToast(`Clarity set: ${Math.round(newOpacity * 100)}% visibility, ${newBlur}px softness`);
   };
 
   const handleSaveSiteBackground = (e?: FormEvent) => {
@@ -719,34 +875,40 @@ export default function AdminPortal({
     if (!onUpdateSiteBackgroundConfig) return;
     const updated: SiteBackgroundConfig = {
       enabled: bgEnabled,
-      imageUrl: bgImageUrl,
-      fileName: bgFileName,
-      opacity: FIXED_BG_OPACITY,
-      blur: FIXED_BG_BLUR,
+      imageUrl: bgImages[0]?.url || defaultStudentBgImg,
+      fileName: bgImages[0]?.fileName || "school_activities.jpg",
+      images: bgImages,
+      rotationIntervalHours: bgRotationHours,
+      opacity: bgOpacity,
+      blur: bgBlur,
       updatedAt: new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
     };
     onUpdateSiteBackgroundConfig(updated);
-    setBgSaveNotice("Website background saved successfully! Visit the website to see the subtle ambience.");
+    setBgSaveNotice(`✅ Website background saved successfully! (${bgImages.length} photos rotating every ${bgRotationHours} hours).`);
     showAdminToast("Website background saved successfully!");
   };
 
   const handleResetSiteBackground = () => {
     setBgEnabled(true);
-    setBgImageUrl(defaultStudentBgImg);
-    setBgFileName("school_activities.jpg");
+    setBgImages(DEFAULT_BG_IMAGES);
+    setBgRotationHours(4);
+    setBgOpacity(0.32);
+    setBgBlur(1.5);
     const updated: SiteBackgroundConfig = {
       enabled: true,
-      imageUrl: defaultStudentBgImg,
-      fileName: "school_activities.jpg",
-      opacity: FIXED_BG_OPACITY,
-      blur: FIXED_BG_BLUR,
+      imageUrl: DEFAULT_BG_IMAGES[0].url,
+      fileName: DEFAULT_BG_IMAGES[0].fileName,
+      images: DEFAULT_BG_IMAGES,
+      rotationIntervalHours: 4,
+      opacity: 0.32,
+      blur: 1.5,
       updatedAt: new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
     };
     if (onUpdateSiteBackgroundConfig) {
       onUpdateSiteBackgroundConfig(updated);
     }
-    setBgSaveNotice("Restored default school student photo.");
-    showAdminToast("Restored default school student photo.");
+    setBgSaveNotice("Restored default 3 school photos with 4-hour rotation.");
+    showAdminToast("Restored default school photos (4-hour rotation).");
   };
 
   // Dynamic admin add input field
@@ -4149,7 +4311,7 @@ export default function AdminPortal({
                   </div>
                 )}
 
-                {/* TAB: WEBSITE AMBIENCE & BLURRED STUDENT BACKGROUND */}
+                {/* TAB: WEBSITE AMBIENCE & MULTI-PHOTO SEQUENTIAL ROTATION */}
                 {cmsTab === "SiteBackground" && (
                   <div className="space-y-6">
                     {/* Header */}
@@ -4174,10 +4336,10 @@ export default function AdminPortal({
                           </div>
                           <div>
                             <h3 className="font-display font-black text-xl text-slate-900 leading-tight">
-                              Website Background Photo
+                              Website Background Photo & Sequential Rotation
                             </h3>
                             <p className="text-xs text-slate-500 font-medium mt-0.5">
-                              Turn on or off a gentle student photo background. Opacity and softness are automatically set so text is always easy to read.
+                              Display authentic student photos in the background with natural clarity. Upload multiple photos to automatically rotate them sequentially (e.g. every 4 hours).
                             </p>
                           </div>
                         </div>
@@ -4215,19 +4377,6 @@ export default function AdminPortal({
                       </div>
                     )}
 
-                    {/* Teacher Quick Helper Callout */}
-                    <div className="bg-amber-50/80 border border-amber-200/90 rounded-2xl p-4 sm:p-5 flex items-start space-x-3 text-amber-900">
-                      <Sparkles className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
-                      <div className="text-xs space-y-1">
-                        <p className="font-bold text-slate-900">
-                          Teacher-Friendly Setup (No complex adjustments required)
-                        </p>
-                        <p className="text-slate-600 leading-relaxed">
-                          As a teacher managing the website alongside your teaching duties, you only need to <strong>turn this ON or OFF</strong> and <strong>upload a photo</strong>. A gentle warm blur (6px) and subtle opacity (12%) are applied automatically so your students' photo looks lovely behind the site without interfering with menus or notices.
-                        </p>
-                      </div>
-                    </div>
-
                     {/* 1. MASTER TOGGLE CARD (ON / OFF ONLY) */}
                     <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-5">
                       <div className="space-y-1.5 max-w-xl">
@@ -4244,7 +4393,7 @@ export default function AdminPortal({
                         </div>
                         <p className="text-xs text-slate-600 leading-relaxed">
                           {bgEnabled 
-                            ? "The student activity photograph is currently active and softly visible across all pages of the website."
+                            ? `Authentic student photos are currently active. ${bgImages.length} photo(s) rotate sequentially every ${bgRotationHours} hours with natural clarity.`
                             : "The background photo is turned off. The website displays the default clean warm background."}
                         </p>
                       </div>
@@ -4273,83 +4422,313 @@ export default function AdminPortal({
                       </div>
                     </div>
 
-                    {/* 2. PHOTO UPLOAD CARD */}
+                    {/* 2. ROTATION INTERVAL SELECTOR (시간차 회전 간격 설정) */}
                     <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
-                      <div>
-                        <h4 className="font-extrabold text-sm text-slate-900 flex items-center space-x-2">
-                          <ImageIcon className="w-4 h-4 text-indigo-600" />
-                          <span>School Student Photo</span>
-                        </h4>
-                        <p className="text-xs text-slate-500 mt-0.5">
-                          Upload any photo of students or school activities. Photos are automatically resized and protected against storage limits.
-                        </p>
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                        <div>
+                          <h4 className="font-extrabold text-sm text-slate-900 flex items-center space-x-2">
+                            <Clock className="w-4 h-4 text-indigo-600" />
+                            <span>Sequential Rotation Interval (시간차 자동 회전 간격)</span>
+                          </h4>
+                          <p className="text-xs text-slate-500 mt-0.5">
+                            When multiple photos are uploaded, they rotate sequentially one-by-one so the school website feels fresh throughout the day.
+                          </p>
+                        </div>
+                        <span className="text-[11px] font-mono font-bold bg-indigo-50 text-indigo-700 px-3 py-1 rounded-full border border-indigo-100 shrink-0">
+                          Current Interval: Every {bgRotationHours} Hours
+                        </span>
                       </div>
 
-                      {/* Current photo thumbnail & info */}
-                      <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200/80 flex flex-col sm:flex-row items-center justify-between gap-4">
-                        <div className="flex items-center space-x-4 w-full sm:w-auto">
-                          <div className="w-20 h-16 rounded-xl overflow-hidden bg-slate-200 shrink-0 border border-slate-300 relative shadow-xs">
-                            {bgImageUrl ? (
-                              <img
-                                src={bgImageUrl}
-                                alt="Current background"
-                                className="w-full h-full object-cover"
-                              />
-                            ) : (
-                              <div className="w-full h-full flex items-center justify-center text-slate-400">
-                                <ImageIcon className="w-6 h-6" />
+                      <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5 pt-1">
+                        {[
+                          { hours: 4, label: "Every 4 Hours", desc: "Recommended (4시간마다)" },
+                          { hours: 1, label: "Every 1 Hour", desc: "Fast (1시간마다)" },
+                          { hours: 2, label: "Every 2 Hours", desc: "Active (2시간마다)" },
+                          { hours: 8, label: "Every 8 Hours", desc: "Day / Evening (8시간)" },
+                          { hours: 24, label: "Every 24 Hours", desc: "Daily (하루마다)" },
+                        ].map((option) => {
+                          const isSelected = bgRotationHours === option.hours;
+                          return (
+                            <button
+                              key={option.hours}
+                              type="button"
+                              onClick={() => handleUpdateRotationHours(option.hours)}
+                              className={`p-3 rounded-xl border text-left transition-all cursor-pointer ${
+                                isSelected
+                                  ? "border-indigo-600 bg-indigo-50/80 ring-2 ring-indigo-200 shadow-xs"
+                                  : "border-slate-200 bg-slate-50 hover:bg-slate-100"
+                              }`}
+                            >
+                              <div className="flex items-center justify-between">
+                                <span className="font-bold text-xs text-slate-900">{option.label}</span>
+                                {isSelected && <Check className="w-3.5 h-3.5 text-indigo-600 shrink-0" />}
                               </div>
-                            )}
-                          </div>
-                          <div>
-                            <p className="text-xs font-bold text-slate-900">
-                              {bgFileName || "school_activities.jpg"}
-                            </p>
-                            <p className="text-[11px] text-slate-500 mt-0.5">
-                              Status: {bgEnabled ? "Showing softly on website" : "Background is turned off"}
-                            </p>
-                            <p className="text-[10px] text-slate-400 font-mono mt-0.5">
-                              Auto-blended with soft warmth (opacity: 12%, blur: 6px)
-                            </p>
-                          </div>
+                              <span className="text-[10px] text-slate-500 block mt-0.5 font-medium">
+                                {option.desc}
+                              </span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {/* 3. MULTI-PHOTO QUEUE & UPLOAD CARD */}
+                    <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-5">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <div>
+                          <h4 className="font-extrabold text-sm text-slate-900 flex items-center space-x-2">
+                            <ImageIcon className="w-4 h-4 text-indigo-600" />
+                            <span>Rotating Photo Queue ({bgImages.length} Photos Registered)</span>
+                          </h4>
+                          <p className="text-xs text-slate-500 mt-0.5">
+                            Upload multiple student activity photos (e.g. sports day, laboratory, celebrations). They cycle sequentially every {bgRotationHours} hours.
+                          </p>
                         </div>
 
-                        <div className="flex items-center space-x-2 w-full sm:w-auto justify-end">
-                          <label className="inline-flex items-center space-x-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold cursor-pointer transition-colors shadow-sm">
+                        {/* Upload Button Supporting Multiple Files */}
+                        <div className="flex items-center space-x-2 shrink-0">
+                          <label className={`inline-flex items-center space-x-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold cursor-pointer transition-colors shadow-sm ${isUploadingBg ? "opacity-60 cursor-wait" : ""}`}>
                             <Upload className="w-3.5 h-3.5" />
-                            <span>Upload New Photo</span>
+                            <span>{isUploadingBg ? "Processing..." : "Add More Photos (다중 선택 가능)"}</span>
                             <input
                               type="file"
+                              multiple
                               accept="image/*"
-                              onChange={handleBgFileUpload}
+                              onChange={handleBgMultiUpload}
+                              disabled={isUploadingBg}
                               className="hidden"
                             />
                           </label>
+                        </div>
+                      </div>
 
-                          <button
-                            type="button"
-                            onClick={handleResetSiteBackground}
-                            className="px-3.5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-colors cursor-pointer"
-                            title="Reset to the default student activity photo"
-                          >
-                            Reset Default
-                          </button>
+                      {/* Photo Cards Grid */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3.5">
+                        {bgImages.map((photo, idx) => {
+                          const isActiveSlot = idx === currentSlotIndex;
+                          return (
+                            <div
+                              key={photo.id || idx}
+                              className={`p-3 rounded-2xl border transition-all flex flex-col justify-between ${
+                                isActiveSlot 
+                                  ? "border-emerald-500 bg-emerald-50/40 ring-2 ring-emerald-200 shadow-xs" 
+                                  : "border-slate-200 bg-slate-50/70 hover:bg-slate-50"
+                              }`}
+                            >
+                              <div className="space-y-2">
+                                <div className="aspect-16/10 rounded-xl overflow-hidden bg-slate-200 relative border border-slate-300/80 shadow-2xs">
+                                  <img
+                                    src={photo.url}
+                                    alt={photo.title || photo.fileName}
+                                    className="w-full h-full object-cover"
+                                  />
+                                  <div className="absolute top-2 left-2 px-2 py-0.5 bg-slate-900/80 backdrop-blur-xs text-white text-[10px] font-mono font-bold rounded-md">
+                                    #{idx + 1}
+                                  </div>
+                                  {isActiveSlot && (
+                                    <div className="absolute top-2 right-2 px-2 py-0.5 bg-emerald-600 text-white text-[10px] font-bold rounded-md flex items-center space-x-1 shadow-xs">
+                                      <Check className="w-3 h-3" />
+                                      <span>Showing Now</span>
+                                    </div>
+                                  )}
+                                </div>
+
+                                <div>
+                                  <p className="text-xs font-bold text-slate-900 truncate">
+                                    {photo.title || photo.fileName}
+                                  </p>
+                                  <div className="flex items-center justify-between text-[10px] text-slate-500 mt-0.5 font-mono">
+                                    <span>{photo.uploadedAt || "Campus Photo"}</span>
+                                    {isActiveSlot ? (
+                                      <span className="text-emerald-700 font-bold">Active in this {bgRotationHours}h slot</span>
+                                    ) : (
+                                      <span className="text-slate-400">Rotates in turn</span>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+
+                              <div className="pt-2.5 mt-2 border-t border-slate-200/80 flex items-center justify-between">
+                                <span className="text-[10px] text-slate-500 font-medium">
+                                  {isActiveSlot ? "Live background" : "In queue"}
+                                </span>
+
+                                <button
+                                  type="button"
+                                  onClick={() => handleDeleteBgPhoto(photo.id)}
+                                  className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
+                                  title="Remove photo from rotation"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+
+                      <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-slate-600">
+                        <span className="font-medium">
+                          Tip: You can upload up to 10 photos. Each photo is automatically compressed for speed and stored in high fidelity.
+                        </span>
+                        <button
+                          type="button"
+                          onClick={handleResetSiteBackground}
+                          className="text-xs font-semibold text-slate-600 hover:text-indigo-600 underline cursor-pointer shrink-0"
+                        >
+                          Restore 3 Default Photos
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* 4. PHOTO CLARITY & NATURAL SHARPNESS SETTING (선명도 & 투명도 설정) */}
+                    <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-5">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                        <div>
+                          <h4 className="font-extrabold text-sm text-slate-900 flex items-center space-x-2">
+                            <SlidersHorizontal className="w-4 h-4 text-indigo-600" />
+                            <span>Photo Clarity & Softness (선명도 및 자연스러운 배경 설정)</span>
+                          </h4>
+                          <p className="text-xs text-slate-500 mt-0.5">
+                            Choose how clearly student faces and campus surroundings appear. "Natural & Clear" is calibrated so photos remain recognizable without pixelated mosaic blur.
+                          </p>
+                        </div>
+                        <span className="text-[11px] font-mono font-bold bg-indigo-50 text-indigo-700 px-3 py-1 rounded-full border border-indigo-100 shrink-0">
+                          Visibility: {Math.round(bgOpacity * 100)}% • Softness: {bgBlur}px
+                        </span>
+                      </div>
+
+                      {/* 3 Quick Presets */}
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        {[
+                          {
+                            key: "clear" as const,
+                            name: "Natural & Clear (선명하고 자연스럽게)",
+                            opacity: 0.32,
+                            blur: 1.5,
+                            badge: "Recommended",
+                            desc: "Authentic student faces & campus details clearly visible. No mosaic or washed-out look."
+                          },
+                          {
+                            key: "balanced" as const,
+                            name: "Balanced Warmth (따뜻하고 은은하게)",
+                            opacity: 0.22,
+                            blur: 3,
+                            badge: "Medium",
+                            desc: "Gentle warm presence with moderate softening."
+                          },
+                          {
+                            key: "soft" as const,
+                            name: "Soft Focus (부드러운 블러)",
+                            opacity: 0.15,
+                            blur: 5,
+                            badge: "Subtle",
+                            desc: "Dreamlike soft ambience with minimal distraction."
+                          },
+                        ].map((preset) => {
+                          const isMatch = Math.abs(bgOpacity - preset.opacity) < 0.05 && Math.abs(bgBlur - preset.blur) < 1;
+                          return (
+                            <button
+                              key={preset.key}
+                              type="button"
+                              onClick={() => handleSetClarityPreset(preset.key)}
+                              className={`p-4 rounded-xl border text-left transition-all cursor-pointer ${
+                                isMatch
+                                  ? "border-indigo-600 bg-indigo-50/90 ring-2 ring-indigo-200 shadow-xs"
+                                  : "border-slate-200 bg-slate-50 hover:bg-slate-100"
+                              }`}
+                            >
+                              <div className="flex items-center justify-between mb-1">
+                                <span className="font-extrabold text-xs text-slate-900">{preset.name}</span>
+                                <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${
+                                  preset.badge === "Recommended" ? "bg-emerald-100 text-emerald-800" : "bg-slate-200 text-slate-700"
+                                }`}>
+                                  {preset.badge}
+                                </span>
+                              </div>
+                              <p className="text-[11px] text-slate-600 leading-relaxed">
+                                {preset.desc}
+                              </p>
+                              <div className="mt-2 text-[10px] font-mono text-slate-500 font-semibold">
+                                Opacity: {Math.round(preset.opacity * 100)}% • Blur: {preset.blur}px
+                              </div>
+                            </button>
+                          );
+                        })}
+                      </div>
+
+                      {/* Fine-Tuning Sliders */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-5 pt-2 bg-slate-50/70 p-4 rounded-xl border border-slate-200/60">
+                        {/* Opacity Slider */}
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between">
+                            <label className="text-xs font-bold text-slate-800">Photo Visibility / Opacity (선명도)</label>
+                            <span className="text-xs font-mono font-black text-indigo-600 bg-white px-2 py-0.5 rounded border border-slate-200">
+                              {Math.round(bgOpacity * 100)}%
+                            </span>
+                          </div>
+                          <input
+                            type="range"
+                            min="0.12"
+                            max="0.48"
+                            step="0.02"
+                            value={bgOpacity}
+                            onChange={(e) => setBgOpacity(parseFloat(e.target.value))}
+                            className="w-full accent-indigo-600 cursor-pointer"
+                          />
+                          <div className="flex justify-between text-[10px] text-slate-400 font-mono">
+                            <span>Subtle (12%)</span>
+                            <span>Natural (32%)</span>
+                            <span>Prominent (48%)</span>
+                          </div>
+                        </div>
+
+                        {/* Blur Slider */}
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between">
+                            <label className="text-xs font-bold text-slate-800">Edge Softness / Blur (블러 정도)</label>
+                            <span className="text-xs font-mono font-black text-indigo-600 bg-white px-2 py-0.5 rounded border border-slate-200">
+                              {bgBlur}px
+                            </span>
+                          </div>
+                          <input
+                            type="range"
+                            min="0"
+                            max="6"
+                            step="0.5"
+                            value={bgBlur}
+                            onChange={(e) => setBgBlur(parseFloat(e.target.value))}
+                            className="w-full accent-indigo-600 cursor-pointer"
+                          />
+                          <div className="flex justify-between text-[10px] text-slate-400 font-mono">
+                            <span>Crisp (0px)</span>
+                            <span>Gentle (1.5px)</span>
+                            <span>Mellow (6px)</span>
+                          </div>
                         </div>
                       </div>
                     </div>
 
-                    {/* 3. BOTTOM ACTION BAR */}
+                    {/* 5. BOTTOM ACTION BAR */}
                     <div className="bg-slate-900 text-white p-5 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-3 shadow-md">
                       <div>
-                        <h5 className="font-bold text-sm">Background settings ready</h5>
+                        <h5 className="font-bold text-sm">Background settings ready to apply</h5>
                         <p className="text-xs text-slate-300">
                           {bgEnabled 
-                            ? "Background photo is active with automatic soft blur."
+                            ? `${bgImages.length} photo(s) active with sequential ${bgRotationHours}-hour rotation at ${Math.round(bgOpacity * 100)}% visibility.`
                             : "Background photo is currently turned off."}
                         </p>
                       </div>
 
                       <div className="flex items-center space-x-2.5">
+                        <button
+                          type="button"
+                          onClick={handleResetSiteBackground}
+                          className="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-bold transition-colors cursor-pointer"
+                        >
+                          Reset Default
+                        </button>
+
                         <button
                           type="button"
                           onClick={() => handleSaveSiteBackground()}

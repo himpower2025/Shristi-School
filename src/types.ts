@@ -113,11 +113,22 @@ export interface ParentReview {
   avatarColor?: string;
 }
 
+export interface BackgroundPhotoItem {
+  id: string;
+  url: string;
+  fileName: string;
+  title?: string;
+  uploadedAt?: string;
+}
+
 export interface SiteBackgroundConfig {
   enabled: boolean;
   imageUrl: string | null;
   fileName?: string;
-  opacity: number; // 0.05 to 0.35 (default 0.12)
-  blur: number; // 0 to 16 px (default 6)
+  images?: BackgroundPhotoItem[];
+  rotationIntervalHours?: number; // e.g. 4 (default), 1, 2, 8, 24
+  opacity: number; // default 0.32 for clear and natural visibility
+  blur: number; // default 1.5 for crisp and non-mosaic natural photo
   updatedAt?: string;
 }
+
